@@ -23,6 +23,16 @@ type Processo = {
   longitude: number | null;
   mapa_link: string | null;
 };
+type Anexo = {
+  id: string;
+  processo_id: string;
+  processo_sisgep: string | null;
+  nome_arquivo: string | null;
+  url: string;
+  mime_type: string | null;
+  tamanho_bytes: number | null;
+  created_at: string;
+};
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 
@@ -42,6 +52,8 @@ export default function FiscalizacaoPage() {
   const [processos, setProcessos] = useState<Processo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [anexosPorProcesso, setAnexosPorProcesso] = useState<Record<string, Anexo[]>>({});
+const [enviandoAnexoProcessoId, setEnviandoAnexoProcessoId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("pendentes");
 
@@ -73,7 +85,37 @@ const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
   useEffect(() => {
     verificarLoginECarregarProcessos();
   }, []);
+async function carregarAnexos(listaProcessos: Processo[]) {
+  if (listaProcessos.length === 0) {
+    setAnexosPorProcesso({});
+    return;
+  }
 
+  const ids = listaProcessos.map((processo) => processo.id);
+
+  const { data, error } = await supabase
+    .from("anexos")
+    .select("*")
+    .in("processo_id", ids)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar anexos:", error.message);
+    return;
+  }
+
+  const agrupados: Record<string, Anexo[]> = {};
+
+  (data || []).forEach((anexo) => {
+    if (!agrupados[anexo.processo_id]) {
+      agrupados[anexo.processo_id] = [];
+    }
+
+    agrupados[anexo.processo_id].push(anexo);
+  });
+
+  setAnexosPorProcesso(agrupados);
+}
   async function verificarLoginECarregarProcessos() {
     setCarregando(true);
     setErro("");
@@ -96,8 +138,11 @@ const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
       return;
     }
 
-    setProcessos(data || []);
-    setCarregando(false);
+    const processosCarregados = data || [];
+
+setProcessos(processosCarregados);
+await carregarAnexos(processosCarregados);
+setCarregando(false);
   }
 
   async function sair() {
@@ -433,6 +478,120 @@ mapa_link: mapaLink,
 
     setModalNovoAberto(false);
   }
+  function limparNomeArquivo(nome: string) {
+  return nome
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9.\-_]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+}
+
+async function enviarAnexo(processo: Processo, arquivo: File) {
+  if (!arquivo) return;
+
+  const tamanhoMaximoMb = 10;
+  const tamanhoMaximoBytes = tamanhoMaximoMb * 1024 * 1024;
+
+  if (arquivo.size > tamanhoMaximoBytes) {
+    alert(`O arquivo deve ter no máximo ${tamanhoMaximoMb} MB.`);
+    return;
+  }
+
+  setEnviandoAnexoProcessoId(processo.id);
+
+  const nomeSeguro = limparNomeArquivo(arquivo.name);
+  const caminhoArquivo = `${processo.id}/${Date.now()}-${nomeSeguro}`;
+
+  const { error: erroUpload } = await supabase.storage
+    .from("anexos-processos")
+    .upload(caminhoArquivo, arquivo, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (erroUpload) {
+    setEnviandoAnexoProcessoId(null);
+    alert("Erro ao enviar anexo: " + erroUpload.message);
+    return;
+  }
+
+  const { data, error: erroBanco } = await supabase
+    .from("anexos")
+    .insert({
+      processo_id: processo.id,
+      processo_sisgep: processo.sisgep,
+      nome_arquivo: arquivo.name,
+      url: caminhoArquivo,
+      mime_type: arquivo.type || null,
+      tamanho_bytes: arquivo.size,
+    })
+    .select()
+    .single();
+
+  setEnviandoAnexoProcessoId(null);
+
+  if (erroBanco) {
+    alert("Arquivo enviado, mas erro ao salvar vínculo: " + erroBanco.message);
+    return;
+  }
+
+  if (data) {
+    setAnexosPorProcesso((atual) => ({
+      ...atual,
+      [processo.id]: [data, ...(atual[processo.id] || [])],
+    }));
+  }
+}
+
+async function abrirAnexo(anexo: Anexo) {
+  const { data, error } = await supabase.storage
+    .from("anexos-processos")
+    .createSignedUrl(anexo.url, 60 * 5);
+
+  if (error || !data?.signedUrl) {
+    alert("Erro ao abrir anexo: " + (error?.message || "link não gerado"));
+    return;
+  }
+
+  window.open(data.signedUrl, "_blank");
+}
+
+async function excluirAnexo(anexo: Anexo) {
+  const confirmar = window.confirm(
+    `Deseja excluir o anexo "${anexo.nome_arquivo || "arquivo"}"?`
+  );
+
+  if (!confirmar) return;
+
+  const { error: erroStorage } = await supabase.storage
+    .from("anexos-processos")
+    .remove([anexo.url]);
+
+  if (erroStorage) {
+    alert("Erro ao excluir arquivo: " + erroStorage.message);
+    return;
+  }
+
+  const { error: erroBanco } = await supabase
+    .from("anexos")
+    .delete()
+    .eq("id", anexo.id);
+
+  if (erroBanco) {
+    alert("Arquivo excluído, mas erro ao remover registro: " + erroBanco.message);
+    return;
+  }
+
+  setAnexosPorProcesso((atual) => {
+    const listaAtual = atual[anexo.processo_id] || [];
+
+    return {
+      ...atual,
+      [anexo.processo_id]: listaAtual.filter((item) => item.id !== anexo.id),
+    };
+  });
+}
 async function excluirProcesso(processo: Processo) {
   const confirmar = window.confirm(
     `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa ação não poderá ser desfeita.`
@@ -803,6 +962,69 @@ async function excluirProcesso(processo: Processo) {
                       {processo.observacao}
                     </p>
                   )}
+                  <div className="mt-4 rounded-xl bg-white/80 p-3">
+  <div className="flex items-center justify-between gap-3">
+    <p className="text-sm font-bold text-slate-700">
+      📎 Anexos
+    </p>
+
+    <span className="text-xs font-semibold text-slate-500">
+      {(anexosPorProcesso[processo.id] || []).length} arquivo(s)
+    </span>
+  </div>
+
+  <label className="mt-3 block cursor-pointer rounded-lg border border-dashed border-blue-300 bg-blue-50 px-3 py-2 text-center text-xs font-bold text-blue-700 hover:bg-blue-100">
+    {enviandoAnexoProcessoId === processo.id
+      ? "Enviando..."
+      : "Anexar foto/PDF"}
+
+    <input
+      type="file"
+      accept="image/*,application/pdf"
+      className="hidden"
+      disabled={enviandoAnexoProcessoId === processo.id}
+      onChange={(event) => {
+        const arquivo = event.target.files?.[0];
+
+        if (arquivo) {
+          enviarAnexo(processo, arquivo);
+        }
+
+        event.currentTarget.value = "";
+      }}
+    />
+  </label>
+
+  <div className="mt-3 space-y-2">
+    {(anexosPorProcesso[processo.id] || []).map((anexo) => (
+      <div
+        key={anexo.id}
+        className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
+      >
+        <button
+          onClick={() => abrirAnexo(anexo)}
+          className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-blue-700 hover:underline"
+          title={anexo.nome_arquivo || "Ver anexo"}
+        >
+          👁️ {anexo.nome_arquivo || "Ver anexo"}
+        </button>
+
+        <button
+          onClick={() => excluirAnexo(anexo)}
+          className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
+        >
+          Excluir
+        </button>
+      </div>
+    ))}
+
+    {(anexosPorProcesso[processo.id] || []).length === 0 && (
+      <p className="text-xs text-slate-500">
+        Nenhum anexo enviado.
+      </p>
+    )}
+  </div>
+</div>
 <button
   onClick={() => abrirModalEdicao(processo)}
   className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
