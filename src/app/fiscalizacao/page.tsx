@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -37,12 +37,12 @@ type Anexo = {
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 type ModoVisualizacao = "cards" | "tabela";
-
 type OrdenacaoProcessos =
   | "dias_desc"
   | "dias_asc"
   | "entrada_recente"
   | "entrada_antiga";
+type TipoFiltroPeriodo = "todos" | "entrada" | "conclusao";
 
 type NovoProcessoForm = {
   sisgep: string;
@@ -53,6 +53,21 @@ type NovoProcessoForm = {
   numero_rua: string;
   observacao: string;
 };
+
+const opcoesAssunto = [
+  "Ouvidoria/Denúncia",
+  "Inscrição Municipal/Alteração Contratual",
+  "Encerramento/Cancelamento",
+  "Processo Físico/Encerramento",
+  "IPTU",
+  "Outros/ Conferir no Processo",
+  "DRM/ISS",
+  "Revisão de Taxa",
+  "Pedidos de Feiras/Ambulantes",
+  "Horário Especial",
+  "Feiras Livres",
+  "Ministério Público",
+];
 
 export default function FiscalizacaoPage() {
   const router = useRouter();
@@ -67,6 +82,7 @@ export default function FiscalizacaoPage() {
 
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] =
     useState<FiltroStatus>("pendentes");
@@ -77,6 +93,11 @@ export default function FiscalizacaoPage() {
     useState<ModoVisualizacao>("cards");
   const [ordenacao, setOrdenacao] =
     useState<OrdenacaoProcessos>("dias_desc");
+
+  const [tipoFiltroPeriodo, setTipoFiltroPeriodo] =
+    useState<TipoFiltroPeriodo>("todos");
+  const [dataInicialFiltro, setDataInicialFiltro] = useState("");
+  const [dataFinalFiltro, setDataFinalFiltro] = useState("");
 
   const [processosSelecionados, setProcessosSelecionados] = useState<string[]>(
     []
@@ -117,7 +138,15 @@ export default function FiscalizacaoPage() {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [busca, filtroStatus, itensPorPagina, ordenacao]);
+  }, [
+    busca,
+    filtroStatus,
+    itensPorPagina,
+    ordenacao,
+    tipoFiltroPeriodo,
+    dataInicialFiltro,
+    dataFinalFiltro,
+  ]);
 
   async function carregarAnexos(listaProcessos: Processo[]) {
     if (listaProcessos.length === 0) {
@@ -340,7 +369,7 @@ export default function FiscalizacaoPage() {
     setProcessoEditando(null);
   }
 
-  async function salvarEdicaoProcesso(event: React.FormEvent<HTMLFormElement>) {
+  async function salvarEdicaoProcesso(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!processoEditando) {
@@ -374,10 +403,12 @@ export default function FiscalizacaoPage() {
     );
 
     const bairroFinal =
-      dadosAutomaticos.bairro ?? (enderecoMudou ? null : processoEditando.bairro);
+      dadosAutomaticos.bairro ??
+      (enderecoMudou ? null : processoEditando.bairro);
 
     const setorFinal =
-      dadosAutomaticos.setor ?? (enderecoMudou ? null : processoEditando.setor);
+      dadosAutomaticos.setor ??
+      (enderecoMudou ? null : processoEditando.setor);
 
     const latitudeFinal =
       dadosAutomaticos.latitude ??
@@ -434,14 +465,16 @@ export default function FiscalizacaoPage() {
 
     if (data) {
       setProcessos((listaAtual) =>
-        listaAtual.map((item) => (item.id === processoEditando.id ? data : item))
+        listaAtual.map((item) =>
+          item.id === processoEditando.id ? data : item
+        )
       );
     }
 
     fecharModalEdicao();
   }
 
-  async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
+  async function cadastrarNovoProcesso(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!novoProcesso.sisgep.trim()) {
@@ -641,9 +674,7 @@ export default function FiscalizacaoPage() {
       `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa ação não poderá ser desfeita.`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     const { error } = await supabase
       .from("processos")
@@ -717,9 +748,7 @@ export default function FiscalizacaoPage() {
       `Deseja concluir ${processosParaConcluir.length} processo(s) selecionado(s)?`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     setBaixandoEmLote(true);
 
@@ -766,9 +795,7 @@ export default function FiscalizacaoPage() {
       listaAtual.map((processo) => {
         const resultado = resultados.find((item) => item.id === processo.id);
 
-        if (!resultado || resultado.erro) {
-          return processo;
-        }
+        if (!resultado || resultado.erro) return processo;
 
         return {
           ...processo,
@@ -835,9 +862,7 @@ export default function FiscalizacaoPage() {
   }
 
   function getLinkMapa(processo: Processo) {
-    if (processo.mapa_link) {
-      return processo.mapa_link;
-    }
+    if (processo.mapa_link) return processo.mapa_link;
 
     const endereco = `${processo.rua || ""}, ${
       processo.numero_rua || ""
@@ -882,6 +907,22 @@ export default function FiscalizacaoPage() {
     };
   }
 
+  function dataDentroDoPeriodo(data: string | null) {
+    if (tipoFiltroPeriodo === "todos") return true;
+    if (!data) return false;
+
+    if (dataInicialFiltro && data < dataInicialFiltro) return false;
+    if (dataFinalFiltro && data > dataFinalFiltro) return false;
+
+    return true;
+  }
+
+  function limparFiltroPeriodo() {
+    setTipoFiltroPeriodo("todos");
+    setDataInicialFiltro("");
+    setDataFinalFiltro("");
+  }
+
   const processosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
@@ -906,43 +947,49 @@ export default function FiscalizacaoPage() {
 
       const combinaBusca = termo === "" || textoBusca.includes(termo);
 
-      return combinaStatus && combinaBusca;
+      const dataParaFiltro =
+        tipoFiltroPeriodo === "entrada"
+          ? processo.data_entrada
+          : tipoFiltroPeriodo === "conclusao"
+            ? processo.data_conclusao
+            : null;
+
+      const combinaPeriodo =
+        tipoFiltroPeriodo === "todos" || dataDentroDoPeriodo(dataParaFiltro);
+
+      return combinaStatus && combinaBusca && combinaPeriodo;
     });
 
     return [...listaFiltrada].sort((a, b) => {
       if (ordenacao === "dias_desc") {
-        if (a.concluido !== b.concluido) {
-          return a.concluido ? 1 : -1;
-        }
-
+        if (a.concluido !== b.concluido) return a.concluido ? 1 : -1;
         return obterDiasDoProcesso(b) - obterDiasDoProcesso(a);
       }
 
       if (ordenacao === "dias_asc") {
-        if (a.concluido !== b.concluido) {
-          return a.concluido ? 1 : -1;
-        }
-
+        if (a.concluido !== b.concluido) return a.concluido ? 1 : -1;
         return obterDiasDoProcesso(a) - obterDiasDoProcesso(b);
       }
 
       if (ordenacao === "entrada_recente") {
-        const dataA = a.data_entrada || "";
-        const dataB = b.data_entrada || "";
-
-        return dataB.localeCompare(dataA);
+        return (b.data_entrada || "").localeCompare(a.data_entrada || "");
       }
 
       if (ordenacao === "entrada_antiga") {
-        const dataA = a.data_entrada || "";
-        const dataB = b.data_entrada || "";
-
-        return dataA.localeCompare(dataB);
+        return (a.data_entrada || "").localeCompare(b.data_entrada || "");
       }
 
       return 0;
     });
-  }, [processos, busca, filtroStatus, ordenacao]);
+  }, [
+    processos,
+    busca,
+    filtroStatus,
+    ordenacao,
+    tipoFiltroPeriodo,
+    dataInicialFiltro,
+    dataFinalFiltro,
+  ]);
 
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
@@ -1062,8 +1109,7 @@ export default function FiscalizacaoPage() {
               <h1 className="mt-4 text-3xl font-bold">Fiscalização SisGep</h1>
 
               <p className="mt-2 text-blue-100">
-                Sistema de controle de processos, mapas, anexos, dashboard e
-                relatórios.
+                Sistema de controle de processos, mapas, anexos, dashboard e relatórios.
               </p>
             </div>
 
@@ -1115,21 +1161,13 @@ export default function FiscalizacaoPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">
-              Pendentes
-            </p>
-            <p className="mt-2 text-3xl font-black text-yellow-600">
-              {pendentes}
-            </p>
+            <p className="text-xs font-bold uppercase text-slate-500">Pendentes</p>
+            <p className="mt-2 text-3xl font-black text-yellow-600">{pendentes}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">
-              Concluídos
-            </p>
-            <p className="mt-2 text-3xl font-black text-green-600">
-              {concluidos}
-            </p>
+            <p className="text-xs font-bold uppercase text-slate-500">Concluídos</p>
+            <p className="mt-2 text-3xl font-black text-green-600">{concluidos}</p>
           </div>
         </div>
 
@@ -1185,9 +1223,7 @@ export default function FiscalizacaoPage() {
 
               <select
                 value={itensPorPagina}
-                onChange={(event) =>
-                  setItensPorPagina(Number(event.target.value))
-                }
+                onChange={(event) => setItensPorPagina(Number(event.target.value))}
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
               >
                 <option value={12}>12 por página</option>
@@ -1246,12 +1282,72 @@ export default function FiscalizacaoPage() {
               </select>
             </div>
 
+            <div className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-600">
+                    Filtrar por período
+                  </label>
+
+                  <select
+                    value={tipoFiltroPeriodo}
+                    onChange={(event) =>
+                      setTipoFiltroPeriodo(event.target.value as TipoFiltroPeriodo)
+                    }
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  >
+                    <option value="todos">Sem filtro de período</option>
+                    <option value="entrada">Data de entrada</option>
+                    <option value="conclusao">Data de conclusão</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-600">
+                    Data inicial
+                  </label>
+
+                  <input
+                    type="date"
+                    value={dataInicialFiltro}
+                    onChange={(event) => setDataInicialFiltro(event.target.value)}
+                    disabled={tipoFiltroPeriodo === "todos"}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-600">
+                    Data final
+                  </label>
+
+                  <input
+                    type="date"
+                    value={dataFinalFiltro}
+                    onChange={(event) => setDataFinalFiltro(event.target.value)}
+                    disabled={tipoFiltroPeriodo === "todos"}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    onClick={limparFiltroPeriodo}
+                    className="w-full rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
+                  >
+                    Limpar período
+                  </button>
+                </div>
+              </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                O filtro por período também será aplicado na exportação CSV.
+              </p>
+            </div>
+
             <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Relatório
-                </p>
-
+                <p className="text-sm font-semibold text-slate-600">Relatório</p>
                 <p className="text-xs text-slate-500">
                   Exporta todos os processos filtrados na tela.
                 </p>
@@ -1276,9 +1372,7 @@ export default function FiscalizacaoPage() {
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Baixa em lote
-              </h2>
+              <h2 className="text-lg font-bold text-slate-800">Baixa em lote</h2>
 
               <p className="mt-1 text-sm text-slate-600">
                 Selecione processos pendentes e conclua todos de uma vez.
@@ -1724,8 +1818,7 @@ export default function FiscalizacaoPage() {
                   Novo processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias
-                  serão gerados pelo sistema.
+                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias serão gerados pelo sistema.
                 </p>
               </div>
 
@@ -1741,140 +1834,55 @@ export default function FiscalizacaoPage() {
               onSubmit={cadastrarNovoProcesso}
               className="grid gap-4 md:grid-cols-2"
             >
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Data de entrada *
-                </label>
-                <input
-                  type="date"
-                  value={novoProcesso.data_entrada}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso(
-                      "data_entrada",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                  required
-                />
-              </div>
+              <CampoData
+                label="Data de entrada *"
+                value={novoProcesso.data_entrada}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("data_entrada", valor)
+                }
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Nº SisGep *
-                </label>
-                <input
-                  value={novoProcesso.sisgep}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso("sisgep", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                  placeholder="000.000.000.000.001"
-                  required
-                />
-              </div>
+              <CampoTexto
+                label="Nº SisGep *"
+                value={novoProcesso.sisgep}
+                onChange={(valor) => atualizarCampoNovoProcesso("sisgep", valor)}
+                required
+                placeholder="000.000.000.000.001"
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Aberto por
-                </label>
-                <input
-                  value={novoProcesso.aberto_por}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso(
-                      "aberto_por",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Aberto por"
+                value={novoProcesso.aberto_por}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("aberto_por", valor)
+                }
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Assunto
-                </label>
-                <select
-                  value={novoProcesso.assunto}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso("assunto", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                >
-                  <option value="">Selecione...</option>
-                  <option value="Ouvidoria/Denúncia">
-                    Ouvidoria/Denúncia
-                  </option>
-                  <option value="Inscrição Municipal/Alteração Contratual">
-                    Inscrição Municipal/Alteração Contratual
-                  </option>
-                  <option value="Encerramento/Cancelamento">
-                    Encerramento/Cancelamento
-                  </option>
-                  <option value="Processo Físico/Encerramento">
-                    Processo Físico/Encerramento
-                  </option>
-                  <option value="IPTU">IPTU</option>
-                  <option value="Outros/ Conferir no Processo">
-                    Outros/ Conferir no Processo
-                  </option>
-                  <option value="DRM/ISS">DRM/ISS</option>
-                  <option value="Revisão de Taxa">Revisão de Taxa</option>
-                  <option value="Pedidos de Feiras/Ambulantes">
-                    Pedidos de Feiras/Ambulantes
-                  </option>
-                  <option value="Horário Especial">Horário Especial</option>
-                  <option value="Feiras Livres">Feiras Livres</option>
-                  <option value="Ministério Público">
-                    Ministério Público
-                  </option>
-                </select>
-              </div>
+              <CampoAssunto
+                value={novoProcesso.assunto}
+                onChange={(valor) => atualizarCampoNovoProcesso("assunto", valor)}
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Rua
-                </label>
-                <input
-                  value={novoProcesso.rua}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso("rua", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Rua"
+                value={novoProcesso.rua}
+                onChange={(valor) => atualizarCampoNovoProcesso("rua", valor)}
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Número
-                </label>
-                <input
-                  value={novoProcesso.numero_rua}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso(
-                      "numero_rua",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Número"
+                value={novoProcesso.numero_rua}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("numero_rua", valor)
+                }
+              />
 
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  Observação
-                </label>
-                <textarea
-                  value={novoProcesso.observacao}
-                  onChange={(event) =>
-                    atualizarCampoNovoProcesso(
-                      "observacao",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoObservacao
+                value={novoProcesso.observacao}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("observacao", valor)
+                }
+              />
 
               <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
                 <button
@@ -1907,8 +1915,7 @@ export default function FiscalizacaoPage() {
                   Editar processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Altere os dados do processo. Ao salvar, bairro, setor,
-                  coordenadas, Maps e dias serão recalculados.
+                  Altere os dados do processo. Ao salvar, bairro, setor, coordenadas, Maps e dias serão recalculados.
                 </p>
               </div>
 
@@ -1924,140 +1931,59 @@ export default function FiscalizacaoPage() {
               onSubmit={salvarEdicaoProcesso}
               className="grid gap-4 md:grid-cols-2"
             >
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Data de entrada *
-                </label>
-                <input
-                  type="date"
-                  value={processoEdicao.data_entrada}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso(
-                      "data_entrada",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                  required
-                />
-              </div>
+              <CampoData
+                label="Data de entrada *"
+                value={processoEdicao.data_entrada}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("data_entrada", valor)
+                }
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Nº SisGep *
-                </label>
-                <input
-                  value={processoEdicao.sisgep}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso("sisgep", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                  placeholder="000.000.000.000.001"
-                  required
-                />
-              </div>
+              <CampoTexto
+                label="Nº SisGep *"
+                value={processoEdicao.sisgep}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("sisgep", valor)
+                }
+                required
+                placeholder="000.000.000.000.001"
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Aberto por
-                </label>
-                <input
-                  value={processoEdicao.aberto_por}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso(
-                      "aberto_por",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Aberto por"
+                value={processoEdicao.aberto_por}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("aberto_por", valor)
+                }
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Assunto
-                </label>
-                <select
-                  value={processoEdicao.assunto}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso("assunto", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                >
-                  <option value="">Selecione...</option>
-                  <option value="Ouvidoria/Denúncia">
-                    Ouvidoria/Denúncia
-                  </option>
-                  <option value="Inscrição Municipal/Alteração Contratual">
-                    Inscrição Municipal/Alteração Contratual
-                  </option>
-                  <option value="Encerramento/Cancelamento">
-                    Encerramento/Cancelamento
-                  </option>
-                  <option value="Processo Físico/Encerramento">
-                    Processo Físico/Encerramento
-                  </option>
-                  <option value="IPTU">IPTU</option>
-                  <option value="Outros/ Conferir no Processo">
-                    Outros/ Conferir no Processo
-                  </option>
-                  <option value="DRM/ISS">DRM/ISS</option>
-                  <option value="Revisão de Taxa">Revisão de Taxa</option>
-                  <option value="Pedidos de Feiras/Ambulantes">
-                    Pedidos de Feiras/Ambulantes
-                  </option>
-                  <option value="Horário Especial">Horário Especial</option>
-                  <option value="Feiras Livres">Feiras Livres</option>
-                  <option value="Ministério Público">
-                    Ministério Público
-                  </option>
-                </select>
-              </div>
+              <CampoAssunto
+                value={processoEdicao.assunto}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("assunto", valor)
+                }
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Rua
-                </label>
-                <input
-                  value={processoEdicao.rua}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso("rua", event.target.value)
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Rua"
+                value={processoEdicao.rua}
+                onChange={(valor) => atualizarCampoEdicaoProcesso("rua", valor)}
+              />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Número
-                </label>
-                <input
-                  value={processoEdicao.numero_rua}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso(
-                      "numero_rua",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoTexto
+                label="Número"
+                value={processoEdicao.numero_rua}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("numero_rua", valor)
+                }
+              />
 
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  Observação
-                </label>
-                <textarea
-                  value={processoEdicao.observacao}
-                  onChange={(event) =>
-                    atualizarCampoEdicaoProcesso(
-                      "observacao",
-                      event.target.value
-                    )
-                  }
-                  className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                />
-              </div>
+              <CampoObservacao
+                value={processoEdicao.observacao}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("observacao", valor)
+                }
+              />
 
               <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
                 <button
@@ -2081,5 +2007,100 @@ export default function FiscalizacaoPage() {
         </div>
       )}
     </main>
+  );
+}
+
+function CampoTexto({
+  label,
+  value,
+  onChange,
+  required = false,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (valor: string) => void;
+  required?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="text-sm font-semibold text-slate-700">{label}</label>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+        placeholder={placeholder}
+        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+      />
+    </div>
+  );
+}
+
+function CampoData({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (valor: string) => void;
+}) {
+  return (
+    <div>
+      <label className="text-sm font-semibold text-slate-700">{label}</label>
+      <input
+        type="date"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required
+        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+      />
+    </div>
+  );
+}
+
+function CampoAssunto({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (valor: string) => void;
+}) {
+  return (
+    <div>
+      <label className="text-sm font-semibold text-slate-700">Assunto</label>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+      >
+        <option value="">Selecione...</option>
+        {opcoesAssunto.map((assunto) => (
+          <option key={assunto} value={assunto}>
+            {assunto}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function CampoObservacao({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (valor: string) => void;
+}) {
+  return (
+    <div className="md:col-span-2">
+      <label className="text-sm font-semibold text-slate-700">Observação</label>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+      />
+    </div>
   );
 }
