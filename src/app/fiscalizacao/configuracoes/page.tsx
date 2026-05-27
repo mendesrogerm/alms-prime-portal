@@ -138,7 +138,12 @@ export default function ConfiguracoesPage() {
           <h1 className="mt-4 text-3xl font-bold">
             Configurações
           </h1>
-
+<Link
+  href="/fiscalizacao/configuracoes/bairros-setores"
+  className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+>
+  Importar bairros e setores
+</Link>
           <p className="mt-2 text-blue-100">
             Gerencie a relação de bairros e setores usada pelo sistema.
           </p>
