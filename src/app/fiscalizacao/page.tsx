@@ -37,13 +37,11 @@ type Anexo = {
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 type ModoVisualizacao = "cards" | "tabela";
-
 type OrdenacaoProcessos =
   | "dias_desc"
   | "dias_asc"
   | "entrada_recente"
   | "entrada_antiga";
-
 type TipoFiltroPeriodo = "todos" | "entrada" | "conclusao";
 
 type NovoProcessoForm = {
@@ -166,32 +164,21 @@ export default function FiscalizacaoPage() {
     }
 
     const ids = listaProcessos.map((processo) => processo.id);
-    const tamanhoLote = 100;
-    const todosAnexos: Anexo[] = [];
 
-    for (let i = 0; i < ids.length; i += tamanhoLote) {
-      const idsLote = ids.slice(i, i + tamanhoLote);
+    const { data, error } = await supabase
+      .from("anexos")
+      .select("*")
+      .in("processo_id", ids)
+      .order("created_at", { ascending: false });
 
-      try {
-        const { data, error } = await supabase
-          .from("anexos")
-          .select("*")
-          .in("processo_id", idsLote)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          continue;
-        }
-
-        todosAnexos.push(...((data || []) as Anexo[]));
-      } catch {
-        continue;
-      }
+    if (error) {
+      console.error("Erro ao carregar anexos:", error.message);
+      return;
     }
 
     const agrupados: Record<string, Anexo[]> = {};
 
-    todosAnexos.forEach((anexo) => {
+    (data || []).forEach((anexo) => {
       if (!agrupados[anexo.processo_id]) {
         agrupados[anexo.processo_id] = [];
       }
@@ -1078,11 +1065,9 @@ export default function FiscalizacaoPage() {
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
   const concluidos = processos.filter((p) => p.concluido).length;
-
   const pendentesFiltrados = processosFiltrados.filter(
     (p) => !p.concluido
   ).length;
-
   const concluidosFiltrados = processosFiltrados.filter(
     (p) => p.concluido
   ).length;
@@ -1214,14 +1199,14 @@ export default function FiscalizacaoPage() {
       ];
     });
 
-    const conteudoCsv = [
-      cabecalho.map(escaparCsv).join(";"),
-      ...linhas.map((linha) => linha.map(escaparCsv).join(";")),
-    ].join("\n");
+  const conteudoCsv = [
+  cabecalho.map(escaparCsv).join(";"),
+  ...linhas.map((linha) => linha.map(escaparCsv).join(";")),
+].join("\n");
 
-    const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
-      type: "text/csv;charset=utf-8;",
-    });
+const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
+  type: "text/csv;charset=utf-8;",
+});
 
     const url = URL.createObjectURL(arquivo);
     const link = document.createElement("a");
@@ -1232,6 +1217,228 @@ export default function FiscalizacaoPage() {
     link.click();
 
     URL.revokeObjectURL(url);
+  }
+
+  function escaparHtml(valor: string | number | null | undefined) {
+    return String(valor ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function descricaoFiltroPeriodo() {
+    if (tipoFiltroPeriodo === "todos") {
+      return "Sem filtro de período";
+    }
+
+    const tipo =
+      tipoFiltroPeriodo === "entrada" ? "Data de entrada" : "Data de conclusão";
+
+    const inicio = dataInicialFiltro ? formatarData(dataInicialFiltro) : "início";
+    const fim = dataFinalFiltro ? formatarData(dataFinalFiltro) : "hoje";
+
+    return `${tipo}: ${inicio} até ${fim}`;
+  }
+
+  function abrirRelatorioImpressao() {
+    if (processosFiltrados.length === 0) {
+      alert("Não há processos para gerar relatório com os filtros atuais.");
+      return;
+    }
+
+    const dataGeracao = new Date().toLocaleString("pt-BR");
+
+    const linhasTabela = processosFiltrados
+      .map((processo) => {
+        const dias = obterDiasDoProcesso(processo);
+        const endereco = `${processo.rua || "---"}, nº ${
+          processo.numero_rua || "---"
+        }`;
+
+        return `
+          <tr>
+            <td>${escaparHtml(processo.sisgep)}</td>
+            <td>${escaparHtml(processo.concluido ? "Concluído" : "Pendente")}</td>
+            <td>${escaparHtml(formatarData(processo.data_entrada))}</td>
+            <td>${escaparHtml(String(dias))}</td>
+            <td>${escaparHtml(processo.assunto || "---")}</td>
+            <td>${escaparHtml(processo.aberto_por || "---")}</td>
+            <td>${escaparHtml(endereco)}</td>
+            <td>${escaparHtml(processo.bairro || "---")}</td>
+            <td>${escaparHtml(processo.setor || "---")}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const html = `
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>Relatório Fiscalização SisGep</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              color: #0f172a;
+              margin: 32px;
+              background: #ffffff;
+            }
+            header {
+              border-bottom: 3px solid #1e3a8a;
+              padding-bottom: 16px;
+              margin-bottom: 20px;
+            }
+            h1 {
+              margin: 0;
+              color: #1e3a8a;
+              font-size: 26px;
+            }
+            .subtitulo {
+              margin-top: 6px;
+              color: #475569;
+              font-size: 13px;
+            }
+            .filtros {
+              margin: 18px 0;
+              padding: 14px;
+              border: 1px solid #cbd5e1;
+              border-radius: 12px;
+              background: #f8fafc;
+              font-size: 12px;
+              line-height: 1.5;
+            }
+            .cards {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 12px;
+              margin: 18px 0;
+            }
+            .card {
+              border: 1px solid #cbd5e1;
+              border-radius: 12px;
+              padding: 12px;
+              background: #ffffff;
+            }
+            .card p {
+              margin: 0;
+              font-size: 11px;
+              color: #64748b;
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+            .card strong {
+              display: block;
+              margin-top: 6px;
+              font-size: 24px;
+              color: #0f172a;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+              font-size: 10px;
+            }
+            th {
+              background: #1e3a8a;
+              color: #ffffff;
+              padding: 8px;
+              text-align: left;
+              border: 1px solid #1e3a8a;
+            }
+            td {
+              padding: 7px;
+              border: 1px solid #cbd5e1;
+              vertical-align: top;
+            }
+            tr:nth-child(even) td {
+              background: #f8fafc;
+            }
+            .rodape {
+              margin-top: 20px;
+              font-size: 11px;
+              color: #64748b;
+              text-align: center;
+            }
+            @media print {
+              body { margin: 14mm; }
+              table { page-break-inside: auto; }
+              tr { page-break-inside: avoid; page-break-after: auto; }
+            }
+          </style>
+        </head>
+        <body>
+          <header>
+            <h1>Relatório Fiscalização SisGep</h1>
+            <div class="subtitulo">Gerado em ${escaparHtml(dataGeracao)} pelo ALMS PRIME</div>
+          </header>
+
+          <section class="filtros">
+            <strong>Filtros aplicados:</strong><br />
+            Busca: ${escaparHtml(busca || "Sem busca")}<br />
+            Status: ${escaparHtml(filtroStatus)}<br />
+            Assunto: ${escaparHtml(filtroAssunto === "todos" ? "Todos" : filtroAssunto)}<br />
+            Setor: ${escaparHtml(filtroSetor === "todos" ? "Todos" : filtroSetor)}<br />
+            Período: ${escaparHtml(descricaoFiltroPeriodo())}<br />
+            Ordenação: ${escaparHtml(ordenacao)}
+          </section>
+
+          <section class="cards">
+            <div class="card"><p>Total filtrado</p><strong>${processosFiltrados.length}</strong></div>
+            <div class="card"><p>Pendentes</p><strong>${pendentesFiltrados}</strong></div>
+            <div class="card"><p>Concluídos</p><strong>${concluidosFiltrados}</strong></div>
+            <div class="card"><p>Críticos +15 dias</p><strong>${relatorioResumido.pendentesCriticos}</strong></div>
+          </section>
+
+          <section class="cards">
+            <div class="card"><p>Atenção +10 dias</p><strong>${relatorioResumido.pendentesAtencao}</strong></div>
+            <div class="card"><p>Média dias filtrados</p><strong>${relatorioResumido.mediaDias.toFixed(1)}</strong></div>
+            <div class="card"><p>Média concluídos</p><strong>${relatorioResumido.mediaDiasConcluidos.toFixed(1)}</strong></div>
+            <div class="card"><p>Total geral</p><strong>${total}</strong></div>
+          </section>
+
+          <table>
+            <thead>
+              <tr>
+                <th>SisGep</th>
+                <th>Status</th>
+                <th>Entrada</th>
+                <th>Dias</th>
+                <th>Assunto</th>
+                <th>Aberto por</th>
+                <th>Endereço</th>
+                <th>Bairro</th>
+                <th>Setor</th>
+              </tr>
+            </thead>
+            <tbody>${linhasTabela}</tbody>
+          </table>
+
+          <div class="rodape">ALMS PRIME — Relatório gerado a partir dos filtros atuais.</div>
+
+          <script>
+            window.onload = function() {
+              window.focus();
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const janela = window.open("", "_blank", "width=1200,height=800");
+
+    if (!janela) {
+      alert("Permita pop-ups para gerar o relatório de impressão/PDF.");
+      return;
+    }
+
+    janela.document.open();
+    janela.document.write(html);
+    janela.document.close();
   }
 
   function maiorValor(lista: GrupoResumo[]) {
@@ -1294,8 +1501,7 @@ export default function FiscalizacaoPage() {
               <h1 className="mt-4 text-3xl font-bold">Fiscalização SisGep</h1>
 
               <p className="mt-2 text-blue-100">
-                Sistema de controle de processos, mapas, anexos, dashboard e
-                relatórios.
+                Sistema de controle de processos, mapas, anexos, dashboard e relatórios.
               </p>
             </div>
 
@@ -1347,21 +1553,13 @@ export default function FiscalizacaoPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">
-              Pendentes
-            </p>
-            <p className="mt-2 text-3xl font-black text-yellow-600">
-              {pendentes}
-            </p>
+            <p className="text-xs font-bold uppercase text-slate-500">Pendentes</p>
+            <p className="mt-2 text-3xl font-black text-yellow-600">{pendentes}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">
-              Concluídos
-            </p>
-            <p className="mt-2 text-3xl font-black text-green-600">
-              {concluidos}
-            </p>
+            <p className="text-xs font-bold uppercase text-slate-500">Concluídos</p>
+            <p className="mt-2 text-3xl font-black text-green-600">{concluidos}</p>
           </div>
         </div>
 
@@ -1417,9 +1615,7 @@ export default function FiscalizacaoPage() {
 
               <select
                 value={itensPorPagina}
-                onChange={(event) =>
-                  setItensPorPagina(Number(event.target.value))
-                }
+                onChange={(event) => setItensPorPagina(Number(event.target.value))}
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
               >
                 <option value={12}>12 por página</option>
@@ -1526,9 +1722,7 @@ export default function FiscalizacaoPage() {
                   <select
                     value={tipoFiltroPeriodo}
                     onChange={(event) =>
-                      setTipoFiltroPeriodo(
-                        event.target.value as TipoFiltroPeriodo
-                      )
+                      setTipoFiltroPeriodo(event.target.value as TipoFiltroPeriodo)
                     }
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
                   >
@@ -1546,9 +1740,7 @@ export default function FiscalizacaoPage() {
                   <input
                     type="date"
                     value={dataInicialFiltro}
-                    onChange={(event) =>
-                      setDataInicialFiltro(event.target.value)
-                    }
+                    onChange={(event) => setDataInicialFiltro(event.target.value)}
                     disabled={tipoFiltroPeriodo === "todos"}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
@@ -1562,9 +1754,7 @@ export default function FiscalizacaoPage() {
                   <input
                     type="date"
                     value={dataFinalFiltro}
-                    onChange={(event) =>
-                      setDataFinalFiltro(event.target.value)
-                    }
+                    onChange={(event) => setDataFinalFiltro(event.target.value)}
                     disabled={tipoFiltroPeriodo === "todos"}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
@@ -1587,9 +1777,7 @@ export default function FiscalizacaoPage() {
 
             <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-600">
-                  Relatório
-                </p>
+                <p className="text-sm font-semibold text-slate-600">Relatório</p>
                 <p className="text-xs text-slate-500">
                   Exporta todos os processos filtrados na tela.
                 </p>
@@ -1601,6 +1789,13 @@ export default function FiscalizacaoPage() {
                   className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
                 >
                   Limpar filtros
+                </button>
+
+                <button
+                  onClick={abrirRelatorioImpressao}
+                  className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                >
+                  Relatório PDF
                 </button>
 
                 <button
@@ -1721,9 +1916,7 @@ export default function FiscalizacaoPage() {
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Baixa em lote
-              </h2>
+              <h2 className="text-lg font-bold text-slate-800">Baixa em lote</h2>
 
               <p className="mt-1 text-sm text-slate-600">
                 Selecione processos pendentes e conclua todos de uma vez.
@@ -2016,20 +2209,13 @@ export default function FiscalizacaoPage() {
                       const dias = obterDiasDoProcesso(processo);
 
                       return (
-                        <tr
-                          key={processo.id}
-                          className="border-t border-slate-100"
-                        >
+                        <tr key={processo.id} className="border-t border-slate-100">
                           <td className="px-4 py-3">
                             <input
                               type="checkbox"
-                              checked={processosSelecionados.includes(
-                                processo.id
-                              )}
+                              checked={processosSelecionados.includes(processo.id)}
                               disabled={processo.concluido}
-                              onChange={() =>
-                                alternarSelecaoProcesso(processo.id)
-                              }
+                              onChange={() => alternarSelecaoProcesso(processo.id)}
                               className="h-4 w-4"
                             />
                           </td>
@@ -2176,8 +2362,7 @@ export default function FiscalizacaoPage() {
                   Novo processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias
-                  serão gerados pelo sistema.
+                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias serão gerados pelo sistema.
                 </p>
               </div>
 
@@ -2204,9 +2389,7 @@ export default function FiscalizacaoPage() {
               <CampoTexto
                 label="Nº SisGep *"
                 value={novoProcesso.sisgep}
-                onChange={(valor) =>
-                  atualizarCampoNovoProcesso("sisgep", valor)
-                }
+                onChange={(valor) => atualizarCampoNovoProcesso("sisgep", valor)}
                 required
                 placeholder="000.000.000.000.001"
               />
@@ -2221,9 +2404,7 @@ export default function FiscalizacaoPage() {
 
               <CampoAssunto
                 value={novoProcesso.assunto}
-                onChange={(valor) =>
-                  atualizarCampoNovoProcesso("assunto", valor)
-                }
+                onChange={(valor) => atualizarCampoNovoProcesso("assunto", valor)}
               />
 
               <CampoTexto
@@ -2278,8 +2459,7 @@ export default function FiscalizacaoPage() {
                   Editar processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Altere os dados do processo. Ao salvar, bairro, setor,
-                  coordenadas, Maps e dias serão recalculados.
+                  Altere os dados do processo. Ao salvar, bairro, setor, coordenadas, Maps e dias serão recalculados.
                 </p>
               </div>
 
