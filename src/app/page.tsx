@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-100">
@@ -32,9 +34,12 @@ export default function Home() {
               Controle de processos, mapas, anexos, dashboard e relatórios.
             </p>
 
-            <button className="mt-5 rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700">
+            <Link
+              href="/fiscalizacao"
+              className="mt-5 inline-block rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+            >
               Acessar sistema
-            </button>
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 opacity-80 shadow-sm">
