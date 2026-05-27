@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
+type TipoMarcador = "pendente" | "concluido" | "concluido_dia" | "oportunidade";
 
 type ProcessoMapa = {
   id: string;
@@ -17,14 +19,31 @@ type ProcessoMapa = {
   latitude: number | null;
   longitude: number | null;
   mapa_link: string | null;
+  tipo_marcador?: TipoMarcador;
 };
 
 type MapaProcessosProps = {
   processos: ProcessoMapa[];
 };
 
-function criarIcone(concluido: boolean) {
-  const cor = concluido ? "#16a34a" : "#dc2626";
+function obterCorMarcador(processo: ProcessoMapa) {
+  if (processo.tipo_marcador === "concluido_dia") return "#16a34a";
+  if (processo.tipo_marcador === "oportunidade") return "#dc2626";
+  if (processo.concluido) return "#16a34a";
+
+  return "#f97316";
+}
+
+function obterTextoStatus(processo: ProcessoMapa) {
+  if (processo.tipo_marcador === "concluido_dia") return "✅ Concluído no dia";
+  if (processo.tipo_marcador === "oportunidade") return "🛑 Oportunidade perdida";
+  if (processo.concluido) return "✅ Concluído";
+
+  return "⏳ Pendente";
+}
+
+function criarIcone(processo: ProcessoMapa) {
+  const cor = obterCorMarcador(processo);
 
   return L.divIcon({
     className: "",
@@ -48,7 +67,7 @@ function AjustarZoom({ processos }: { processos: ProcessoMapa[] }) {
 
   useEffect(() => {
     const pontos = processos
-      .filter((p) => p.latitude && p.longitude)
+      .filter((p) => p.latitude !== null && p.longitude !== null)
       .map((p) => [p.latitude as number, p.longitude as number] as [number, number]);
 
     if (pontos.length === 0) return;
@@ -69,7 +88,7 @@ function AjustarZoom({ processos }: { processos: ProcessoMapa[] }) {
 
 export default function MapaProcessos({ processos }: MapaProcessosProps) {
   const processosComCoordenadas = processos.filter(
-    (processo) => processo.latitude && processo.longitude
+    (processo) => processo.latitude !== null && processo.longitude !== null
   );
 
   return (
@@ -89,17 +108,16 @@ export default function MapaProcessos({ processos }: MapaProcessosProps) {
 
         {processosComCoordenadas.map((processo) => (
           <Marker
-            key={processo.id}
+            key={`${processo.id}-${processo.tipo_marcador || "geral"}`}
             position={[processo.latitude as number, processo.longitude as number]}
-            icon={criarIcone(processo.concluido)}
+            icon={criarIcone(processo)}
           >
             <Popup>
               <div style={{ minWidth: 220 }}>
                 <strong>{processo.sisgep}</strong>
 
                 <p style={{ margin: "8px 0 0" }}>
-                  <strong>Status:</strong>{" "}
-                  {processo.concluido ? "Concluído" : "Pendente"}
+                  <strong>Status:</strong> {obterTextoStatus(processo)}
                 </p>
 
                 <p style={{ margin: "4px 0 0" }}>
