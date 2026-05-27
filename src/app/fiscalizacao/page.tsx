@@ -975,6 +975,77 @@ export default function FiscalizacaoPage() {
     setPaginaAtual((pagina) => Math.min(totalPaginas, pagina + 1));
   }
 
+  function escaparCsv(valor: string | number | null | undefined) {
+    const texto = String(valor ?? "");
+    return `"${texto.replace(/"/g, '""')}"`;
+  }
+
+  function exportarProcessosCsv() {
+    if (processosFiltrados.length === 0) {
+      alert("Não há processos para exportar com os filtros atuais.");
+      return;
+    }
+
+    const cabecalho = [
+      "Status",
+      "SisGep",
+      "Data de Entrada",
+      "Data de Conclusão",
+      "Dias",
+      "Aberto Por",
+      "Assunto",
+      "Rua",
+      "Número",
+      "Bairro",
+      "Setor",
+      "Latitude",
+      "Longitude",
+      "Link Maps",
+      "Observação",
+    ];
+
+    const linhas = processosFiltrados.map((processo) => {
+      const dias = obterDiasDoProcesso(processo);
+
+      return [
+        processo.concluido ? "Concluído" : "Pendente",
+        processo.sisgep,
+        formatarData(processo.data_entrada),
+        formatarData(processo.data_conclusao),
+        dias,
+        processo.aberto_por || "",
+        processo.assunto || "",
+        processo.rua || "",
+        processo.numero_rua || "",
+        processo.bairro || "",
+        processo.setor || "",
+        processo.latitude ?? "",
+        processo.longitude ?? "",
+        getLinkMapa(processo),
+        processo.observacao || "",
+      ];
+    });
+
+    const conteudoCsv = [
+      cabecalho.map(escaparCsv).join(";"),
+      ...linhas.map((linha) => linha.map(escaparCsv).join(";")),
+    ].join("\n");
+
+    const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(arquivo);
+    const link = document.createElement("a");
+    const dataHoje = dataAtualInput();
+
+    link.href = url;
+    link.download = `relatorio-processos-${dataHoje}.csv`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-blue-900 px-6 py-6 text-white">
@@ -1173,6 +1244,25 @@ export default function FiscalizacaoPage() {
                 <option value="entrada_recente">Entrada mais recente</option>
                 <option value="entrada_antiga">Entrada mais antiga</option>
               </select>
+            </div>
+
+            <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-600">
+                  Relatório
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Exporta todos os processos filtrados na tela.
+                </p>
+              </div>
+
+              <button
+                onClick={exportarProcessosCsv}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
+              >
+                Exportar CSV
+              </button>
             </div>
           </div>
 
