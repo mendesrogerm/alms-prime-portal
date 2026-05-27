@@ -433,7 +433,29 @@ mapa_link: mapaLink,
 
     setModalNovoAberto(false);
   }
+async function excluirProcesso(processo: Processo) {
+  const confirmar = window.confirm(
+    `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa ação não poderá ser desfeita.`
+  );
 
+  if (!confirmar) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("processos")
+    .delete()
+    .eq("id", processo.id);
+
+  if (error) {
+    alert("Erro ao excluir processo: " + error.message);
+    return;
+  }
+
+  setProcessos((listaAtual) =>
+    listaAtual.filter((item) => item.id !== processo.id)
+  );
+}
   async function alterarStatusProcesso(processo: Processo) {
     const novoStatus = !processo.concluido;
     const dataConclusao = novoStatus ? dataAtualFormatoBanco() : null;
@@ -784,8 +806,15 @@ mapa_link: mapaLink,
 <button
   onClick={() => abrirModalEdicao(processo)}
   className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+  
 >
   Editar processo
+</button>
+<button
+  onClick={() => excluirProcesso(processo)}
+  className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+>
+  Excluir processo
 </button>
                   <button
                     onClick={() => alterarStatusProcesso(processo)}
