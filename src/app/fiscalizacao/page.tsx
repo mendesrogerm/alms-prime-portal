@@ -878,6 +878,12 @@ async function concluirSelecionadosEmLote() {
 
             <div className="flex gap-2">
                 <Link
+  href="/fiscalizacao/mapa"
+  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
+>
+  Mapa
+</Link>
+                <Link
   href="/fiscalizacao/dashboard"
   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-500"
 >
