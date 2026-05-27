@@ -38,6 +38,12 @@ type Anexo = {
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 type ModoVisualizacao = "cards" | "tabela";
 
+type OrdenacaoProcessos =
+  | "dias_desc"
+  | "dias_asc"
+  | "entrada_recente"
+  | "entrada_antiga";
+
 type NovoProcessoForm = {
   sisgep: string;
   data_entrada: string;
@@ -69,6 +75,8 @@ export default function FiscalizacaoPage() {
   const [itensPorPagina, setItensPorPagina] = useState(24);
   const [modoVisualizacao, setModoVisualizacao] =
     useState<ModoVisualizacao>("cards");
+  const [ordenacao, setOrdenacao] =
+    useState<OrdenacaoProcessos>("dias_desc");
 
   const [processosSelecionados, setProcessosSelecionados] = useState<string[]>(
     []
@@ -109,7 +117,7 @@ export default function FiscalizacaoPage() {
 
   useEffect(() => {
     setPaginaAtual(1);
-  }, [busca, filtroStatus, itensPorPagina]);
+  }, [busca, filtroStatus, itensPorPagina, ordenacao]);
 
   async function carregarAnexos(listaProcessos: Processo[]) {
     if (listaProcessos.length === 0) {
@@ -877,7 +885,7 @@ export default function FiscalizacaoPage() {
   const processosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
-    return processos.filter((processo) => {
+    const listaFiltrada = processos.filter((processo) => {
       const combinaStatus =
         filtroStatus === "todos" ||
         (filtroStatus === "pendentes" && !processo.concluido) ||
@@ -900,7 +908,41 @@ export default function FiscalizacaoPage() {
 
       return combinaStatus && combinaBusca;
     });
-  }, [processos, busca, filtroStatus]);
+
+    return [...listaFiltrada].sort((a, b) => {
+      if (ordenacao === "dias_desc") {
+        if (a.concluido !== b.concluido) {
+          return a.concluido ? 1 : -1;
+        }
+
+        return obterDiasDoProcesso(b) - obterDiasDoProcesso(a);
+      }
+
+      if (ordenacao === "dias_asc") {
+        if (a.concluido !== b.concluido) {
+          return a.concluido ? 1 : -1;
+        }
+
+        return obterDiasDoProcesso(a) - obterDiasDoProcesso(b);
+      }
+
+      if (ordenacao === "entrada_recente") {
+        const dataA = a.data_entrada || "";
+        const dataB = b.data_entrada || "";
+
+        return dataB.localeCompare(dataA);
+      }
+
+      if (ordenacao === "entrada_antiga") {
+        const dataA = a.data_entrada || "";
+        const dataB = b.data_entrada || "";
+
+        return dataA.localeCompare(dataB);
+      }
+
+      return 0;
+    });
+  }, [processos, busca, filtroStatus, ordenacao]);
 
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
@@ -936,7 +978,7 @@ export default function FiscalizacaoPage() {
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-blue-900 px-6 py-6 text-white">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-[1600px]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <Link
@@ -994,7 +1036,7 @@ export default function FiscalizacaoPage() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-6 py-8">
+      <section className="mx-auto max-w-[1600px] px-6 py-8">
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-bold uppercase text-slate-500">Total</p>
@@ -1065,7 +1107,7 @@ export default function FiscalizacaoPage() {
               </button>
             </div>
 
-            <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-semibold text-slate-600">
                 Processos por página
               </label>
@@ -1084,7 +1126,7 @@ export default function FiscalizacaoPage() {
               </select>
             </div>
 
-            <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-semibold text-slate-600">
                 Visualização
               </label>
@@ -1112,6 +1154,25 @@ export default function FiscalizacaoPage() {
                   Tabela
                 </button>
               </div>
+            </div>
+
+            <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <label className="text-sm font-semibold text-slate-600">
+                Ordenar processos
+              </label>
+
+              <select
+                value={ordenacao}
+                onChange={(event) =>
+                  setOrdenacao(event.target.value as OrdenacaoProcessos)
+                }
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              >
+                <option value="dias_desc">Mais atrasados primeiro</option>
+                <option value="dias_asc">Menos atrasados primeiro</option>
+                <option value="entrada_recente">Entrada mais recente</option>
+                <option value="entrada_antiga">Entrada mais antiga</option>
+              </select>
             </div>
           </div>
 
@@ -1396,7 +1457,7 @@ export default function FiscalizacaoPage() {
 
             {modoVisualizacao === "tabela" && (
               <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="w-full min-w-[1200px] border-collapse text-left text-sm">
+                <table className="w-full min-w-[1700px] border-collapse text-left text-sm">
                   <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="px-4 py-3">Selecionar</th>
@@ -1409,7 +1470,9 @@ export default function FiscalizacaoPage() {
                       <th className="px-4 py-3">Endereço</th>
                       <th className="px-4 py-3">Bairro</th>
                       <th className="px-4 py-3">Setor</th>
-                      <th className="px-4 py-3 text-right">Ações</th>
+                      <th className="sticky right-0 bg-slate-50 px-4 py-3 text-right">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
 
@@ -1453,28 +1516,38 @@ export default function FiscalizacaoPage() {
                             {dias}
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {processo.assunto || "---"}
+                          <td className="max-w-[220px] px-4 py-3 text-slate-600">
+                            <span className="block whitespace-normal break-words">
+                              {processo.assunto || "---"}
+                            </span>
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {processo.aberto_por || "---"}
+                          <td className="max-w-[220px] px-4 py-3 text-slate-600">
+                            <span className="block whitespace-normal break-words">
+                              {processo.aberto_por || "---"}
+                            </span>
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {processo.rua || "---"}, nº{" "}
-                            {processo.numero_rua || "---"}
+                          <td className="max-w-[260px] px-4 py-3 text-slate-600">
+                            <span className="block whitespace-normal break-words">
+                              {processo.rua || "---"}, nº{" "}
+                              {processo.numero_rua || "---"}
+                            </span>
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {processo.bairro || "---"}
+                          <td className="max-w-[180px] px-4 py-3 text-slate-600">
+                            <span className="block whitespace-normal break-words">
+                              {processo.bairro || "---"}
+                            </span>
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {processo.setor || "---"}
+                          <td className="max-w-[180px] px-4 py-3 text-slate-600">
+                            <span className="block whitespace-normal break-words">
+                              {processo.setor || "---"}
+                            </span>
                           </td>
 
-                          <td className="px-4 py-3">
+                          <td className="sticky right-0 bg-white px-4 py-3">
                             <div className="flex justify-end gap-2">
                               <a
                                 href={getLinkMapa(processo)}
