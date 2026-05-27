@@ -25,18 +25,17 @@ type Processo = {
 };
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
+
 type NovoProcessoForm = {
   sisgep: string;
   data_entrada: string;
-  sla: string;
   aberto_por: string;
   assunto: string;
   rua: string;
   numero_rua: string;
   observacao: string;
-  bairro: string;
-  setor: string;
 };
+
 export default function FiscalizacaoPage() {
   const router = useRouter();
 
@@ -45,21 +44,20 @@ export default function FiscalizacaoPage() {
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("pendentes");
-const [modalNovoAberto, setModalNovoAberto] = useState(false);
-const [salvandoNovo, setSalvandoNovo] = useState(false);
 
-const [novoProcesso, setNovoProcesso] = useState<NovoProcessoForm>({
-  sisgep: "",
-  data_entrada: dataAtualInput(),
-  sla: "0",
-  aberto_por: "",
-  assunto: "",
-  rua: "",
-  numero_rua: "",
-  observacao: "",
-  bairro: "",
-  setor: "",
-});
+  const [modalNovoAberto, setModalNovoAberto] = useState(false);
+  const [salvandoNovo, setSalvandoNovo] = useState(false);
+
+  const [novoProcesso, setNovoProcesso] = useState<NovoProcessoForm>({
+    sisgep: "",
+    data_entrada: dataAtualInput(),
+    aberto_por: "",
+    assunto: "",
+    rua: "",
+    numero_rua: "",
+    observacao: "",
+  });
+
   useEffect(() => {
     verificarLoginECarregarProcessos();
   }, []);
@@ -94,15 +92,8 @@ const [novoProcesso, setNovoProcesso] = useState<NovoProcessoForm>({
     await supabase.auth.signOut();
     router.push("/login");
   }
-function dataAtualInput() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoje.getDate()).padStart(2, "0");
 
-  return `${ano}-${mes}-${dia}`;
-}
-  function dataAtualFormatoBanco() {
+  function dataAtualInput() {
     const hoje = new Date();
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, "0");
@@ -110,83 +101,211 @@ function dataAtualInput() {
 
     return `${ano}-${mes}-${dia}`;
   }
-function atualizarCampoNovoProcesso(
-  campo: keyof NovoProcessoForm,
-  valor: string
-) {
-  setNovoProcesso((dadosAtuais) => ({
-    ...dadosAtuais,
-    [campo]: valor,
-  }));
+
+  function dataAtualFormatoBanco() {
+    return dataAtualInput();
+  }
+
+  function calcularDiasEntreDatas(dataInicial: string | null, dataFinal?: string | null) {
+    if (!dataInicial) return 0;
+
+    const inicio = new Date(`${dataInicial}T12:00:00`);
+    const fim = dataFinal
+      ? new Date(`${dataFinal}T12:00:00`)
+      : new Date(`${dataAtualInput()}T12:00:00`);
+
+    if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime())) {
+      return 0;
+    }
+
+    const diferencaMs = fim.getTime() - inicio.getTime();
+    const dias = Math.floor(diferencaMs / (1000 * 60 * 60 * 24));
+
+    return Math.max(dias, 0);
+  }
+
+  function obterDiasDoProcesso(processo: Processo) {
+    if (processo.concluido) {
+      return processo.sla || calcularDiasEntreDatas(
+        processo.data_entrada,
+        processo.data_conclusao
+      );
+    }
+
+    return calcularDiasEntreDatas(processo.data_entrada);
+  }
+function normalizarTexto(texto: string) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
 }
-async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+async function buscarDadosAutomaticos(rua: string, numero: string) {
+  const dadosPadrao = {
+    bairro: null as string | null,
+    setor: null as string | null,
+    latitude: null as number | null,
+    longitude: null as number | null,
+  };
 
-  if (!novoProcesso.sisgep.trim()) {
-    alert("Informe o número SisGep.");
-    return;
+  if (!rua.trim() || !numero.trim()) {
+    return dadosPadrao;
   }
 
-  setSalvandoNovo(true);
+  try {
+    const resposta = await fetch("/api/geocodificar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rua,
+        numero,
+      }),
+    });
 
-  const endereco = `${novoProcesso.rua}, ${novoProcesso.numero_rua}, ${novoProcesso.bairro}`;
-  const mapaLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    endereco
-  )}`;
+    if (!resposta.ok) {
+      return dadosPadrao;
+    }
 
-  const { data, error } = await supabase
-    .from("processos")
-    .insert({
-      sisgep: novoProcesso.sisgep.trim(),
-      concluido: false,
-      data_entrada: novoProcesso.data_entrada || null,
-      sla: Number(novoProcesso.sla) || 0,
-      aberto_por: novoProcesso.aberto_por.trim() || null,
-      assunto: novoProcesso.assunto.trim() || null,
-      rua: novoProcesso.rua.trim() || null,
-      numero_rua: novoProcesso.numero_rua.trim() || null,
-      observacao: novoProcesso.observacao.trim() || null,
-      bairro: novoProcesso.bairro.trim() || null,
-      setor: novoProcesso.setor.trim() || null,
-      mapa_link: mapaLink,
-    })
-    .select()
-    .single();
+    const dados = await resposta.json();
 
-  setSalvandoNovo(false);
+    const bairroEncontrado = dados.bairro || null;
+    const latitudeEncontrada =
+      typeof dados.latitude === "number" ? dados.latitude : null;
+    const longitudeEncontrada =
+      typeof dados.longitude === "number" ? dados.longitude : null;
 
-  if (error) {
-    alert("Erro ao cadastrar processo: " + error.message);
-    return;
+    let setorEncontrado: string | null = null;
+
+    if (bairroEncontrado) {
+      const bairroNormalizado = normalizarTexto(bairroEncontrado);
+
+      const { data } = await supabase
+        .from("bairros_setores")
+        .select("setor")
+        .eq("bairro_normalizado", bairroNormalizado)
+        .maybeSingle();
+
+      setorEncontrado = data?.setor || null;
+    }
+
+    return {
+      bairro: bairroEncontrado,
+      setor: setorEncontrado,
+      latitude: latitudeEncontrada,
+      longitude: longitudeEncontrada,
+    };
+  } catch {
+    return dadosPadrao;
   }
-
-  if (data) {
-    setProcessos((listaAtual) => [data, ...listaAtual]);
-  }
-
-  setNovoProcesso({
-    sisgep: "",
-    data_entrada: dataAtualInput(),
-    sla: "0",
-    aberto_por: "",
-    assunto: "",
-    rua: "",
-    numero_rua: "",
-    observacao: "",
-    bairro: "",
-    setor: "",
-  });
-
-  setModalNovoAberto(false);
 }
+  function atualizarCampoNovoProcesso(
+    campo: keyof NovoProcessoForm,
+    valor: string
+  ) {
+    setNovoProcesso((dadosAtuais) => ({
+      ...dadosAtuais,
+      [campo]: valor,
+    }));
+  }
+
+  async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!novoProcesso.sisgep.trim()) {
+      alert("Informe o número SisGep.");
+      return;
+    }
+
+    if (!novoProcesso.data_entrada) {
+      alert("Informe a data de entrada.");
+      return;
+    }
+
+    setSalvandoNovo(true);
+
+   const endereco = `${novoProcesso.rua}, ${novoProcesso.numero_rua}, Santana de Parnaíba, SP`;
+
+const dadosAutomaticos = await buscarDadosAutomaticos(
+  novoProcesso.rua,
+  novoProcesso.numero_rua
+);
+
+const mapaLink =
+  dadosAutomaticos.latitude && dadosAutomaticos.longitude
+    ? `https://www.google.com/maps/search/?api=1&query=${dadosAutomaticos.latitude},${dadosAutomaticos.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        endereco
+      )}`;
+ 
+
+    const diasCalculados = calcularDiasEntreDatas(novoProcesso.data_entrada);
+
+    const { data, error } = await supabase
+      .from("processos")
+      .insert({
+        sisgep: novoProcesso.sisgep.trim(),
+        concluido: false,
+        data_entrada: novoProcesso.data_entrada,
+        data_conclusao: null,
+        sla: diasCalculados,
+        aberto_por: novoProcesso.aberto_por.trim() || null,
+        assunto: novoProcesso.assunto.trim() || null,
+        rua: novoProcesso.rua.trim() || null,
+        numero_rua: novoProcesso.numero_rua.trim() || null,
+        observacao: novoProcesso.observacao.trim() || null,
+
+        // Estes campos serão gerados automaticamente na próxima etapa.
+        bairro: dadosAutomaticos.bairro,
+setor: dadosAutomaticos.setor,
+latitude: dadosAutomaticos.latitude,
+longitude: dadosAutomaticos.longitude,
+
+mapa_link: mapaLink,
+      })
+      .select()
+      .single();
+
+    setSalvandoNovo(false);
+
+    if (error) {
+      alert("Erro ao cadastrar processo: " + error.message);
+      return;
+    }
+
+    if (data) {
+      setProcessos((listaAtual) => [data, ...listaAtual]);
+    }
+
+    setNovoProcesso({
+      sisgep: "",
+      data_entrada: dataAtualInput(),
+      aberto_por: "",
+      assunto: "",
+      rua: "",
+      numero_rua: "",
+      observacao: "",
+    });
+
+    setModalNovoAberto(false);
+  }
+
   async function alterarStatusProcesso(processo: Processo) {
     const novoStatus = !processo.concluido;
+    const dataConclusao = novoStatus ? dataAtualFormatoBanco() : null;
+
+    const diasCalculados = novoStatus
+      ? calcularDiasEntreDatas(processo.data_entrada, dataConclusao)
+      : calcularDiasEntreDatas(processo.data_entrada);
 
     const { error } = await supabase
       .from("processos")
       .update({
         concluido: novoStatus,
-        data_conclusao: novoStatus ? dataAtualFormatoBanco() : null,
+        data_conclusao: dataConclusao,
+        sla: diasCalculados,
         updated_at: new Date().toISOString(),
       })
       .eq("id", processo.id);
@@ -202,7 +321,8 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
           ? {
               ...item,
               concluido: novoStatus,
-              data_conclusao: novoStatus ? dataAtualFormatoBanco() : null,
+              data_conclusao: dataConclusao,
+              sla: diasCalculados,
             }
           : item
       )
@@ -221,16 +341,16 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
       return processo.mapa_link;
     }
 
-    const endereco = `${processo.rua || ""}, ${processo.numero_rua || ""}, ${
-      processo.bairro || ""
-    }`;
+    const endereco = `${processo.rua || ""}, ${processo.numero_rua || ""}, Santana de Parnaíba, SP`;
 
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       endereco
     )}`;
   }
 
-  function getEstiloSla(processo: Processo) {
+  function getEstiloDias(processo: Processo) {
+    const dias = obterDiasDoProcesso(processo);
+
     if (processo.concluido) {
       return {
         fundo: "bg-white",
@@ -239,7 +359,7 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
       };
     }
 
-    if (processo.sla >= 15) {
+    if (dias >= 15) {
       return {
         fundo: "bg-red-50",
         borda: "border-red-500",
@@ -247,7 +367,7 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
       };
     }
 
-    if (processo.sla >= 10) {
+    if (dias >= 10) {
       return {
         fundo: "bg-yellow-50",
         borda: "border-yellow-500",
@@ -314,20 +434,26 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
             </div>
 
             <div className="flex gap-2">
-  <button
-    onClick={() => setModalNovoAberto(true)}
-    className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
-  >
-    Novo processo
-  </button>
+                <Link
+  href="/fiscalizacao/configuracoes"
+  className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+>
+  Configurações
+</Link>
+              <button
+                onClick={() => setModalNovoAberto(true)}
+                className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
+              >
+                Novo processo
+              </button>
 
-  <button
-    onClick={sair}
-    className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-blue-900 hover:bg-blue-100"
-  >
-    Sair
-  </button>
-</div>
+              <button
+                onClick={sair}
+                className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-blue-900 hover:bg-blue-100"
+              >
+                Sair
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -428,7 +554,8 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
         {!carregando && !erro && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {processosFiltrados.map((processo) => {
-              const estilo = getEstiloSla(processo);
+              const estilo = getEstiloDias(processo);
+              const dias = obterDiasDoProcesso(processo);
 
               return (
                 <div
@@ -482,17 +609,19 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
                     </p>
 
                     <p>
-                      <b>Bairro:</b> {processo.bairro || "---"}
+                      <b>Bairro:</b> {processo.bairro || "Será gerado automaticamente"}
                     </p>
 
                     <p>
-                      <b>Setor:</b> {processo.setor || "---"}
+                      <b>Setor:</b> {processo.setor || "Será gerado automaticamente"}
                     </p>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${estilo.badge}`}>
-                      SLA: {processo.sla} dias
+                      {processo.concluido
+                        ? `Tempo no setor: ${dias} dias`
+                        : `Dias da entrada: ${dias}`}
                     </span>
 
                     <a
@@ -533,208 +662,169 @@ async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
           </div>
         )}
       </section>
+
       {modalNovoAberto && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-    <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">
-            Novo processo
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Cadastre um processo diretamente no banco de dados.
-          </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800">
+                  Novo processo
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias serão gerados pelo sistema.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setModalNovoAberto(false)}
+                className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+              >
+                Fechar
+              </button>
+            </div>
+
+            <form onSubmit={cadastrarNovoProcesso} className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Data de entrada *
+                </label>
+                <input
+                  type="date"
+                  value={novoProcesso.data_entrada}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("data_entrada", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Nº SisGep *
+                </label>
+                <input
+                  value={novoProcesso.sisgep}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("sisgep", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  placeholder="000.000.000.000.001"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Aberto por
+                </label>
+                <input
+                  value={novoProcesso.aberto_por}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("aberto_por", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Assunto
+                </label>
+                <select
+                  value={novoProcesso.assunto}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("assunto", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Ouvidoria/Denúncia">Ouvidoria/Denúncia</option>
+                  <option value="Inscrição Municipal/Alteração Contratual">
+                    Inscrição Municipal/Alteração Contratual
+                  </option>
+                  <option value="Encerramento/Cancelamento">
+                    Encerramento/Cancelamento
+                  </option>
+                  <option value="Processo Físico/Encerramento">
+                    Processo Físico/Encerramento
+                  </option>
+                  <option value="IPTU">IPTU</option>
+                  <option value="Outros/ Conferir no Processo">
+                    Outros/ Conferir no Processo
+                  </option>
+                  <option value="DRM/ISS">DRM/ISS</option>
+                  <option value="Revisão de Taxa">Revisão de Taxa</option>
+                  <option value="Pedidos de Feiras/Ambulantes">
+                    Pedidos de Feiras/Ambulantes
+                  </option>
+                  <option value="Horário Especial">Horário Especial</option>
+                  <option value="Feiras Livres">Feiras Livres</option>
+                  <option value="Ministério Público">Ministério Público</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Rua
+                </label>
+                <input
+                  value={novoProcesso.rua}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("rua", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Número
+                </label>
+                <input
+                  value={novoProcesso.numero_rua}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("numero_rua", event.target.value)
+                  }
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  Observação
+                </label>
+                <textarea
+                  value={novoProcesso.observacao}
+                  onChange={(event) =>
+                    atualizarCampoNovoProcesso("observacao", event.target.value)
+                  }
+                  className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setModalNovoAberto(false)}
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={salvandoNovo}
+                  className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {salvandoNovo ? "Salvando..." : "Salvar processo"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <button
-          onClick={() => setModalNovoAberto(false)}
-          className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
-        >
-          Fechar
-        </button>
-      </div>
-
-      <form onSubmit={cadastrarNovoProcesso} className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            SisGep *
-          </label>
-          <input
-            value={novoProcesso.sisgep}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("sisgep", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-            placeholder="000.000.000.000.001"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Data de entrada
-          </label>
-          <input
-            type="date"
-            value={novoProcesso.data_entrada}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("data_entrada", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            SLA em dias
-          </label>
-          <input
-            type="number"
-            value={novoProcesso.sla}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("sla", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-            min="0"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Aberto por
-          </label>
-          <input
-            value={novoProcesso.aberto_por}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("aberto_por", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Assunto
-          </label>
-          <select
-            value={novoProcesso.assunto}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("assunto", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          >
-            <option value="">Selecione...</option>
-            <option value="Ouvidoria/Denúncia">Ouvidoria/Denúncia</option>
-            <option value="Inscrição Municipal/Alteração Contratual">
-              Inscrição Municipal/Alteração Contratual
-            </option>
-            <option value="Encerramento/Cancelamento">
-              Encerramento/Cancelamento
-            </option>
-            <option value="Processo Físico/Encerramento">
-              Processo Físico/Encerramento
-            </option>
-            <option value="IPTU">IPTU</option>
-            <option value="Outros/ Conferir no Processo">
-              Outros/ Conferir no Processo
-            </option>
-            <option value="DRM/ISS">DRM/ISS</option>
-            <option value="Revisão de Taxa">Revisão de Taxa</option>
-            <option value="Pedidos de Feiras/Ambulantes">
-              Pedidos de Feiras/Ambulantes
-            </option>
-            <option value="Horário Especial">Horário Especial</option>
-            <option value="Feiras Livres">Feiras Livres</option>
-            <option value="Ministério Público">Ministério Público</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Setor
-          </label>
-          <input
-            value={novoProcesso.setor}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("setor", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Rua
-          </label>
-          <input
-            value={novoProcesso.rua}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("rua", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Número
-          </label>
-          <input
-            value={novoProcesso.numero_rua}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("numero_rua", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold text-slate-700">
-            Bairro
-          </label>
-          <input
-            value={novoProcesso.bairro}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("bairro", event.target.value)
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Observação
-          </label>
-          <textarea
-            value={novoProcesso.observacao}
-            onChange={(event) =>
-              atualizarCampoNovoProcesso("observacao", event.target.value)
-            }
-            className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-          />
-        </div>
-
-        <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
-          <button
-            type="button"
-            onClick={() => setModalNovoAberto(false)}
-            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            disabled={salvandoNovo}
-            className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {salvandoNovo ? "Salvando..." : "Salvar processo"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </main>
   );
 }
