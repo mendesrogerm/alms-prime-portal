@@ -56,7 +56,8 @@ export default function FiscalizacaoPage() {
 const [enviandoAnexoProcessoId, setEnviandoAnexoProcessoId] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("pendentes");
-
+const [processosSelecionados, setProcessosSelecionados] = useState<string[]>([]);
+const [baixandoEmLote, setBaixandoEmLote] = useState(false);
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [salvandoNovo, setSalvandoNovo] = useState(false);
 const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
@@ -615,6 +616,125 @@ async function excluirProcesso(processo: Processo) {
     listaAtual.filter((item) => item.id !== processo.id)
   );
 }
+function alternarSelecaoProcesso(processoId: string) {
+  setProcessosSelecionados((selecionadosAtuais) =>
+    selecionadosAtuais.includes(processoId)
+      ? selecionadosAtuais.filter((id) => id !== processoId)
+      : [...selecionadosAtuais, processoId]
+  );
+}
+
+function limparSelecaoProcessos() {
+  setProcessosSelecionados([]);
+}
+
+function alternarSelecionarTodosFiltrados() {
+  const idsPendentesFiltrados = processosFiltrados
+    .filter((processo) => !processo.concluido)
+    .map((processo) => processo.id);
+
+  if (idsPendentesFiltrados.length === 0) {
+    alert("Não há processos pendentes na lista filtrada.");
+    return;
+  }
+
+  const todosJaSelecionados = idsPendentesFiltrados.every((id) =>
+    processosSelecionados.includes(id)
+  );
+
+  if (todosJaSelecionados) {
+    setProcessosSelecionados((selecionadosAtuais) =>
+      selecionadosAtuais.filter((id) => !idsPendentesFiltrados.includes(id))
+    );
+    return;
+  }
+
+  setProcessosSelecionados((selecionadosAtuais) =>
+    Array.from(new Set([...selecionadosAtuais, ...idsPendentesFiltrados]))
+  );
+}
+
+async function concluirSelecionadosEmLote() {
+  const processosParaConcluir = processos.filter(
+    (processo) =>
+      processosSelecionados.includes(processo.id) && !processo.concluido
+  );
+
+  if (processosParaConcluir.length === 0) {
+    alert("Selecione pelo menos um processo pendente.");
+    return;
+  }
+
+  const confirmar = window.confirm(
+    `Deseja concluir ${processosParaConcluir.length} processo(s) selecionado(s)?`
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  setBaixandoEmLote(true);
+
+  const dataConclusao = dataAtualFormatoBanco();
+
+  const resultados = await Promise.all(
+    processosParaConcluir.map(async (processo) => {
+      const diasCalculados = calcularDiasEntreDatas(
+        processo.data_entrada,
+        dataConclusao
+      );
+
+      const { error } = await supabase
+        .from("processos")
+        .update({
+          concluido: true,
+          data_conclusao: dataConclusao,
+          sla: diasCalculados,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", processo.id);
+
+      return {
+        id: processo.id,
+        erro: error,
+        diasCalculados,
+      };
+    })
+  );
+
+  setBaixandoEmLote(false);
+
+  const erros = resultados.filter((resultado) => resultado.erro);
+
+  if (erros.length > 0) {
+    alert(`Alguns processos não foram concluídos. Erros: ${erros.length}`);
+  }
+
+  const idsConcluidos = resultados
+    .filter((resultado) => !resultado.erro)
+    .map((resultado) => resultado.id);
+
+  setProcessos((listaAtual) =>
+    listaAtual.map((processo) => {
+      const resultado = resultados.find((item) => item.id === processo.id);
+
+      if (!resultado || resultado.erro) {
+        return processo;
+      }
+
+      return {
+        ...processo,
+        concluido: true,
+        data_conclusao: dataConclusao,
+        sla: resultado.diasCalculados,
+      };
+    })
+  );
+
+  setProcessosSelecionados((selecionadosAtuais) =>
+    selecionadosAtuais.filter((id) => !idsConcluidos.includes(id))
+  );
+}
   async function alterarStatusProcesso(processo: Processo) {
     const novoStatus = !processo.concluido;
     const dataConclusao = novoStatus ? dataAtualFormatoBanco() : null;
@@ -861,7 +981,48 @@ async function excluirProcesso(processo: Processo) {
             Exibindo {processosFiltrados.length} de {total} processos.
           </p>
         </div>
+<div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-lg font-bold text-slate-800">
+        Baixa em lote
+      </h2>
 
+      <p className="mt-1 text-sm text-slate-600">
+        Selecione processos pendentes e conclua todos de uma vez.
+      </p>
+
+      <p className="mt-2 text-sm font-bold text-blue-800">
+        {processosSelecionados.length} processo(s) selecionado(s)
+      </p>
+    </div>
+
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <button
+        onClick={alternarSelecionarTodosFiltrados}
+        className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+      >
+        Selecionar pendentes filtrados
+      </button>
+
+      <button
+        onClick={limparSelecaoProcessos}
+        disabled={processosSelecionados.length === 0}
+        className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        Limpar seleção
+      </button>
+
+      <button
+        onClick={concluirSelecionadosEmLote}
+        disabled={baixandoEmLote || processosSelecionados.length === 0}
+        className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {baixandoEmLote ? "Concluindo..." : "Concluir selecionados"}
+      </button>
+    </div>
+  </div>
+</div>
         {carregando && (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
             Carregando processos...
@@ -885,6 +1046,21 @@ async function excluirProcesso(processo: Processo) {
                   key={processo.id}
                   className={`rounded-2xl border-l-4 ${estilo.borda} ${estilo.fundo} p-5 shadow-sm`}
                 >
+                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
+  <input
+    type="checkbox"
+    checked={processosSelecionados.includes(processo.id)}
+    disabled={processo.concluido}
+    onChange={() => alternarSelecaoProcesso(processo.id)}
+    className="h-4 w-4"
+  />
+
+  <span className="text-xs font-bold text-slate-600">
+    {processo.concluido
+      ? "Processo já concluído"
+      : "Selecionar para baixa em lote"}
+  </span>
+</div>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold uppercase text-slate-500">
