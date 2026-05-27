@@ -37,11 +37,13 @@ type Anexo = {
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 type ModoVisualizacao = "cards" | "tabela";
+
 type OrdenacaoProcessos =
   | "dias_desc"
   | "dias_asc"
   | "entrada_recente"
   | "entrada_antiga";
+
 type TipoFiltroPeriodo = "todos" | "entrada" | "conclusao";
 
 type NovoProcessoForm = {
@@ -52,6 +54,11 @@ type NovoProcessoForm = {
   rua: string;
   numero_rua: string;
   observacao: string;
+};
+
+type GrupoResumo = {
+  nome: string;
+  total: number;
 };
 
 const opcoesAssunto = [
@@ -159,21 +166,32 @@ export default function FiscalizacaoPage() {
     }
 
     const ids = listaProcessos.map((processo) => processo.id);
+    const tamanhoLote = 100;
+    const todosAnexos: Anexo[] = [];
 
-    const { data, error } = await supabase
-      .from("anexos")
-      .select("*")
-      .in("processo_id", ids)
-      .order("created_at", { ascending: false });
+    for (let i = 0; i < ids.length; i += tamanhoLote) {
+      const idsLote = ids.slice(i, i + tamanhoLote);
 
-    if (error) {
-      console.error("Erro ao carregar anexos:", error.message);
-      return;
+      try {
+        const { data, error } = await supabase
+          .from("anexos")
+          .select("*")
+          .in("processo_id", idsLote)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          continue;
+        }
+
+        todosAnexos.push(...((data || []) as Anexo[]));
+      } catch {
+        continue;
+      }
     }
 
     const agrupados: Record<string, Anexo[]> = {};
 
-    (data || []).forEach((anexo) => {
+    todosAnexos.forEach((anexo) => {
       if (!agrupados[anexo.processo_id]) {
         agrupados[anexo.processo_id] = [];
       }
@@ -939,6 +957,22 @@ export default function FiscalizacaoPage() {
     setPaginaAtual(1);
   }
 
+  function agruparPorCampo(
+    lista: Processo[],
+    campo: "assunto" | "setor" | "bairro"
+  ) {
+    const mapa = new Map<string, number>();
+
+    lista.forEach((processo) => {
+      const valor = processo[campo]?.trim() || "Não informado";
+      mapa.set(valor, (mapa.get(valor) || 0) + 1);
+    });
+
+    return Array.from(mapa.entries())
+      .map(([nome, total]) => ({ nome, total }))
+      .sort((a, b) => b.total - a.total);
+  }
+
   const assuntosDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
@@ -1044,12 +1078,63 @@ export default function FiscalizacaoPage() {
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
   const concluidos = processos.filter((p) => p.concluido).length;
+
   const pendentesFiltrados = processosFiltrados.filter(
     (p) => !p.concluido
   ).length;
+
   const concluidosFiltrados = processosFiltrados.filter(
     (p) => p.concluido
   ).length;
+
+  const relatorioResumido = useMemo(() => {
+    const pendentesFiltradosLista = processosFiltrados.filter(
+      (processo) => !processo.concluido
+    );
+
+    const concluidosFiltradosLista = processosFiltrados.filter(
+      (processo) => processo.concluido
+    );
+
+    const somaDias = processosFiltrados.reduce(
+      (soma, processo) => soma + obterDiasDoProcesso(processo),
+      0
+    );
+
+    const mediaDias =
+      processosFiltrados.length > 0 ? somaDias / processosFiltrados.length : 0;
+
+    const somaDiasConcluidos = concluidosFiltradosLista.reduce(
+      (soma, processo) => soma + obterDiasDoProcesso(processo),
+      0
+    );
+
+    const mediaDiasConcluidos =
+      concluidosFiltradosLista.length > 0
+        ? somaDiasConcluidos / concluidosFiltradosLista.length
+        : 0;
+
+    const pendentesAtencao = pendentesFiltradosLista.filter(
+      (processo) => obterDiasDoProcesso(processo) >= 10
+    ).length;
+
+    const pendentesCriticos = pendentesFiltradosLista.filter(
+      (processo) => obterDiasDoProcesso(processo) >= 15
+    ).length;
+
+    return {
+      mediaDias,
+      mediaDiasConcluidos,
+      pendentesAtencao,
+      pendentesCriticos,
+      porAssunto: agruparPorCampo(processosFiltrados, "assunto").slice(0, 5),
+      porSetor: agruparPorCampo(processosFiltrados, "setor").slice(0, 5),
+      bairrosPendentes: agruparPorCampo(
+        pendentesFiltradosLista,
+        "bairro"
+      ).slice(0, 5),
+    };
+  }, [processosFiltrados]);
 
   const totalPaginas = Math.max(
     1,
@@ -1149,6 +1234,50 @@ export default function FiscalizacaoPage() {
     URL.revokeObjectURL(url);
   }
 
+  function maiorValor(lista: GrupoResumo[]) {
+    return Math.max(...lista.map((item) => item.total), 1);
+  }
+
+  function ListaResumo({
+    titulo,
+    itens,
+  }: {
+    titulo: string;
+    itens: GrupoResumo[];
+  }) {
+    const maior = maiorValor(itens);
+
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="text-base font-bold text-slate-800">{titulo}</h3>
+
+        <div className="mt-4 space-y-3">
+          {itens.map((item) => (
+            <div key={item.nome}>
+              <div className="mb-1 flex justify-between gap-3 text-sm">
+                <span className="truncate font-semibold text-slate-700">
+                  {item.nome}
+                </span>
+                <span className="font-bold text-slate-800">{item.total}</span>
+              </div>
+
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-blue-700"
+                  style={{ width: `${(item.total / maior) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+
+          {itens.length === 0 && (
+            <p className="text-sm text-slate-500">Nenhum dado encontrado.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-blue-900 px-6 py-6 text-white">
@@ -1165,7 +1294,8 @@ export default function FiscalizacaoPage() {
               <h1 className="mt-4 text-3xl font-bold">Fiscalização SisGep</h1>
 
               <p className="mt-2 text-blue-100">
-                Sistema de controle de processos, mapas, anexos, dashboard e relatórios.
+                Sistema de controle de processos, mapas, anexos, dashboard e
+                relatórios.
               </p>
             </div>
 
@@ -1217,13 +1347,21 @@ export default function FiscalizacaoPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">Pendentes</p>
-            <p className="mt-2 text-3xl font-black text-yellow-600">{pendentes}</p>
+            <p className="text-xs font-bold uppercase text-slate-500">
+              Pendentes
+            </p>
+            <p className="mt-2 text-3xl font-black text-yellow-600">
+              {pendentes}
+            </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">Concluídos</p>
-            <p className="mt-2 text-3xl font-black text-green-600">{concluidos}</p>
+            <p className="text-xs font-bold uppercase text-slate-500">
+              Concluídos
+            </p>
+            <p className="mt-2 text-3xl font-black text-green-600">
+              {concluidos}
+            </p>
           </div>
         </div>
 
@@ -1279,7 +1417,9 @@ export default function FiscalizacaoPage() {
 
               <select
                 value={itensPorPagina}
-                onChange={(event) => setItensPorPagina(Number(event.target.value))}
+                onChange={(event) =>
+                  setItensPorPagina(Number(event.target.value))
+                }
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
               >
                 <option value={12}>12 por página</option>
@@ -1386,7 +1526,9 @@ export default function FiscalizacaoPage() {
                   <select
                     value={tipoFiltroPeriodo}
                     onChange={(event) =>
-                      setTipoFiltroPeriodo(event.target.value as TipoFiltroPeriodo)
+                      setTipoFiltroPeriodo(
+                        event.target.value as TipoFiltroPeriodo
+                      )
                     }
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
                   >
@@ -1404,7 +1546,9 @@ export default function FiscalizacaoPage() {
                   <input
                     type="date"
                     value={dataInicialFiltro}
-                    onChange={(event) => setDataInicialFiltro(event.target.value)}
+                    onChange={(event) =>
+                      setDataInicialFiltro(event.target.value)
+                    }
                     disabled={tipoFiltroPeriodo === "todos"}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
@@ -1418,7 +1562,9 @@ export default function FiscalizacaoPage() {
                   <input
                     type="date"
                     value={dataFinalFiltro}
-                    onChange={(event) => setDataFinalFiltro(event.target.value)}
+                    onChange={(event) =>
+                      setDataFinalFiltro(event.target.value)
+                    }
                     disabled={tipoFiltroPeriodo === "todos"}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700 disabled:cursor-not-allowed disabled:bg-slate-100"
                   />
@@ -1441,7 +1587,9 @@ export default function FiscalizacaoPage() {
 
             <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-600">Relatório</p>
+                <p className="text-sm font-semibold text-slate-600">
+                  Relatório
+                </p>
                 <p className="text-xs text-slate-500">
                   Exporta todos os processos filtrados na tela.
                 </p>
@@ -1502,9 +1650,80 @@ export default function FiscalizacaoPage() {
         </div>
 
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">
+                Relatório resumido dos filtros
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-600">
+                Resumo calculado com base nos processos filtrados na tela.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl bg-red-50 p-4">
+                <p className="text-xs font-bold uppercase text-red-700">
+                  Críticos +15 dias
+                </p>
+                <p className="text-2xl font-black text-red-700">
+                  {relatorioResumido.pendentesCriticos}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-yellow-50 p-4">
+                <p className="text-xs font-bold uppercase text-yellow-700">
+                  Atenção +10 dias
+                </p>
+                <p className="text-2xl font-black text-yellow-700">
+                  {relatorioResumido.pendentesAtencao}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase text-slate-500">
+                  Média dias filtrados
+                </p>
+                <p className="text-2xl font-black text-slate-800">
+                  {relatorioResumido.mediaDias.toFixed(1)}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-green-50 p-4">
+                <p className="text-xs font-bold uppercase text-green-700">
+                  Média concluídos
+                </p>
+                <p className="text-2xl font-black text-green-700">
+                  {relatorioResumido.mediaDiasConcluidos.toFixed(1)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            <ListaResumo
+              titulo="Top assuntos filtrados"
+              itens={relatorioResumido.porAssunto}
+            />
+
+            <ListaResumo
+              titulo="Top setores filtrados"
+              itens={relatorioResumido.porSetor}
+            />
+
+            <ListaResumo
+              titulo="Bairros com mais pendências"
+              itens={relatorioResumido.bairrosPendentes}
+            />
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Baixa em lote</h2>
+              <h2 className="text-lg font-bold text-slate-800">
+                Baixa em lote
+              </h2>
 
               <p className="mt-1 text-sm text-slate-600">
                 Selecione processos pendentes e conclua todos de uma vez.
@@ -1797,13 +2016,20 @@ export default function FiscalizacaoPage() {
                       const dias = obterDiasDoProcesso(processo);
 
                       return (
-                        <tr key={processo.id} className="border-t border-slate-100">
+                        <tr
+                          key={processo.id}
+                          className="border-t border-slate-100"
+                        >
                           <td className="px-4 py-3">
                             <input
                               type="checkbox"
-                              checked={processosSelecionados.includes(processo.id)}
+                              checked={processosSelecionados.includes(
+                                processo.id
+                              )}
                               disabled={processo.concluido}
-                              onChange={() => alternarSelecaoProcesso(processo.id)}
+                              onChange={() =>
+                                alternarSelecaoProcesso(processo.id)
+                              }
                               className="h-4 w-4"
                             />
                           </td>
@@ -1950,7 +2176,8 @@ export default function FiscalizacaoPage() {
                   Novo processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias serão gerados pelo sistema.
+                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias
+                  serão gerados pelo sistema.
                 </p>
               </div>
 
@@ -1977,7 +2204,9 @@ export default function FiscalizacaoPage() {
               <CampoTexto
                 label="Nº SisGep *"
                 value={novoProcesso.sisgep}
-                onChange={(valor) => atualizarCampoNovoProcesso("sisgep", valor)}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("sisgep", valor)
+                }
                 required
                 placeholder="000.000.000.000.001"
               />
@@ -1992,7 +2221,9 @@ export default function FiscalizacaoPage() {
 
               <CampoAssunto
                 value={novoProcesso.assunto}
-                onChange={(valor) => atualizarCampoNovoProcesso("assunto", valor)}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("assunto", valor)
+                }
               />
 
               <CampoTexto
@@ -2047,7 +2278,8 @@ export default function FiscalizacaoPage() {
                   Editar processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Altere os dados do processo. Ao salvar, bairro, setor, coordenadas, Maps e dias serão recalculados.
+                  Altere os dados do processo. Ao salvar, bairro, setor,
+                  coordenadas, Maps e dias serão recalculados.
                 </p>
               </div>
 
