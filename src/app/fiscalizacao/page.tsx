@@ -36,6 +36,7 @@ type Anexo = {
 };
 
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
+type ModoVisualizacao = "cards" | "tabela";
 
 type NovoProcessoForm = {
   sisgep: string;
@@ -66,6 +67,8 @@ export default function FiscalizacaoPage() {
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(24);
+  const [modoVisualizacao, setModoVisualizacao] =
+    useState<ModoVisualizacao>("cards");
 
   const [processosSelecionados, setProcessosSelecionados] = useState<string[]>(
     []
@@ -1080,6 +1083,36 @@ export default function FiscalizacaoPage() {
                 <option value={96}>96 por página</option>
               </select>
             </div>
+
+            <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <label className="text-sm font-semibold text-slate-600">
+                Visualização
+              </label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setModoVisualizacao("cards")}
+                  className={`rounded-lg px-4 py-2 text-sm font-bold ${
+                    modoVisualizacao === "cards"
+                      ? "bg-blue-800 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  Cards
+                </button>
+
+                <button
+                  onClick={() => setModoVisualizacao("tabela")}
+                  className={`rounded-lg px-4 py-2 text-sm font-bold ${
+                    modoVisualizacao === "tabela"
+                      ? "bg-blue-800 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  Tabela
+                </button>
+              </div>
+            </div>
           </div>
 
           <p className="mt-3 text-xs font-semibold text-slate-500">
@@ -1146,218 +1179,349 @@ export default function FiscalizacaoPage() {
 
         {!carregando && !erro && (
           <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {processosPaginados.map((processo) => {
-                const estilo = getEstiloDias(processo);
-                const dias = obterDiasDoProcesso(processo);
+            {modoVisualizacao === "cards" && (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {processosPaginados.map((processo) => {
+                  const estilo = getEstiloDias(processo);
+                  const dias = obterDiasDoProcesso(processo);
 
-                return (
-                  <div
-                    key={processo.id}
-                    className={`rounded-2xl border-l-4 ${estilo.borda} ${estilo.fundo} p-5 shadow-sm`}
-                  >
-                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
-                      <input
-                        type="checkbox"
-                        checked={processosSelecionados.includes(processo.id)}
-                        disabled={processo.concluido}
-                        onChange={() => alternarSelecaoProcesso(processo.id)}
-                        className="h-4 w-4"
-                      />
+                  return (
+                    <div
+                      key={processo.id}
+                      className={`rounded-2xl border-l-4 ${estilo.borda} ${estilo.fundo} p-5 shadow-sm`}
+                    >
+                      <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={processosSelecionados.includes(processo.id)}
+                          disabled={processo.concluido}
+                          onChange={() => alternarSelecaoProcesso(processo.id)}
+                          className="h-4 w-4"
+                        />
 
-                      <span className="text-xs font-bold text-slate-600">
-                        {processo.concluido
-                          ? "Processo já concluído"
-                          : "Selecionar para baixa em lote"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase text-slate-500">
-                          SisGep
-                        </p>
-                        <h2 className="mt-1 font-bold text-slate-800">
-                          {processo.sisgep}
-                        </h2>
-                      </div>
-
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          processo.concluido
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {processo.concluido ? "Concluído" : "Pendente"}
-                      </span>
-                    </div>
-
-                    <p className="mt-4 text-sm font-semibold text-blue-700">
-                      {processo.assunto || "Sem assunto"}
-                    </p>
-
-                    <div className="mt-4 rounded-xl bg-white/80 p-3 text-sm text-slate-600">
-                      <p>
-                        <b>Entrada:</b> {formatarData(processo.data_entrada)}
-                      </p>
-
-                      {processo.concluido && (
-                        <p>
-                          <b>Conclusão:</b>{" "}
-                          {formatarData(processo.data_conclusao)}
-                        </p>
-                      )}
-
-                      <p>
-                        <b>Aberto por:</b> {processo.aberto_por || "---"}
-                      </p>
-
-                      <p>
-                        <b>Endereço:</b> {processo.rua || "---"}, nº{" "}
-                        {processo.numero_rua || "---"}
-                      </p>
-
-                      <p>
-                        <b>Bairro:</b>{" "}
-                        {processo.bairro || "Será gerado automaticamente"}
-                      </p>
-
-                      <p>
-                        <b>Setor:</b>{" "}
-                        {processo.setor || "Será gerado automaticamente"}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${estilo.badge}`}
-                      >
-                        {processo.concluido
-                          ? `Tempo no setor: ${dias} dias`
-                          : `Dias da entrada: ${dias}`}
-                      </span>
-
-                      <a
-                        href={getLinkMapa(processo)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm font-bold text-blue-700 hover:underline"
-                      >
-                        📍 Maps
-                      </a>
-                    </div>
-
-                    {processo.observacao && (
-                      <p className="mt-4 rounded-lg bg-white/80 p-3 text-xs text-slate-600">
-                        {processo.observacao}
-                      </p>
-                    )}
-
-                    <div className="mt-4 rounded-xl bg-white/80 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-bold text-slate-700">
-                          📎 Anexos
-                        </p>
-
-                        <span className="text-xs font-semibold text-slate-500">
-                          {(anexosPorProcesso[processo.id] || []).length}{" "}
-                          arquivo(s)
+                        <span className="text-xs font-bold text-slate-600">
+                          {processo.concluido
+                            ? "Processo já concluído"
+                            : "Selecionar para baixa em lote"}
                         </span>
                       </div>
 
-                      <label className="mt-3 block cursor-pointer rounded-lg border border-dashed border-blue-300 bg-blue-50 px-3 py-2 text-center text-xs font-bold text-blue-700 hover:bg-blue-100">
-                        {enviandoAnexoProcessoId === processo.id
-                          ? "Enviando..."
-                          : "Anexar foto/PDF"}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold uppercase text-slate-500">
+                            SisGep
+                          </p>
+                          <h2 className="mt-1 font-bold text-slate-800">
+                            {processo.sisgep}
+                          </h2>
+                        </div>
 
-                        <input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          className="hidden"
-                          disabled={enviandoAnexoProcessoId === processo.id}
-                          onChange={(event) => {
-                            const arquivo = event.target.files?.[0];
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-bold ${
+                            processo.concluido
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {processo.concluido ? "Concluído" : "Pendente"}
+                        </span>
+                      </div>
 
-                            if (arquivo) {
-                              enviarAnexo(processo, arquivo);
-                            }
+                      <p className="mt-4 text-sm font-semibold text-blue-700">
+                        {processo.assunto || "Sem assunto"}
+                      </p>
 
-                            event.currentTarget.value = "";
-                          }}
-                        />
-                      </label>
+                      <div className="mt-4 rounded-xl bg-white/80 p-3 text-sm text-slate-600">
+                        <p>
+                          <b>Entrada:</b> {formatarData(processo.data_entrada)}
+                        </p>
 
-                      <div className="mt-3 space-y-2">
-                        {(anexosPorProcesso[processo.id] || []).map(
-                          (anexo) => (
-                            <div
-                              key={anexo.id}
-                              className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
-                            >
-                              <button
-                                onClick={() => abrirAnexo(anexo)}
-                                className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-blue-700 hover:underline"
-                                title={anexo.nome_arquivo || "Ver anexo"}
-                              >
-                                👁️ {anexo.nome_arquivo || "Ver anexo"}
-                              </button>
-
-                              <button
-                                onClick={() => excluirAnexo(anexo)}
-                                className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
-                              >
-                                Excluir
-                              </button>
-                            </div>
-                          )
-                        )}
-
-                        {(anexosPorProcesso[processo.id] || []).length ===
-                          0 && (
-                          <p className="text-xs text-slate-500">
-                            Nenhum anexo enviado.
+                        {processo.concluido && (
+                          <p>
+                            <b>Conclusão:</b>{" "}
+                            {formatarData(processo.data_conclusao)}
                           </p>
                         )}
+
+                        <p>
+                          <b>Aberto por:</b> {processo.aberto_por || "---"}
+                        </p>
+
+                        <p>
+                          <b>Endereço:</b> {processo.rua || "---"}, nº{" "}
+                          {processo.numero_rua || "---"}
+                        </p>
+
+                        <p>
+                          <b>Bairro:</b>{" "}
+                          {processo.bairro || "Será gerado automaticamente"}
+                        </p>
+
+                        <p>
+                          <b>Setor:</b>{" "}
+                          {processo.setor || "Será gerado automaticamente"}
+                        </p>
                       </div>
+
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-bold ${estilo.badge}`}
+                        >
+                          {processo.concluido
+                            ? `Tempo no setor: ${dias} dias`
+                            : `Dias da entrada: ${dias}`}
+                        </span>
+
+                        <a
+                          href={getLinkMapa(processo)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-bold text-blue-700 hover:underline"
+                        >
+                          📍 Maps
+                        </a>
+                      </div>
+
+                      {processo.observacao && (
+                        <p className="mt-4 rounded-lg bg-white/80 p-3 text-xs text-slate-600">
+                          {processo.observacao}
+                        </p>
+                      )}
+
+                      <div className="mt-4 rounded-xl bg-white/80 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-bold text-slate-700">
+                            📎 Anexos
+                          </p>
+
+                          <span className="text-xs font-semibold text-slate-500">
+                            {(anexosPorProcesso[processo.id] || []).length}{" "}
+                            arquivo(s)
+                          </span>
+                        </div>
+
+                        <label className="mt-3 block cursor-pointer rounded-lg border border-dashed border-blue-300 bg-blue-50 px-3 py-2 text-center text-xs font-bold text-blue-700 hover:bg-blue-100">
+                          {enviandoAnexoProcessoId === processo.id
+                            ? "Enviando..."
+                            : "Anexar foto/PDF"}
+
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            className="hidden"
+                            disabled={enviandoAnexoProcessoId === processo.id}
+                            onChange={(event) => {
+                              const arquivo = event.target.files?.[0];
+
+                              if (arquivo) {
+                                enviarAnexo(processo, arquivo);
+                              }
+
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                        </label>
+
+                        <div className="mt-3 space-y-2">
+                          {(anexosPorProcesso[processo.id] || []).map(
+                            (anexo) => (
+                              <div
+                                key={anexo.id}
+                                className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
+                              >
+                                <button
+                                  onClick={() => abrirAnexo(anexo)}
+                                  className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-blue-700 hover:underline"
+                                  title={anexo.nome_arquivo || "Ver anexo"}
+                                >
+                                  👁️ {anexo.nome_arquivo || "Ver anexo"}
+                                </button>
+
+                                <button
+                                  onClick={() => excluirAnexo(anexo)}
+                                  className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
+                                >
+                                  Excluir
+                                </button>
+                              </div>
+                            )
+                          )}
+
+                          {(anexosPorProcesso[processo.id] || []).length ===
+                            0 && (
+                            <p className="text-xs text-slate-500">
+                              Nenhum anexo enviado.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => abrirModalEdicao(processo)}
+                        className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+                      >
+                        Editar processo
+                      </button>
+
+                      <button
+                        onClick={() => excluirProcesso(processo)}
+                        className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+                      >
+                        Excluir processo
+                      </button>
+
+                      <button
+                        onClick={() => alterarStatusProcesso(processo)}
+                        className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-bold text-white ${
+                          processo.concluido
+                            ? "bg-slate-600 hover:bg-slate-700"
+                            : "bg-green-600 hover:bg-green-700"
+                        }`}
+                      >
+                        {processo.concluido
+                          ? "Reabrir processo"
+                          : "Concluir processo"}
+                      </button>
                     </div>
+                  );
+                })}
 
-                    <button
-                      onClick={() => abrirModalEdicao(processo)}
-                      className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
-                    >
-                      Editar processo
-                    </button>
-
-                    <button
-                      onClick={() => excluirProcesso(processo)}
-                      className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
-                    >
-                      Excluir processo
-                    </button>
-
-                    <button
-                      onClick={() => alterarStatusProcesso(processo)}
-                      className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-bold text-white ${
-                        processo.concluido
-                          ? "bg-slate-600 hover:bg-slate-700"
-                          : "bg-green-600 hover:bg-green-700"
-                      }`}
-                    >
-                      {processo.concluido
-                        ? "Reabrir processo"
-                        : "Concluir processo"}
-                    </button>
+                {processosFiltrados.length === 0 && (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
+                    Nenhum processo encontrado.
                   </div>
-                );
-              })}
+                )}
+              </div>
+            )}
 
-              {processosFiltrados.length === 0 && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
-                  Nenhum processo encontrado.
-                </div>
-              )}
-            </div>
+            {modoVisualizacao === "tabela" && (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table className="w-full min-w-[1200px] border-collapse text-left text-sm">
+                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Selecionar</th>
+                      <th className="px-4 py-3">SisGep</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Entrada</th>
+                      <th className="px-4 py-3">Dias</th>
+                      <th className="px-4 py-3">Assunto</th>
+                      <th className="px-4 py-3">Aberto por</th>
+                      <th className="px-4 py-3">Endereço</th>
+                      <th className="px-4 py-3">Bairro</th>
+                      <th className="px-4 py-3">Setor</th>
+                      <th className="px-4 py-3 text-right">Ações</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {processosPaginados.map((processo) => {
+                      const dias = obterDiasDoProcesso(processo);
+
+                      return (
+                        <tr key={processo.id} className="border-t border-slate-100">
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={processosSelecionados.includes(processo.id)}
+                              disabled={processo.concluido}
+                              onChange={() => alternarSelecaoProcesso(processo.id)}
+                              className="h-4 w-4"
+                            />
+                          </td>
+
+                          <td className="px-4 py-3 font-bold text-slate-800">
+                            {processo.sisgep}
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-bold ${
+                                processo.concluido
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {processo.concluido ? "Concluído" : "Pendente"}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {formatarData(processo.data_entrada)}
+                          </td>
+
+                          <td className="px-4 py-3 font-bold text-slate-700">
+                            {dias}
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {processo.assunto || "---"}
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {processo.aberto_por || "---"}
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {processo.rua || "---"}, nº{" "}
+                            {processo.numero_rua || "---"}
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {processo.bairro || "---"}
+                          </td>
+
+                          <td className="px-4 py-3 text-slate-600">
+                            {processo.setor || "---"}
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end gap-2">
+                              <a
+                                href={getLinkMapa(processo)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                              >
+                                Maps
+                              </a>
+
+                              <button
+                                onClick={() => abrirModalEdicao(processo)}
+                                className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600"
+                              >
+                                Editar
+                              </button>
+
+                              <button
+                                onClick={() => alterarStatusProcesso(processo)}
+                                className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
+                                  processo.concluido
+                                    ? "bg-slate-600 hover:bg-slate-700"
+                                    : "bg-green-600 hover:bg-green-700"
+                                }`}
+                              >
+                                {processo.concluido ? "Reabrir" : "Concluir"}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {processosFiltrados.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={11}
+                          className="px-4 py-6 text-center text-slate-500"
+                        >
+                          Nenhum processo encontrado.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {processosFiltrados.length > 0 && (
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
