@@ -114,17 +114,17 @@ export default function MapaPage() {
 
   const dadosMapa = useMemo(() => {
     const processosGeral = processos
-      .filter((processo) => {
-        if (filtro === "todos") return true;
-        if (filtro === "pendentes") return !processo.concluido;
-        if (filtro === "concluidos") return processo.concluido;
+  .filter((processo) => {
+    if (filtro === "todos") return true;
+    if (filtro === "pendentes") return !processo.concluido;
+    if (filtro === "concluidos") return processo.concluido;
 
-        return true;
-      })
-      .map((processo) => ({
-        ...processo,
-        tipo_marcador: processo.concluido ? "concluido" : "pendente",
-      })) as Processo[];
+    return true;
+  })
+  .map((processo) => ({
+    ...processo,
+    tipo_marcador: undefined,
+  })) as Processo[];
 
     const concluidosNoDia = processos
       .filter(
@@ -397,19 +397,49 @@ export default function MapaPage() {
         {!carregando && !erro && (
           <>
             <div className="mb-4 flex flex-wrap gap-3 text-sm font-semibold">
-              {modoMapa === "geral" && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-orange-500"></span>
-                    <span className="text-slate-600">Pendente</span>
-                  </div>
+             {modoMapa === "geral" && (
+  <>
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#dc2626" }}></span>
+      <span className="text-slate-600">Ouvidoria/Denúncia</span>
+    </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-green-600"></span>
-                    <span className="text-slate-600">Concluído</span>
-                  </div>
-                </>
-              )}
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#2563eb" }}></span>
+      <span className="text-slate-600">Inscrição/Alteração</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#16a34a" }}></span>
+      <span className="text-slate-600">IPTU</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#ca8a04" }}></span>
+      <span className="text-slate-600">DRM/ISS</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#0891b2" }}></span>
+      <span className="text-slate-600">Revisão de Taxa</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#ea580c" }}></span>
+      <span className="text-slate-600">Feiras/Ambulantes</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#9333ea" }}></span>
+      <span className="text-slate-600">Ministério Público</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#64748b" }}></span>
+      <span className="text-slate-600">Outros</span>
+    </div>
+  </>
+)}
 
               {modoMapa === "rota" && (
                 <>

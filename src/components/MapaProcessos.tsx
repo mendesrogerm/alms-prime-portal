@@ -26,20 +26,69 @@ type MapaProcessosProps = {
   processos: ProcessoMapa[];
 };
 
-function obterCorMarcador(processo: ProcessoMapa) {
-  if (processo.tipo_marcador === "concluido_dia") return "#16a34a";
-  if (processo.tipo_marcador === "oportunidade") return "#dc2626";
-  if (processo.concluido) return "#16a34a";
+function obterCorPorAssunto(assunto: string | null) {
+  const assuntoNormalizado = (assunto || "").toLowerCase();
 
-  return "#f97316";
+  if (assuntoNormalizado.includes("ouvidoria")) return "#dc2626";
+  if (assuntoNormalizado.includes("denúncia")) return "#dc2626";
+  if (assuntoNormalizado.includes("denuncia")) return "#dc2626";
+
+  if (assuntoNormalizado.includes("inscrição")) return "#2563eb";
+  if (assuntoNormalizado.includes("inscricao")) return "#2563eb";
+  if (assuntoNormalizado.includes("alteração contratual")) return "#2563eb";
+  if (assuntoNormalizado.includes("alteracao contratual")) return "#2563eb";
+
+  if (assuntoNormalizado.includes("encerramento")) return "#475569";
+  if (assuntoNormalizado.includes("cancelamento")) return "#475569";
+
+  if (assuntoNormalizado.includes("processo físico")) return "#334155";
+  if (assuntoNormalizado.includes("processo fisico")) return "#334155";
+
+  if (assuntoNormalizado.includes("iptu")) return "#16a34a";
+
+  if (assuntoNormalizado.includes("drm")) return "#ca8a04";
+  if (assuntoNormalizado.includes("iss")) return "#ca8a04";
+
+  if (assuntoNormalizado.includes("revisão")) return "#0891b2";
+  if (assuntoNormalizado.includes("revisao")) return "#0891b2";
+  if (assuntoNormalizado.includes("taxa")) return "#0891b2";
+
+  if (assuntoNormalizado.includes("feiras")) return "#ea580c";
+  if (assuntoNormalizado.includes("ambulantes")) return "#ea580c";
+
+  if (assuntoNormalizado.includes("horário especial")) return "#4f46e5";
+  if (assuntoNormalizado.includes("horario especial")) return "#4f46e5";
+
+  if (assuntoNormalizado.includes("ministério público")) return "#9333ea";
+  if (assuntoNormalizado.includes("ministerio publico")) return "#9333ea";
+
+  if (assuntoNormalizado.includes("outros")) return "#64748b";
+
+  return "#0f172a";
+}
+
+function obterCorMarcador(processo: ProcessoMapa) {
+  if (processo.tipo_marcador === "concluido_dia") {
+    return "#16a34a";
+  }
+
+  if (processo.tipo_marcador === "oportunidade") {
+    return "#dc2626";
+  }
+
+  return obterCorPorAssunto(processo.assunto);
 }
 
 function obterTextoStatus(processo: ProcessoMapa) {
-  if (processo.tipo_marcador === "concluido_dia") return "✅ Concluído no dia";
-  if (processo.tipo_marcador === "oportunidade") return "🛑 Oportunidade perdida";
-  if (processo.concluido) return "✅ Concluído";
+  if (processo.tipo_marcador === "concluido_dia") {
+    return "✅ Concluído no dia";
+  }
 
-  return "⏳ Pendente";
+  if (processo.tipo_marcador === "oportunidade") {
+    return "🛑 Oportunidade perdida";
+  }
+
+  return processo.concluido ? "✅ Concluído" : "⏳ Pendente";
 }
 
 function criarIcone(processo: ProcessoMapa) {
