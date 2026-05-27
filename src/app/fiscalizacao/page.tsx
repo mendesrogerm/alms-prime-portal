@@ -47,7 +47,19 @@ export default function FiscalizacaoPage() {
 
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [salvandoNovo, setSalvandoNovo] = useState(false);
+const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+const [processoEditando, setProcessoEditando] = useState<Processo | null>(null);
 
+const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
+  sisgep: "",
+  data_entrada: dataAtualInput(),
+  aberto_por: "",
+  assunto: "",
+  rua: "",
+  numero_rua: "",
+  observacao: "",
+});
   const [novoProcesso, setNovoProcesso] = useState<NovoProcessoForm>({
     sisgep: "",
     data_entrada: dataAtualInput(),
@@ -210,7 +222,137 @@ async function buscarDadosAutomaticos(rua: string, numero: string) {
       [campo]: valor,
     }));
   }
+function atualizarCampoEdicaoProcesso(
+  campo: keyof NovoProcessoForm,
+  valor: string
+) {
+  setProcessoEdicao((dadosAtuais) => ({
+    ...dadosAtuais,
+    [campo]: valor,
+  }));
+}
 
+function abrirModalEdicao(processo: Processo) {
+  setProcessoEditando(processo);
+
+  setProcessoEdicao({
+    sisgep: processo.sisgep || "",
+    data_entrada: processo.data_entrada || dataAtualInput(),
+    aberto_por: processo.aberto_por || "",
+    assunto: processo.assunto || "",
+    rua: processo.rua || "",
+    numero_rua: processo.numero_rua || "",
+    observacao: processo.observacao || "",
+  });
+
+  setModalEdicaoAberto(true);
+}
+
+function fecharModalEdicao() {
+  setModalEdicaoAberto(false);
+  setProcessoEditando(null);
+}
+
+async function salvarEdicaoProcesso(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  if (!processoEditando) {
+    return;
+  }
+
+  if (!processoEdicao.sisgep.trim()) {
+    alert("Informe o número SisGep.");
+    return;
+  }
+
+  if (!processoEdicao.data_entrada) {
+    alert("Informe a data de entrada.");
+    return;
+  }
+
+  setSalvandoEdicao(true);
+
+  const ruaAnterior = processoEditando.rua || "";
+  const numeroAnterior = processoEditando.numero_rua || "";
+
+  const enderecoMudou =
+    processoEdicao.rua.trim() !== ruaAnterior.trim() ||
+    processoEdicao.numero_rua.trim() !== numeroAnterior.trim();
+
+  const endereco = `${processoEdicao.rua}, ${processoEdicao.numero_rua}, Santana de Parnaíba, SP`;
+
+  const dadosAutomaticos = await buscarDadosAutomaticos(
+    processoEdicao.rua,
+    processoEdicao.numero_rua
+  );
+
+  const bairroFinal =
+    dadosAutomaticos.bairro ?? (enderecoMudou ? null : processoEditando.bairro);
+
+  const setorFinal =
+    dadosAutomaticos.setor ?? (enderecoMudou ? null : processoEditando.setor);
+
+  const latitudeFinal =
+    dadosAutomaticos.latitude ?? (enderecoMudou ? null : processoEditando.latitude);
+
+  const longitudeFinal =
+    dadosAutomaticos.longitude ?? (enderecoMudou ? null : processoEditando.longitude);
+
+  const mapaLink =
+    latitudeFinal && longitudeFinal
+      ? `https://www.google.com/maps/search/?api=1&query=${latitudeFinal},${longitudeFinal}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          endereco
+        )}`;
+
+  const dataConclusao = processoEditando.concluido
+    ? processoEditando.data_conclusao || dataAtualFormatoBanco()
+    : null;
+
+  const diasCalculados = processoEditando.concluido
+    ? calcularDiasEntreDatas(processoEdicao.data_entrada, dataConclusao)
+    : calcularDiasEntreDatas(processoEdicao.data_entrada);
+
+  const { data, error } = await supabase
+    .from("processos")
+    .update({
+      sisgep: processoEdicao.sisgep.trim(),
+      data_entrada: processoEdicao.data_entrada,
+      data_conclusao: dataConclusao,
+      sla: diasCalculados,
+      aberto_por: processoEdicao.aberto_por.trim() || null,
+      assunto: processoEdicao.assunto.trim() || null,
+      rua: processoEdicao.rua.trim() || null,
+      numero_rua: processoEdicao.numero_rua.trim() || null,
+      observacao: processoEdicao.observacao.trim() || null,
+      bairro: bairroFinal,
+      setor: setorFinal,
+      latitude: latitudeFinal,
+      longitude: longitudeFinal,
+      mapa_link: mapaLink,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", processoEditando.id)
+    .select()
+    .single();
+
+  setSalvandoEdicao(false);
+
+  if (error) {
+    alert("Erro ao editar processo: " + error.message);
+    return;
+  }
+
+  if (data) {
+    setProcessos((listaAtual) =>
+      listaAtual.map((item) =>
+        item.id === processoEditando.id ? data : item
+      )
+    );
+  }
+
+  fecharModalEdicao();
+}
   async function cadastrarNovoProcesso(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -639,7 +781,12 @@ mapa_link: mapaLink,
                       {processo.observacao}
                     </p>
                   )}
-
+<button
+  onClick={() => abrirModalEdicao(processo)}
+  className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+>
+  Editar processo
+</button>
                   <button
                     onClick={() => alterarStatusProcesso(processo)}
                     className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-bold text-white ${
@@ -825,6 +972,168 @@ mapa_link: mapaLink,
           </div>
         </div>
       )}
+      {modalEdicaoAberto && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">
+            Editar processo
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Altere os dados do processo. Ao salvar, bairro, setor, coordenadas, Maps e dias serão recalculados.
+          </p>
+        </div>
+
+        <button
+          onClick={fecharModalEdicao}
+          className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+        >
+          Fechar
+        </button>
+      </div>
+
+      <form onSubmit={salvarEdicaoProcesso} className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Data de entrada *
+          </label>
+          <input
+            type="date"
+            value={processoEdicao.data_entrada}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("data_entrada", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Nº SisGep *
+          </label>
+          <input
+            value={processoEdicao.sisgep}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("sisgep", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+            placeholder="000.000.000.000.001"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Aberto por
+          </label>
+          <input
+            value={processoEdicao.aberto_por}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("aberto_por", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Assunto
+          </label>
+          <select
+            value={processoEdicao.assunto}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("assunto", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+          >
+            <option value="">Selecione...</option>
+            <option value="Ouvidoria/Denúncia">Ouvidoria/Denúncia</option>
+            <option value="Inscrição Municipal/Alteração Contratual">
+              Inscrição Municipal/Alteração Contratual
+            </option>
+            <option value="Encerramento/Cancelamento">
+              Encerramento/Cancelamento
+            </option>
+            <option value="Processo Físico/Encerramento">
+              Processo Físico/Encerramento
+            </option>
+            <option value="IPTU">IPTU</option>
+            <option value="Outros/ Conferir no Processo">
+              Outros/ Conferir no Processo
+            </option>
+            <option value="DRM/ISS">DRM/ISS</option>
+            <option value="Revisão de Taxa">Revisão de Taxa</option>
+            <option value="Pedidos de Feiras/Ambulantes">
+              Pedidos de Feiras/Ambulantes
+            </option>
+            <option value="Horário Especial">Horário Especial</option>
+            <option value="Feiras Livres">Feiras Livres</option>
+            <option value="Ministério Público">Ministério Público</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Rua
+          </label>
+          <input
+            value={processoEdicao.rua}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("rua", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">
+            Número
+          </label>
+          <input
+            value={processoEdicao.numero_rua}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("numero_rua", event.target.value)
+            }
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="text-sm font-semibold text-slate-700">
+            Observação
+          </label>
+          <textarea
+            value={processoEdicao.observacao}
+            onChange={(event) =>
+              atualizarCampoEdicaoProcesso("observacao", event.target.value)
+            }
+            className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+          />
+        </div>
+
+        <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            onClick={fecharModalEdicao}
+            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            disabled={salvandoEdicao}
+            className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {salvandoEdicao ? "Salvando..." : "Salvar alterações"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </main>
   );
 }
