@@ -86,6 +86,8 @@ export default function FiscalizacaoPage() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] =
     useState<FiltroStatus>("pendentes");
+  const [filtroAssunto, setFiltroAssunto] = useState("todos");
+  const [filtroSetor, setFiltroSetor] = useState("todos");
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(24);
@@ -141,6 +143,8 @@ export default function FiscalizacaoPage() {
   }, [
     busca,
     filtroStatus,
+    filtroAssunto,
+    filtroSetor,
     itensPorPagina,
     ordenacao,
     tipoFiltroPeriodo,
@@ -923,6 +927,38 @@ export default function FiscalizacaoPage() {
     setDataFinalFiltro("");
   }
 
+  function limparTodosFiltros() {
+    setBusca("");
+    setFiltroStatus("pendentes");
+    setFiltroAssunto("todos");
+    setFiltroSetor("todos");
+    setTipoFiltroPeriodo("todos");
+    setDataInicialFiltro("");
+    setDataFinalFiltro("");
+    setOrdenacao("dias_desc");
+    setPaginaAtual(1);
+  }
+
+  const assuntosDisponiveis = useMemo(() => {
+    return Array.from(
+      new Set(
+        processos
+          .map((processo) => processo.assunto?.trim())
+          .filter((assunto): assunto is string => Boolean(assunto))
+      )
+    ).sort((a, b) => a.localeCompare(b));
+  }, [processos]);
+
+  const setoresDisponiveis = useMemo(() => {
+    return Array.from(
+      new Set(
+        processos
+          .map((processo) => processo.setor?.trim())
+          .filter((setor): setor is string => Boolean(setor))
+      )
+    ).sort((a, b) => a.localeCompare(b));
+  }, [processos]);
+
   const processosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
 
@@ -931,6 +967,12 @@ export default function FiscalizacaoPage() {
         filtroStatus === "todos" ||
         (filtroStatus === "pendentes" && !processo.concluido) ||
         (filtroStatus === "concluidos" && processo.concluido);
+
+      const combinaAssunto =
+        filtroAssunto === "todos" || processo.assunto === filtroAssunto;
+
+      const combinaSetor =
+        filtroSetor === "todos" || processo.setor === filtroSetor;
 
       const textoBusca = [
         processo.sisgep,
@@ -957,7 +999,13 @@ export default function FiscalizacaoPage() {
       const combinaPeriodo =
         tipoFiltroPeriodo === "todos" || dataDentroDoPeriodo(dataParaFiltro);
 
-      return combinaStatus && combinaBusca && combinaPeriodo;
+      return (
+        combinaStatus &&
+        combinaAssunto &&
+        combinaSetor &&
+        combinaBusca &&
+        combinaPeriodo
+      );
     });
 
     return [...listaFiltrada].sort((a, b) => {
@@ -985,6 +1033,8 @@ export default function FiscalizacaoPage() {
     processos,
     busca,
     filtroStatus,
+    filtroAssunto,
+    filtroSetor,
     ordenacao,
     tipoFiltroPeriodo,
     dataInicialFiltro,
@@ -994,6 +1044,12 @@ export default function FiscalizacaoPage() {
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
   const concluidos = processos.filter((p) => p.concluido).length;
+  const pendentesFiltrados = processosFiltrados.filter(
+    (p) => !p.concluido
+  ).length;
+  const concluidosFiltrados = processosFiltrados.filter(
+    (p) => p.concluido
+  ).length;
 
   const totalPaginas = Math.max(
     1,
@@ -1263,6 +1319,44 @@ export default function FiscalizacaoPage() {
               </div>
             </div>
 
+            <div>
+              <label className="text-sm font-semibold text-slate-600">
+                Assunto
+              </label>
+
+              <select
+                value={filtroAssunto}
+                onChange={(event) => setFiltroAssunto(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              >
+                <option value="todos">Todos os assuntos</option>
+                {assuntosDisponiveis.map((assunto) => (
+                  <option key={assunto} value={assunto}>
+                    {assunto}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-600">
+                Setor
+              </label>
+
+              <select
+                value={filtroSetor}
+                onChange={(event) => setFiltroSetor(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              >
+                <option value="todos">Todos os setores</option>
+                {setoresDisponiveis.map((setor) => (
+                  <option key={setor} value={setor}>
+                    {setor}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-semibold text-slate-600">
                 Ordenar processos
@@ -1353,12 +1447,50 @@ export default function FiscalizacaoPage() {
                 </p>
               </div>
 
-              <button
-                onClick={exportarProcessosCsv}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
-              >
-                Exportar CSV
-              </button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={limparTodosFiltros}
+                  className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
+                >
+                  Limpar filtros
+                </button>
+
+                <button
+                  onClick={exportarProcessosCsv}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
+                >
+                  Exportar CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-slate-50 p-3">
+              <p className="text-xs font-bold uppercase text-slate-500">
+                Filtrados
+              </p>
+              <p className="text-2xl font-black text-slate-800">
+                {processosFiltrados.length}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-yellow-50 p-3">
+              <p className="text-xs font-bold uppercase text-yellow-700">
+                Pendentes filtrados
+              </p>
+              <p className="text-2xl font-black text-yellow-700">
+                {pendentesFiltrados}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-green-50 p-3">
+              <p className="text-xs font-bold uppercase text-green-700">
+                Concluídos filtrados
+              </p>
+              <p className="text-2xl font-black text-green-700">
+                {concluidosFiltrados}
+              </p>
             </div>
           </div>
 
