@@ -27,6 +27,40 @@ const ativosIniciais = [
   { simbolo: "BNB", nome: "BNB" },
   { simbolo: "ADA", nome: "Cardano" },
 ];
+const ferramentasCripto = [
+  {
+    icone: "📰",
+    titulo: "Notícias do Mercado",
+    descricao:
+      "Acompanhe notícias recentes sobre Bitcoin, Ethereum, blockchain e mercado cripto.",
+    href: "/cripto/noticias",
+    cor: "cyan",
+  },
+  {
+    icone: "🌡️",
+    titulo: "Sentimento do Mercado",
+    descricao:
+      "Veja o Fear & Greed Index, classificação emocional do mercado e leitura estratégica.",
+    href: "/cripto/sentimento",
+    cor: "purple",
+  },
+  {
+    icone: "📊",
+    titulo: "Gráficos da Carteira",
+    descricao:
+      "Analise composição da carteira, valor por ativo, lucro/prejuízo e desempenho.",
+    href: "/cripto/graficos",
+    cor: "emerald",
+  },
+  {
+    icone: "⚙️",
+    titulo: "Configurações",
+    descricao:
+      "Gerencie ativos cadastrados, status ativo/inativo e dados operacionais do Cripto.",
+    href: "/cripto/configuracoes",
+    cor: "slate",
+  },
+];
 
 export default function CriptoPage() {
   const router = useRouter();
@@ -413,7 +447,49 @@ export default function CriptoPage() {
             destaque={portfolio.rentabilidade >= 0 ? "positivo" : "negativo"}
           />
         </div>
+        <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-bold">🧭 Ferramentas do Cripto</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Acesse rapidamente os módulos de análise, notícias, gráficos e
+                configurações.
+              </p>
+            </div>
+          </div>
 
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {ferramentasCripto.map((ferramenta) => (
+              <Link
+                key={ferramenta.href}
+                href={ferramenta.href}
+                className={
+                  ferramenta.cor === "cyan"
+                    ? "rounded-2xl border border-cyan-700/60 bg-cyan-950/20 p-5 transition hover:border-cyan-400 hover:bg-cyan-950/40"
+                    : ferramenta.cor === "purple"
+                      ? "rounded-2xl border border-purple-700/60 bg-purple-950/20 p-5 transition hover:border-purple-400 hover:bg-purple-950/40"
+                      : ferramenta.cor === "emerald"
+                        ? "rounded-2xl border border-emerald-700/60 bg-emerald-950/20 p-5 transition hover:border-emerald-400 hover:bg-emerald-950/40"
+                        : "rounded-2xl border border-slate-700 bg-slate-950 p-5 transition hover:border-cyan-400"
+                }
+              >
+                <div className="text-3xl">{ferramenta.icone}</div>
+
+                <h3 className="mt-4 font-black text-white">
+                  {ferramenta.titulo}
+                </h3>
+
+                <p className="mt-2 text-sm leading-5 text-slate-400">
+                  {ferramenta.descricao}
+                </p>
+
+                <span className="mt-4 inline-block text-sm font-bold text-cyan-300">
+                  Acessar →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <section id="portfolio" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <h2 className="text-lg font-bold">💰 Meu Portfólio</h2>
