@@ -53,6 +53,14 @@ const ferramentasCripto = [
     cor: "emerald",
   },
   {
+    icone: "HIST",
+    titulo: "Historico de Transacoes",
+    descricao:
+      "Consulte, filtre e exclua lancamentos registrados na carteira.",
+    href: "/cripto/transacoes",
+    cor: "cyan",
+  },
+  {
     icone: "CONFIG",
     titulo: "Configurações",
     descricao:
