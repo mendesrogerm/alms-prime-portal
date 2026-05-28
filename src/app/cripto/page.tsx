@@ -52,6 +52,14 @@ const ferramentasCripto = [
     href: "/cripto/graficos",
     cor: "emerald",
   },
+    {
+    icone: "CICLOS",
+    titulo: "Analise de Ciclos",
+    descricao:
+      "Acompanhe medias moveis, tendencia de alta ou baixa e historico por ativo.",
+    href: "/cripto/ciclos",
+    cor: "purple",
+  },
   {
     icone: "HIST",
     titulo: "Historico de Transacoes",
