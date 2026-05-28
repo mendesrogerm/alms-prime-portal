@@ -383,6 +383,12 @@ export default function CriptoPage() {
           >
             Gráficos
           </Link>
+                    <Link
+            href="/cripto/configuracoes"
+            className="whitespace-nowrap rounded-full border border-slate-600 bg-slate-900 px-4 py-2 text-xs font-bold text-slate-200 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Configurações
+          </Link>
         </div>
       </nav>
 
