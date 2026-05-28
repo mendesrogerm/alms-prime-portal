@@ -166,7 +166,9 @@ export default function CriptoPage() {
   );
 
   const ativoSelecionado = ativos.find((ativo) => ativo.id === form.ativo_id);
-  const precoSelecionado = ativoSelecionado ? precos[ativoSelecionado.simbolo] || 0 : 0;
+  const precoSelecionado = ativoSelecionado
+    ? precos[ativoSelecionado.simbolo] || 0
+    : 0;
   const valorAtualSimulado = ativoSelecionado
     ? precoSelecionado * (1 + projecao / 100)
     : 0;
@@ -330,6 +332,41 @@ export default function CriptoPage() {
         </div>
       </section>
 
+      <nav className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 px-6 py-3 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto">
+          <a
+            href="#resumo"
+            className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Resumo
+          </a>
+          <a
+            href="#portfolio"
+            className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Portfólio
+          </a>
+          <a
+            href="#transacoes"
+            className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Transações
+          </a>
+          <a
+            href="#relatorio"
+            className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Relatório Fiscal
+          </a>
+          <a
+            href="#simulador"
+            className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
+          >
+            Simulador
+          </a>
+        </div>
+      </nav>
+
       <section className="mx-auto max-w-7xl px-6 py-6">
         {erro && (
           <div className="mb-6 rounded-xl border border-red-500/40 bg-red-950/40 p-4 text-sm font-semibold text-red-200">
@@ -337,7 +374,7 @@ export default function CriptoPage() {
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div id="resumo" className="scroll-mt-24 grid gap-4 md:grid-cols-4">
           <CardResumo titulo="Patrimônio Total" valor={formatarMoedaBRL(portfolio.patrimonio)} />
           <CardResumo titulo="Investimento" valor={formatarMoedaBRL(portfolio.investimento)} />
           <CardResumo
@@ -353,7 +390,7 @@ export default function CriptoPage() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <section id="portfolio" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <h2 className="text-lg font-bold">💰 Meu Portfólio</h2>
 
             {portfolio.posicoes.length === 0 ? (
@@ -401,7 +438,7 @@ export default function CriptoPage() {
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <section id="transacoes" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <h2 className="text-lg font-bold">💸 Registrar Transação</h2>
 
             <form onSubmit={salvarTransacao} className="mt-4 space-y-3">
@@ -498,7 +535,7 @@ export default function CriptoPage() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <section id="relatorio" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-lg font-bold">📄 Relatório Fiscal</h2>
               <button
@@ -559,7 +596,7 @@ export default function CriptoPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <section id="simulador" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <h2 className="text-lg font-bold">🔮 Simulador de Cenários</h2>
 
             <div className="mt-4">
