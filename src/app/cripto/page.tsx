@@ -377,6 +377,12 @@ export default function CriptoPage() {
           >
             Sentimento
           </Link>
+                    <Link
+            href="/cripto/graficos"
+            className="whitespace-nowrap rounded-full border border-emerald-700 bg-emerald-950/40 px-4 py-2 text-xs font-bold text-emerald-300 hover:border-emerald-400 hover:text-emerald-200"
+          >
+            Gráficos
+          </Link>
         </div>
       </nav>
 
