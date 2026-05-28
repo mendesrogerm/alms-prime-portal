@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -29,32 +29,32 @@ const ativosIniciais = [
 ];
 const ferramentasCripto = [
   {
-    icone: "ðŸ“°",
-    titulo: "NotÃ­cias do Mercado",
+    icone: "NEWS",
+    titulo: "Notícias do Mercado",
     descricao:
-      "Acompanhe notÃ­cias recentes sobre Bitcoin, Ethereum, blockchain e mercado cripto.",
+      "Acompanhe notícias recentes sobre Bitcoin, Ethereum, blockchain e mercado cripto.",
     href: "/cripto/noticias",
     cor: "cyan",
   },
   {
-    icone: "ðŸŒ¡ï¸",
+    icone: "FEAR",
     titulo: "Sentimento do Mercado",
     descricao:
-      "Veja o Fear & Greed Index, classificaÃ§Ã£o emocional do mercado e leitura estratÃ©gica.",
+      "Veja o Fear & Greed Index, classificação emocional do mercado e leitura estratégica.",
     href: "/cripto/sentimento",
     cor: "purple",
   },
   {
-    icone: "ðŸ“Š",
-    titulo: "GrÃ¡ficos da Carteira",
+    icone: "CHART",
+    titulo: "Gráficos da Carteira",
     descricao:
-      "Analise composiÃ§Ã£o da carteira, valor por ativo, lucro/prejuÃ­zo e desempenho.",
+      "Analise composição da carteira, valor por ativo, lucro/prejuízo e desempenho.",
     href: "/cripto/graficos",
     cor: "emerald",
   },
   {
-    icone: "âš™ï¸",
-    titulo: "ConfiguraÃ§Ãµes",
+    icone: "CONFIG",
+    titulo: "Configurações",
     descricao:
       "Gerencie ativos cadastrados, status ativo/inativo e dados operacionais do Cripto.",
     href: "/cripto/configuracoes",
@@ -143,7 +143,7 @@ export default function CriptoPage() {
       .order("created_at", { ascending: false });
 
     if (transacoesError) {
-      setErro("Erro ao carregar transaÃ§Ãµes: " + transacoesError.message);
+      setErro("Erro ao carregar transações: " + transacoesError.message);
       return;
     }
 
@@ -243,7 +243,7 @@ export default function CriptoPage() {
     setSalvando(false);
 
     if (error) {
-      alert("Erro ao salvar transaÃ§Ã£o: " + error.message);
+      alert("Erro ao salvar transação: " + error.message);
       return;
     }
 
@@ -258,7 +258,7 @@ export default function CriptoPage() {
   }
 
   async function excluirTransacao(id: string) {
-    if (!confirm("Deseja excluir esta transaÃ§Ã£o?")) return;
+    if (!confirm("Deseja excluir esta transação?")) return;
 
     const { error } = await supabase
       .from("cripto_transacoes")
@@ -282,7 +282,7 @@ export default function CriptoPage() {
     const nome = nomeNovo.trim();
 
     if (!simbolo || !nome) {
-      alert("Informe sÃ­mbolo e nome do ativo.");
+      alert("Informe símbolo e nome do ativo.");
       return;
     }
 
@@ -347,13 +347,13 @@ export default function CriptoPage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <Link href="/" className="text-sm font-semibold text-cyan-300">
-              â† Voltar ao Portal
+              ← Voltar ao Portal
             </Link>
             <h1 className="mt-3 text-3xl font-black tracking-tight">
               ALMS Prime Cripto
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              Carteira, operaÃ§Ãµes, lucro/prejuÃ­zo, simulaÃ§Ã£o e relatÃ³rio fiscal.
+              Carteira, operações, lucro/prejuízo, simulação e relatório fiscal.
             </p>
           </div>
 
@@ -361,7 +361,7 @@ export default function CriptoPage() {
             onClick={() => usuarioId && carregarDados(usuarioId)}
             className="rounded-lg border border-cyan-400 px-4 py-2 text-sm font-bold text-cyan-300 hover:bg-cyan-400 hover:text-slate-950"
           >
-            Atualizar cotaÃ§Ãµes
+            Atualizar cotações
           </button>
         </div>
       </section>
@@ -378,19 +378,19 @@ export default function CriptoPage() {
             href="#portfolio"
             className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
           >
-            PortfÃ³lio
+            Portfólio
           </a>
           <a
             href="#transacoes"
             className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
           >
-            TransaÃ§Ãµes
+            Transações
           </a>
           <a
             href="#relatorio"
             className="whitespace-nowrap rounded-full border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:text-cyan-300"
           >
-            RelatÃ³rio Fiscal
+            Relatório Fiscal
           </a>
           <a
             href="#simulador"
@@ -399,6 +399,7 @@ export default function CriptoPage() {
             Simulador
             
           </a>
+                    
         </div>
       </nav>
 
@@ -410,10 +411,10 @@ export default function CriptoPage() {
         )}
 
         <div id="resumo" className="scroll-mt-24 grid gap-4 md:grid-cols-4">
-          <CardResumo titulo="PatrimÃ´nio Total" valor={formatarMoedaBRL(portfolio.patrimonio)} />
+          <CardResumo titulo="Patrimônio Total" valor={formatarMoedaBRL(portfolio.patrimonio)} />
           <CardResumo titulo="Investimento" valor={formatarMoedaBRL(portfolio.investimento)} />
           <CardResumo
-            titulo="Lucro/PrejuÃ­zo"
+            titulo="Lucro/Prejuízo"
             valor={formatarMoedaBRL(portfolio.lucro)}
             destaque={portfolio.lucro >= 0 ? "positivo" : "negativo"}
           />
@@ -426,10 +427,10 @@ export default function CriptoPage() {
         <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-bold">ðŸ§­ Ferramentas do Cripto</h2>
+              <h2 className="text-lg font-bold">🧭 Ferramentas do Cripto</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Acesse rapidamente os mÃ³dulos de anÃ¡lise, notÃ­cias, grÃ¡ficos e
-                configuraÃ§Ãµes.
+                Acesse rapidamente os módulos de análise, notícias, gráficos e
+                configurações.
               </p>
             </div>
           </div>
@@ -460,7 +461,7 @@ export default function CriptoPage() {
                 </p>
 
                 <span className="mt-4 inline-block text-sm font-bold text-cyan-300">
-                  Acessar â†’
+                  Acessar →
                 </span>
               </Link>
             ))}
@@ -468,11 +469,11 @@ export default function CriptoPage() {
         </section>
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <section id="portfolio" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h2 className="text-lg font-bold">ðŸ’° Meu PortfÃ³lio</h2>
+            <h2 className="text-lg font-bold">💰 Meu Portfólio</h2>
 
             {portfolio.posicoes.length === 0 ? (
               <p className="mt-4 text-sm text-slate-400">
-                Nenhuma posiÃ§Ã£o em carteira. Registre sua primeira compra.
+                Nenhuma posição em carteira. Registre sua primeira compra.
               </p>
             ) : (
               <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -516,7 +517,7 @@ export default function CriptoPage() {
           </section>
 
           <section id="transacoes" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h2 className="text-lg font-bold">ðŸ’¸ Registrar TransaÃ§Ã£o</h2>
+            <h2 className="text-lg font-bold">💸 Registrar Transação</h2>
 
             <form onSubmit={salvarTransacao} className="mt-4 space-y-3">
               <div>
@@ -530,7 +531,7 @@ export default function CriptoPage() {
                   <option value="">Selecione...</option>
                   {ativos.map((ativo) => (
                     <option key={ativo.id} value={ativo.id}>
-                      {ativo.simbolo} â€” {ativo.nome}
+                      {ativo.simbolo} — {ativo.nome}
                     </option>
                   ))}
                 </select>
@@ -567,7 +568,7 @@ export default function CriptoPage() {
 
               <div>
                 <label className="text-xs font-semibold text-slate-400">
-                  Valor total da operaÃ§Ã£o em R$
+                  Valor total da operação em R$
                 </label>
                 <input
                   value={form.valor_total_brl}
@@ -584,12 +585,12 @@ export default function CriptoPage() {
                 disabled={salvando}
                 className="w-full rounded-lg bg-cyan-400 px-4 py-2 text-sm font-black text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {salvando ? "Salvando..." : "Confirmar lanÃ§amento"}
+                {salvando ? "Salvando..." : "Confirmar lançamento"}
               </button>
             </form>
 
             <form onSubmit={cadastrarAtivo} className="mt-6 border-t border-slate-800 pt-4">
-              <h3 className="text-sm font-bold">âž• Cadastrar nova moeda</h3>
+              <h3 className="text-sm font-bold">➕ Cadastrar nova moeda</h3>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <input
                   value={simboloNovo}
@@ -614,7 +615,7 @@ export default function CriptoPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <section id="relatorio" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-lg font-bold">ðŸ“„ RelatÃ³rio Fiscal</h2>
+              <h2 className="text-lg font-bold">📄 Relatório Fiscal</h2>
               <button
                 onClick={baixarCSV}
                 disabled={portfolio.historico.length === 0}
@@ -632,7 +633,7 @@ export default function CriptoPage() {
                     <th className="px-3 py-2">Ativo</th>
                     <th className="px-3 py-2">Tipo</th>
                     <th className="px-3 py-2">Qtd</th>
-                    <th className="px-3 py-2">PreÃ§o Un.</th>
+                    <th className="px-3 py-2">Preço Un.</th>
                     <th className="px-3 py-2">Total</th>
                     <th className="px-3 py-2"></th>
                   </tr>
@@ -664,7 +665,7 @@ export default function CriptoPage() {
                   {portfolio.historico.length === 0 && (
                     <tr>
                       <td className="px-3 py-6 text-center text-slate-400" colSpan={7}>
-                        Nenhuma transaÃ§Ã£o registrada.
+                        Nenhuma transação registrada.
                       </td>
                     </tr>
                   )}
@@ -674,7 +675,7 @@ export default function CriptoPage() {
           </section>
 
           <section id="simulador" className="scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h2 className="text-lg font-bold">ðŸ”® Simulador de CenÃ¡rios</h2>
+            <h2 className="text-lg font-bold">🔮 Simulador de Cenários</h2>
 
             <div className="mt-4">
               <label className="text-xs font-semibold text-slate-400">
@@ -688,7 +689,7 @@ export default function CriptoPage() {
                 <option value="">Selecione...</option>
                 {ativos.map((ativo) => (
                   <option key={ativo.id} value={ativo.id}>
-                    {ativo.simbolo} â€” {ativo.nome}
+                    {ativo.simbolo} — {ativo.nome}
                   </option>
                 ))}
               </select>
@@ -696,7 +697,7 @@ export default function CriptoPage() {
 
             <div className="mt-4">
               <label className="text-xs font-semibold text-slate-400">
-                ProjeÃ§Ã£o: {projecao}%
+                Projeção: {projecao}%
               </label>
               <input
                 type="range"
@@ -709,12 +710,12 @@ export default function CriptoPage() {
             </div>
 
             <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-sm text-slate-400">PreÃ§o atual</p>
+              <p className="text-sm text-slate-400">Preço atual</p>
               <p className="mt-1 text-xl font-black">
                 {formatarMoedaBRL(precoSelecionado)}
               </p>
 
-              <p className="mt-4 text-sm text-slate-400">PreÃ§o projetado</p>
+              <p className="mt-4 text-sm text-slate-400">Preço projetado</p>
               <p className="mt-1 text-xl font-black text-cyan-300">
                 {formatarMoedaBRL(valorAtualSimulado)}
               </p>
@@ -754,4 +755,3 @@ function CardResumo({
     </div>
   );
 }
-
