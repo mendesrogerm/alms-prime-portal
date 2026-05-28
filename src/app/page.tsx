@@ -1,70 +1,113 @@
 import Link from "next/link";
 
+const sistemas = [
+  {
+    icone: "💠",
+    titulo: "ALMS Prime Cripto",
+    descricao:
+      "Dashboard de carteira, operações, lucro/prejuízo, simulações e relatório fiscal.",
+    href: "/cripto",
+    destaque: true,
+    botao: "Acessar Cripto",
+  },
+  {
+    icone: "🛡️",
+    titulo: "Fiscalização SisGep",
+    descricao: "Controle de processos, mapas, anexos, dashboard e relatórios.",
+    href: "/fiscalizacao",
+    destaque: false,
+    botao: "Acessar sistema",
+  },
+  {
+    icone: "📊",
+    titulo: "Relatórios",
+    descricao: "Futuramente, relatórios gerais dos sistemas ALMS Prime.",
+    href: null,
+    destaque: false,
+    botao: "Em breve",
+  },
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-100">
-      <section className="bg-blue-900 px-6 py-8 text-white">
+      <section className="bg-slate-950 px-6 py-10 text-white">
         <div className="mx-auto max-w-6xl">
-          <p className="text-sm font-semibold text-blue-200">ALMS PRIME</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">
+            ALMS PRIME
+          </p>
 
-          <h1 className="mt-2 text-3xl font-bold">
+          <h1 className="mt-3 text-4xl font-black tracking-tight">
             Portal de Sistemas
           </h1>
 
-          <p className="mt-2 max-w-2xl text-blue-100">
-            Central para acessar o sistema de fiscalização SisGep e futuros aplicativos.
+          <p className="mt-3 max-w-3xl text-slate-300">
+            Central para acessar o ALMS Prime Cripto, Fiscalização SisGep e os
+            próximos aplicativos do ecossistema.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-8">
-        <h2 className="text-xl font-bold text-slate-800">
-          Aplicações disponíveis
-        </h2>
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">
+            Aplicações disponíveis
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Escolha o sistema que deseja acessar.
+          </p>
+        </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="text-3xl">🛡️</div>
-
-            <h3 className="mt-4 text-lg font-bold text-slate-800">
-              Fiscalização SisGep
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-600">
-              Controle de processos, mapas, anexos, dashboard e relatórios.
-            </p>
-
-            <Link
-              href="/fiscalizacao"
-              className="mt-5 inline-block rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+          {sistemas.map((sistema) => (
+            <div
+              key={sistema.titulo}
+              className={
+                sistema.destaque
+                  ? "rounded-2xl border border-cyan-300 bg-slate-950 p-6 text-white shadow-lg shadow-cyan-950/20"
+                  : "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              }
             >
-              Acessar sistema
-            </Link>
-          </div>
+              <div className="text-3xl">{sistema.icone}</div>
 
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 opacity-80 shadow-sm">
-            <div className="text-3xl">➕</div>
+              <h3
+                className={
+                  sistema.destaque
+                    ? "mt-4 text-lg font-bold text-white"
+                    : "mt-4 text-lg font-bold text-slate-800"
+                }
+              >
+                {sistema.titulo}
+              </h3>
 
-            <h3 className="mt-4 text-lg font-bold text-slate-800">
-              Próximo sistema
-            </h3>
+              <p
+                className={
+                  sistema.destaque
+                    ? "mt-2 text-sm text-slate-300"
+                    : "mt-2 text-sm text-slate-600"
+                }
+              >
+                {sistema.descricao}
+              </p>
 
-            <p className="mt-2 text-sm text-slate-600">
-              Espaço reservado para novos projetos.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 opacity-80 shadow-sm">
-            <div className="text-3xl">📊</div>
-
-            <h3 className="mt-4 text-lg font-bold text-slate-800">
-              Relatórios
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-600">
-              Futuramente, relatórios gerais dos sistemas.
-            </p>
-          </div>
+              {sistema.href ? (
+                <Link
+                  href={sistema.href}
+                  className={
+                    sistema.destaque
+                      ? "mt-5 inline-block rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-300"
+                      : "mt-5 inline-block rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                  }
+                >
+                  {sistema.botao}
+                </Link>
+              ) : (
+                <span className="mt-5 inline-block rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-400">
+                  {sistema.botao}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       </section>
     </main>
