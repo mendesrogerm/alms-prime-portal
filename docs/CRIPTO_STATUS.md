@@ -2,13 +2,13 @@
 
 Documento de controle do módulo **ALMS Prime Cripto** dentro do projeto `alms-prime-portal`.
 
-Este arquivo registra o que já foi publicado, quais rotas existem, quais tabelas do Supabase são utilizadas, quais permissões foram criadas e quais melhorias futuras são recomendadas.
+Este documento registra o que já foi publicado, quais rotas existem, quais tabelas do Supabase são utilizadas, quais permissões foram criadas e quais melhorias futuras são recomendadas.
 
 ---
 
 ## 1. Status geral
 
-Status atual: **em produção**
+Status atual: **em produção**.
 
 O módulo Cripto foi lançado dentro do Portal ALMS Prime sem alterar diretamente o módulo de Fiscalização.
 
@@ -47,7 +47,7 @@ O módulo Cripto foi lançado dentro do Portal ALMS Prime sem alterar diretament
 |---|---|
 | `/cripto` | Dashboard principal, carteira, transações, relatório e simulador |
 | `/cripto/noticias` | Notícias recentes do mercado cripto |
-| `/cripto/sentimento` | Fear & Greed Index e leitura estratégica do mercado |
+| `/cripto/sentimento` | Fear & Greed Index e leitura estratégica |
 | `/cripto/graficos` | Gráficos e análise visual da carteira |
 | `/cripto/configuracoes` | Administração dos ativos cadastrados |
 
@@ -55,33 +55,26 @@ O módulo Cripto foi lançado dentro do Portal ALMS Prime sem alterar diretament
 
 | Rota | Função |
 |---|---|
-| `/api/cripto/noticias` | Busca notícias do mercado via RSS do Google News |
-| `/api/cripto/sentimento` | Busca Fear & Greed Index via Alternative.me |
+| `/api/cripto/noticias` | Busca notícias do mercado cripto |
+| `/api/cripto/sentimento` | Busca Fear & Greed Index |
 | `/api/geocodificar` | API usada pelo módulo de Fiscalização |
 
 ---
 
 ## 3. Arquivos principais
 
-### Módulo Cripto
-
 | Arquivo | Função |
 |---|---|
 | `src/app/cripto/page.tsx` | Página principal do Cripto |
 | `src/app/cripto/noticias/page.tsx` | Página de notícias |
-| `src/app/cripto/sentimento/page.tsx` | Página de sentimento do mercado |
-| `src/app/cripto/graficos/page.tsx` | Página de gráficos da carteira |
+| `src/app/cripto/sentimento/page.tsx` | Página de sentimento |
+| `src/app/cripto/graficos/page.tsx` | Página de gráficos |
 | `src/app/cripto/configuracoes/page.tsx` | Página de configurações |
 | `src/app/api/cripto/noticias/route.ts` | API interna de notícias |
 | `src/app/api/cripto/sentimento/route.ts` | API interna de sentimento |
 | `src/lib/cripto/calcularPortfolio.ts` | Funções de cálculo da carteira |
-
-### Supabase
-
-| Arquivo | Função |
-|---|---|
 | `supabase/cripto_schema.sql` | Estrutura inicial das tabelas do Cripto |
-| `supabase/cripto_configuracoes_policy.sql` | Policy para permitir update em `cripto_ativos` |
+| `supabase/cripto_configuracoes_policy.sql` | Policy para update em `cripto_ativos` |
 
 ---
 
@@ -89,7 +82,7 @@ O módulo Cripto foi lançado dentro do Portal ALMS Prime sem alterar diretament
 
 ### `cripto_ativos`
 
-Tabela de ativos/moedas cadastradas no sistema.
+Tabela de ativos/moedas cadastradas.
 
 Campos principais:
 
@@ -103,9 +96,7 @@ Uso:
 
 - Listagem de ativos no formulário de transações
 - Cadastro de novas moedas
-- Ativação/desativação de moedas em `/cripto/configuracoes`
-
----
+- Ativação/desativação em `/cripto/configuracoes`
 
 ### `cripto_transacoes`
 
@@ -131,8 +122,6 @@ Uso:
 - Gráficos
 - Estatísticas por ativo
 
----
-
 ### `cripto_historico_precos`
 
 Tabela criada para histórico de preços.
@@ -152,8 +141,6 @@ Uso futuro recomendado:
 ---
 
 ## 5. Policies e segurança
-
-### Policies já previstas
 
 Arquivo:
 
