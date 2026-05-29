@@ -10,21 +10,53 @@ type NominatimResultado = {
     quarter?: string;
     residential?: string;
     hamlet?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    county?: string;
+    state?: string;
   };
 };
+
+function normalizarLocalizacao(valor: string) {
+  return valor
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+const nomesNaoPermitidosComoBairro = new Set([
+  "santana de parnaiba",
+  "sao paulo",
+  "brasil",
+]);
 
 function escolherBairro(address?: NominatimResultado["address"]) {
   if (!address) return null;
 
-  return (
-    address.neighbourhood ||
-    address.suburb ||
-    address.city_district ||
-    address.quarter ||
-    address.residential ||
-    address.hamlet ||
-    null
-  );
+  const candidatos = [
+    address.neighbourhood,
+    address.suburb,
+    address.quarter,
+    address.residential,
+    address.hamlet,
+  ];
+
+  for (const candidato of candidatos) {
+    if (!candidato) continue;
+
+    const normalizado = normalizarLocalizacao(candidato);
+
+    if (nomesNaoPermitidosComoBairro.has(normalizado)) {
+      continue;
+    }
+
+    return candidato;
+  }
+
+  return null;
 }
 
 export async function POST(request: Request) {
