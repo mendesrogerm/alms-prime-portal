@@ -16,6 +16,7 @@ import type {
   NovoProcessoForm,
   GrupoResumo,
 } from "./types";
+import { useAnexos } from "./hooks/useAnexos";
 import { usePerfilUsuario } from "./hooks/usePerfilUsuario";
 import { opcoesAssunto } from "./constants";
 import {
@@ -29,7 +30,6 @@ import {
   extrairSisgepsDigitados,
   formatarData,
   formatarDataHora,
-  limparNomeArquivo,
   normalizarTexto,
   rotuloAcaoAuditoria,
   somenteNumeros,
@@ -39,12 +39,6 @@ export default function FiscalizacaoPage() {
   const router = useRouter();
 
   const [processos, setProcessos] = useState<Processo[]>([]);
-  const [anexosPorProcesso, setAnexosPorProcesso] = useState<
-    Record<string, Anexo[]>
-  >({});
-  const [enviandoAnexoProcessoId, setEnviandoAnexoProcessoId] = useState<
-    string | null
-  >(null);
 
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -199,53 +193,16 @@ export default function FiscalizacaoPage() {
     dataFinalFiltro,
   ]);
 
-  async function carregarAnexos(listaProcessos: Processo[]) {
-    const ids = listaProcessos
-      .map((processo) => processo.id)
-      .filter((id): id is string => Boolean(id));
-
-    if (ids.length === 0) {
-      setAnexosPorProcesso({});
-      return;
-    }
-
-    const tamanhoLote = 100;
-    const todosAnexos: Anexo[] = [];
-
-    for (let indice = 0; indice < ids.length; indice += tamanhoLote) {
-      const loteIds = ids.slice(indice, indice + tamanhoLote);
-
-      const { data, error } = await supabase
-        .from("anexos")
-        .select("*")
-        .in("processo_id", loteIds)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Erro ao carregar anexos do lote:", {
-          lote: indice / tamanhoLote + 1,
-          quantidadeIds: loteIds.length,
-          error,
-        });
-
-        continue;
-      }
-
-      todosAnexos.push(...((data || []) as Anexo[]));
-    }
-
-    const agrupados: Record<string, Anexo[]> = {};
-
-    todosAnexos.forEach((anexo) => {
-      if (!agrupados[anexo.processo_id]) {
-        agrupados[anexo.processo_id] = [];
-      }
-
-      agrupados[anexo.processo_id].push(anexo);
-    });
-
-    setAnexosPorProcesso(agrupados);
-  }
+  const {
+    anexosPorProcesso,
+    enviandoAnexoProcessoId,
+    carregarAnexos,
+    enviarAnexo,
+    excluirAnexo,
+  } = useAnexos({
+    podeGerenciarProcessos,
+    registrarAuditoriaProcesso,
+  });
 
   async function verificarLoginECarregarProcessos() {
     setCarregando(true);
@@ -909,75 +866,6 @@ export default function FiscalizacaoPage() {
     setMensagemSucessoNovo("Processo cadastrado com sucesso. Você já pode lançar outro.");
   }
 
-  async function enviarAnexo(processo: Processo, arquivo: File) {
-    if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para anexar arquivos.");
-      return;
-    }
-
-    if (!arquivo) return;
-
-    const tamanhoMaximoMb = 10;
-    const tamanhoMaximoBytes = tamanhoMaximoMb * 1024 * 1024;
-
-    if (arquivo.size > tamanhoMaximoBytes) {
-      alert(`O arquivo deve ter no máximo ${tamanhoMaximoMb} MB.`);
-      return;
-    }
-
-    setEnviandoAnexoProcessoId(processo.id);
-
-    const nomeSeguro = limparNomeArquivo(arquivo.name);
-    const caminhoArquivo = `${processo.id}/${Date.now()}-${nomeSeguro}`;
-
-    const { error: erroUpload } = await supabase.storage
-      .from("anexos-processos")
-      .upload(caminhoArquivo, arquivo, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (erroUpload) {
-      setEnviandoAnexoProcessoId(null);
-      alert("Erro ao enviar anexo: " + erroUpload.message);
-      return;
-    }
-
-    const { data, error: erroBanco } = await supabase
-      .from("anexos")
-      .insert({
-        processo_id: processo.id,
-        processo_sisgep: processo.sisgep,
-        nome_arquivo: arquivo.name,
-        url: caminhoArquivo,
-        mime_type: arquivo.type || null,
-        tamanho_bytes: arquivo.size,
-      })
-      .select()
-      .single();
-
-    setEnviandoAnexoProcessoId(null);
-
-    if (erroBanco) {
-      alert("Arquivo enviado, mas erro ao salvar vínculo: " + erroBanco.message);
-      return;
-    }
-
-    if (data) {
-      setAnexosPorProcesso((atual) => ({
-        ...atual,
-        [processo.id]: [data, ...(atual[processo.id] || [])],
-      }));
-
-      void registrarAuditoriaProcesso({
-        processo,
-        acao: "anexo_enviado",
-        descricao: `Anexo enviado no processo ${processo.sisgep}.`,
-        dadosNovos: data,
-      });
-    }
-  }
-
   async function abrirAnexo(anexo: Anexo) {
     const { data, error } = await supabase.storage
       .from("anexos-processos")
@@ -989,63 +877,6 @@ export default function FiscalizacaoPage() {
     }
 
     window.open(data.signedUrl, "_blank");
-  }
-
-  async function excluirAnexo(anexo: Anexo) {
-    if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para excluir anexos.");
-      return;
-    }
-
-    const confirmar = window.confirm(
-      `Deseja excluir o anexo "${anexo.nome_arquivo || "arquivo"}"?`
-    );
-
-    if (!confirmar) return;
-
-    const { error: erroStorage } = await supabase.storage
-      .from("anexos-processos")
-      .remove([anexo.url]);
-
-    if (erroStorage) {
-      alert("Erro ao excluir arquivo: " + erroStorage.message);
-      return;
-    }
-
-    const { error: erroBanco } = await supabase
-      .from("anexos")
-      .delete()
-      .eq("id", anexo.id);
-
-    if (erroBanco) {
-      alert(
-        "Arquivo excluído, mas erro ao remover registro: " + erroBanco.message
-      );
-      return;
-    }
-
-    const processoAuditoria =
-      processos.find((item) => item.id === anexo.processo_id) ||
-      ({
-        id: anexo.processo_id,
-        sisgep: anexo.processo_sisgep || "",
-      } as Processo);
-
-    setAnexosPorProcesso((atual) => {
-      const listaAtual = atual[anexo.processo_id] || [];
-
-      return {
-        ...atual,
-        [anexo.processo_id]: listaAtual.filter((item) => item.id !== anexo.id),
-      };
-    });
-
-    void registrarAuditoriaProcesso({
-      processo: processoAuditoria,
-      acao: "anexo_excluido",
-      descricao: `Anexo excluído do processo ${processoAuditoria.sisgep}.`,
-      dadosAnteriores: anexo,
-    });
   }
 
   async function excluirProcesso(processo: Processo) {
