@@ -57,6 +57,19 @@ type NovoProcessoForm = {
   observacao: string;
 };
 
+type NivelUsuario = "admin" | "gestor" | "usuario";
+
+type PerfilUsuario = {
+  id: string;
+  user_id: string;
+  email: string | null;
+  nome: string | null;
+  nivel: NivelUsuario;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string | null;
+};
+
 type GrupoResumo = {
   nome: string;
   total: number;
@@ -169,6 +182,12 @@ export default function FiscalizacaoPage() {
     setor: "",
     observacao: "",
   });
+  const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
+
+  const nivelUsuario = perfilUsuario?.nivel || "usuario";
+  const podeGerenciarProcessos = ["admin", "gestor"].includes(nivelUsuario);
+  const podeExcluirProcessos = nivelUsuario === "admin";
+  const podeAdministrarUsuarios = nivelUsuario === "admin";
 
   useEffect(() => {
     verificarLoginECarregarProcessos();
@@ -247,6 +266,48 @@ export default function FiscalizacaoPage() {
       return;
     }
 
+    const { data: perfilData, error: erroPerfil } = await supabase
+      .from("perfis_usuarios")
+      .select("*")
+      .eq("user_id", sessao.session.user.id)
+      .maybeSingle();
+
+    if (erroPerfil) {
+      setErro("Erro ao carregar perfil do usuário: " + erroPerfil.message);
+      setCarregando(false);
+      return;
+    }
+
+    const perfilFinal: PerfilUsuario = perfilData
+      ? {
+          id: perfilData.id,
+          user_id: perfilData.user_id,
+          email: perfilData.email ?? sessao.session.user.email ?? null,
+          nome: perfilData.nome ?? sessao.session.user.email ?? null,
+          nivel: (perfilData.nivel as NivelUsuario) || "usuario",
+          ativo: perfilData.ativo ?? true,
+          created_at: perfilData.created_at,
+          updated_at: perfilData.updated_at ?? null,
+        }
+      : {
+          id: sessao.session.user.id,
+          user_id: sessao.session.user.id,
+          email: sessao.session.user.email ?? null,
+          nome: sessao.session.user.email ?? null,
+          nivel: "usuario",
+          ativo: true,
+          created_at: new Date().toISOString(),
+          updated_at: null,
+        };
+
+    if (!perfilFinal.ativo) {
+      await supabase.auth.signOut();
+      router.push("/login");
+      return;
+    }
+
+    setPerfilUsuario(perfilFinal);
+
     const { data, error } = await supabase
       .from("processos")
       .select("*")
@@ -266,6 +327,7 @@ export default function FiscalizacaoPage() {
   }
 
   async function sair() {
+    setPerfilUsuario(null);
     await supabase.auth.signOut();
     router.push("/login");
   }
@@ -319,6 +381,11 @@ export default function FiscalizacaoPage() {
   }
 
   function abrirModalConclusaoIndividual(processo: Processo) {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para concluir processos.");
+      return;
+    }
+
     setModoConclusao("individual");
     setProcessoConclusao(processo);
     setDataConclusaoSelecionada(processo.data_conclusao || dataAtualInput());
@@ -326,6 +393,11 @@ export default function FiscalizacaoPage() {
   }
 
   function abrirModalConclusaoLote() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para conclusão de processos.");
+      return;
+    }
+
     const processosParaConcluir = processos.filter(
       (processo) =>
         processosSelecionados.includes(processo.id) && !processo.concluido
@@ -351,6 +423,11 @@ export default function FiscalizacaoPage() {
   }
 
   function abrirModalCorrecaoData() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para correção de datas.");
+      return;
+    }
+
     setSisgepsCorrecaoData("");
     setNovaDataConclusaoCorrecao(dataAtualInput());
     setMensagemCorrecaoData("");
@@ -632,6 +709,11 @@ export default function FiscalizacaoPage() {
   }
 
   function abrirModalEdicao(processo: Processo) {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para editar processos.");
+      return;
+    }
+
     setProcessoEditando(processo);
     setMensagemLocalizacaoEdicao("");
     setBuscandoLocalizacaoEdicao(false);
@@ -667,6 +749,11 @@ export default function FiscalizacaoPage() {
 
   async function salvarEdicaoProcesso(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para editar processos.");
+      return;
+    }
 
     if (!processoEditando) {
       return;
@@ -781,6 +868,11 @@ export default function FiscalizacaoPage() {
   async function cadastrarNovoProcesso(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para cadastrar processos.");
+      return;
+    }
+
     if (!novoProcesso.sisgep.trim()) {
       alert("Informe o número SisGep.");
       return;
@@ -877,6 +969,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function enviarAnexo(processo: Processo, arquivo: File) {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para anexar arquivos.");
+      return;
+    }
+
     if (!arquivo) return;
 
     const tamanhoMaximoMb = 10;
@@ -947,6 +1044,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function excluirAnexo(anexo: Anexo) {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para excluir anexos.");
+      return;
+    }
+
     const confirmar = window.confirm(
       `Deseja excluir o anexo "${anexo.nome_arquivo || "arquivo"}"?`
     );
@@ -985,6 +1087,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function excluirProcesso(processo: Processo) {
+    if (!podeExcluirProcessos) {
+      alert("Acesso restrito para excluir processos.");
+      return;
+    }
+
     const confirmar = window.confirm(
       `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa ação não poderá ser desfeita.`
     );
@@ -1049,6 +1156,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function confirmarConclusao() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para concluir processos.");
+      return;
+    }
+
     if (!dataConclusaoValida(dataConclusaoSelecionada)) {
       alert("A data de conclusão não pode ser maior que hoje.");
       return;
@@ -1176,6 +1288,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function corrigirDataConclusaoEmLote() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para corrigir datas.");
+      return;
+    }
+
     setMensagemCorrecaoData("");
 
     if (!novaDataConclusaoCorrecao) {
@@ -1276,6 +1393,11 @@ export default function FiscalizacaoPage() {
   }
 
   async function alterarStatusProcesso(processo: Processo) {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para alterar status de processos.");
+      return;
+    }
+
     if (!processo.concluido) {
       abrirModalConclusaoIndividual(processo);
       return;
@@ -1971,31 +2093,46 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 Mapa
               </Link>
 
-              <Link
-                href="/fiscalizacao/configuracoes"
-                className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
-              >
-                Configurações
-              </Link>
+              {podeAdministrarUsuarios && (
+                <Link
+                  href="/fiscalizacao/usuarios"
+                  className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-bold text-white hover:bg-violet-600"
+                >
+                  Usuários
+                </Link>
+              )}
 
-              <button
-                onClick={() => {
-                  setMensagemSucessoNovo("");
-                  setMensagemLocalizacaoNovo("");
-                  setBuscandoLocalizacaoNovo(false);
-                  setModalNovoAberto(true);
-                }}
-                className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
-              >
-                Novo processo
-              </button>
+              {podeAdministrarUsuarios && (
+                <Link
+                  href="/fiscalizacao/configuracoes"
+                  className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+                >
+                  Configurações
+                </Link>
+              )}
 
-              <button
-                onClick={abrirModalCorrecaoData}
-                className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-400"
-              >
-                Corrigir datas
-              </button>
+              {podeGerenciarProcessos && (
+                <button
+                  onClick={() => {
+                    setMensagemSucessoNovo("");
+                    setMensagemLocalizacaoNovo("");
+                    setBuscandoLocalizacaoNovo(false);
+                    setModalNovoAberto(true);
+                  }}
+                  className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
+                >
+                  Novo processo
+                </button>
+              )}
+
+              {podeGerenciarProcessos && (
+                <button
+                  onClick={abrirModalCorrecaoData}
+                  className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-400"
+                >
+                  Corrigir datas
+                </button>
+              )}
 
               <button
                 onClick={sair}
@@ -2384,46 +2521,48 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">Baixa em lote</h2>
+        {podeGerenciarProcessos && (
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Baixa em lote</h2>
 
-              <p className="mt-1 text-sm text-slate-600">
-                Selecione processos pendentes e conclua todos de uma vez.
-              </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Selecione processos pendentes e conclua todos de uma vez.
+                </p>
 
-              <p className="mt-2 text-sm font-bold text-blue-800">
-                {processosSelecionados.length} processo(s) selecionado(s)
-              </p>
-            </div>
+                <p className="mt-2 text-sm font-bold text-blue-800">
+                  {processosSelecionados.length} processo(s) selecionado(s)
+                </p>
+              </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                onClick={alternarSelecionarTodosFiltrados}
-                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
-              >
-                Selecionar pendentes da página
-              </button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={alternarSelecionarTodosFiltrados}
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+                >
+                  Selecionar pendentes da página
+                </button>
 
-              <button
-                onClick={limparSelecaoProcessos}
-                disabled={processosSelecionados.length === 0}
-                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Limpar seleção
-              </button>
+                <button
+                  onClick={limparSelecaoProcessos}
+                  disabled={processosSelecionados.length === 0}
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Limpar seleção
+                </button>
 
-              <button
-                onClick={abrirModalConclusaoLote}
-                disabled={processosSelecionados.length === 0 || salvandoConclusao}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Concluir selecionados
-              </button>
+                <button
+                  onClick={abrirModalConclusaoLote}
+                  disabled={processosSelecionados.length === 0 || salvandoConclusao}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Concluir selecionados
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {carregando && (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
@@ -2450,21 +2589,23 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       key={processo.id}
                       className={`rounded-2xl border-l-4 ${estilo.borda} ${estilo.fundo} p-5 shadow-sm`}
                     >
-                      <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={processosSelecionados.includes(processo.id)}
-                          disabled={processo.concluido}
-                          onChange={() => alternarSelecaoProcesso(processo.id)}
-                          className="h-4 w-4"
-                        />
+                      {podeGerenciarProcessos && (
+                        <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={processosSelecionados.includes(processo.id)}
+                            disabled={processo.concluido}
+                            onChange={() => alternarSelecaoProcesso(processo.id)}
+                            className="h-4 w-4"
+                          />
 
-                        <span className="text-xs font-bold text-slate-600">
-                          {processo.concluido
-                            ? "Processo já concluído"
-                            : "Selecionar para baixa em lote"}
-                        </span>
-                      </div>
+                          <span className="text-xs font-bold text-slate-600">
+                            {processo.concluido
+                              ? "Processo já concluído"
+                              : "Selecionar para baixa em lote"}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -2557,27 +2698,33 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                           </span>
                         </div>
 
-                        <label className="mt-3 block cursor-pointer rounded-lg border border-dashed border-blue-300 bg-blue-50 px-3 py-2 text-center text-xs font-bold text-blue-700 hover:bg-blue-100">
-                          {enviandoAnexoProcessoId === processo.id
-                            ? "Enviando..."
-                            : "Anexar foto/PDF"}
+                        {podeGerenciarProcessos ? (
+                          <label className="mt-3 block cursor-pointer rounded-lg border border-dashed border-blue-300 bg-blue-50 px-3 py-2 text-center text-xs font-bold text-blue-700 hover:bg-blue-100">
+                            {enviandoAnexoProcessoId === processo.id
+                              ? "Enviando..."
+                              : "Anexar foto/PDF"}
 
-                          <input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            className="hidden"
-                            disabled={enviandoAnexoProcessoId === processo.id}
-                            onChange={(event) => {
-                              const arquivo = event.target.files?.[0];
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              className="hidden"
+                              disabled={enviandoAnexoProcessoId === processo.id}
+                              onChange={(event) => {
+                                const arquivo = event.target.files?.[0];
 
-                              if (arquivo) {
-                                enviarAnexo(processo, arquivo);
-                              }
+                                if (arquivo) {
+                                  enviarAnexo(processo, arquivo);
+                                }
 
-                              event.currentTarget.value = "";
-                            }}
-                          />
-                        </label>
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                          </label>
+                        ) : (
+                          <div className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">
+                            Apenas gestores e administradores podem anexar arquivos.
+                          </div>
+                        )}
 
                         <div className="mt-3 space-y-2">
                           {(anexosPorProcesso[processo.id] || []).map(
@@ -2594,12 +2741,14 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                   👁️ {anexo.nome_arquivo || "Ver anexo"}
                                 </button>
 
-                                <button
-                                  onClick={() => excluirAnexo(anexo)}
-                                  className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
-                                >
-                                  Excluir
-                                </button>
+                                {podeGerenciarProcessos && (
+                                  <button
+                                    onClick={() => excluirAnexo(anexo)}
+                                    className="rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
+                                  >
+                                    Excluir
+                                  </button>
+                                )}
                               </div>
                             )
                           )}
@@ -2613,32 +2762,38 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => abrirModalEdicao(processo)}
-                        className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
-                      >
-                        Editar processo
-                      </button>
+                      {podeGerenciarProcessos && (
+                        <button
+                          onClick={() => abrirModalEdicao(processo)}
+                          className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
+                        >
+                          Editar processo
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => excluirProcesso(processo)}
-                        className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
-                      >
-                        Excluir processo
-                      </button>
+                      {podeExcluirProcessos && (
+                        <button
+                          onClick={() => excluirProcesso(processo)}
+                          className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+                        >
+                          Excluir processo
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => alterarStatusProcesso(processo)}
-                        className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-bold text-white ${
-                          processo.concluido
-                            ? "bg-slate-600 hover:bg-slate-700"
-                            : "bg-green-600 hover:bg-green-700"
-                        }`}
-                      >
-                        {processo.concluido
-                          ? "Reabrir processo"
-                          : "Concluir processo"}
-                      </button>
+                      {podeGerenciarProcessos && (
+                        <button
+                          onClick={() => alterarStatusProcesso(processo)}
+                          className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-bold text-white ${
+                            processo.concluido
+                              ? "bg-slate-600 hover:bg-slate-700"
+                              : "bg-green-600 hover:bg-green-700"
+                          }`}
+                        >
+                          {processo.concluido
+                            ? "Reabrir processo"
+                            : "Concluir processo"}
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -2679,13 +2834,17 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       return (
                         <tr key={processo.id} className="border-t border-slate-100">
                           <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              checked={processosSelecionados.includes(processo.id)}
-                              disabled={processo.concluido}
-                              onChange={() => alternarSelecaoProcesso(processo.id)}
-                              className="h-4 w-4"
-                            />
+                            {podeGerenciarProcessos ? (
+                              <input
+                                type="checkbox"
+                                checked={processosSelecionados.includes(processo.id)}
+                                disabled={processo.concluido}
+                                onChange={() => alternarSelecaoProcesso(processo.id)}
+                                className="h-4 w-4"
+                              />
+                            ) : (
+                              <span className="text-xs font-semibold text-slate-400">—</span>
+                            )}
                           </td>
 
                           <td className="px-4 py-3 font-bold text-slate-800">
@@ -2754,23 +2913,27 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                 Maps
                               </a>
 
-                              <button
-                                onClick={() => abrirModalEdicao(processo)}
-                                className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600"
-                              >
-                                Editar
-                              </button>
+                              {podeGerenciarProcessos && (
+                                <button
+                                  onClick={() => abrirModalEdicao(processo)}
+                                  className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600"
+                                >
+                                  Editar
+                                </button>
+                              )}
 
-                              <button
-                                onClick={() => alterarStatusProcesso(processo)}
-                                className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
-                                  processo.concluido
-                                    ? "bg-slate-600 hover:bg-slate-700"
-                                    : "bg-green-600 hover:bg-green-700"
-                                }`}
-                              >
-                                {processo.concluido ? "Reabrir" : "Concluir"}
-                              </button>
+                              {podeGerenciarProcessos && (
+                                <button
+                                  onClick={() => alterarStatusProcesso(processo)}
+                                  className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
+                                    processo.concluido
+                                      ? "bg-slate-600 hover:bg-slate-700"
+                                      : "bg-green-600 hover:bg-green-700"
+                                  }`}
+                                >
+                                  {processo.concluido ? "Reabrir" : "Concluir"}
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

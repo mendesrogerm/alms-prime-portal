@@ -5,6 +5,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+type NivelUsuario = "admin" | "gestor" | "usuario";
+
+type PerfilUsuario = {
+  id: string;
+  user_id: string;
+  email: string | null;
+  nome: string | null;
+  nivel: NivelUsuario;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string | null;
+};
+
 type BairroSetor = {
   id: string;
   bairro: string;
@@ -31,6 +44,9 @@ export default function ConfiguracoesPage() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
+
+  const podeAdministrar = perfilUsuario?.nivel === "admin";
 
   useEffect(() => {
     verificarLoginECarregar();
@@ -44,6 +60,53 @@ export default function ConfiguracoesPage() {
 
     if (!sessao.session) {
       router.push("/login");
+      return;
+    }
+
+    const { data: perfilData, error: erroPerfil } = await supabase
+      .from("perfis_usuarios")
+      .select("*")
+      .eq("user_id", sessao.session.user.id)
+      .maybeSingle();
+
+    if (erroPerfil) {
+      setErro("Erro ao carregar perfil: " + erroPerfil.message);
+      setCarregando(false);
+      return;
+    }
+
+    const perfilFinal: PerfilUsuario = perfilData
+      ? {
+          id: perfilData.id,
+          user_id: perfilData.user_id,
+          email: perfilData.email ?? sessao.session.user.email ?? null,
+          nome: perfilData.nome ?? sessao.session.user.email ?? null,
+          nivel: (perfilData.nivel as NivelUsuario) || "usuario",
+          ativo: perfilData.ativo ?? true,
+          created_at: perfilData.created_at,
+          updated_at: perfilData.updated_at ?? null,
+        }
+      : {
+          id: sessao.session.user.id,
+          user_id: sessao.session.user.id,
+          email: sessao.session.user.email ?? null,
+          nome: sessao.session.user.email ?? null,
+          nivel: "usuario",
+          ativo: true,
+          created_at: new Date().toISOString(),
+          updated_at: null,
+        };
+
+    if (!perfilFinal.ativo) {
+      await supabase.auth.signOut();
+      router.push("/login");
+      return;
+    }
+
+    setPerfilUsuario(perfilFinal);
+
+    if (perfilFinal.nivel !== "admin") {
+      setCarregando(false);
       return;
     }
 
@@ -67,6 +130,11 @@ export default function ConfiguracoesPage() {
 
   async function salvarBairroSetor(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!podeAdministrar) {
+      alert("Acesso restrito a administradores.");
+      return;
+    }
 
     if (!bairro.trim()) {
       alert("Informe o bairro.");
@@ -138,12 +206,16 @@ export default function ConfiguracoesPage() {
           <h1 className="mt-4 text-3xl font-bold">
             Configurações
           </h1>
-<Link
-  href="/fiscalizacao/configuracoes/bairros-setores"
-  className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
->
-  Importar bairros e setores
-</Link>
+
+          {podeAdministrar && (
+            <Link
+              href="/fiscalizacao/configuracoes/bairros-setores"
+              className="mt-3 inline-flex rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+            >
+              Importar bairros e setores
+            </Link>
+          )}
+
           <p className="mt-2 text-blue-100">
             Gerencie a relação de bairros e setores usada pelo sistema.
           </p>
@@ -151,53 +223,62 @@ export default function ConfiguracoesPage() {
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-800">
-            Cadastrar ou atualizar bairro
-          </h2>
+        {podeAdministrar ? (
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-800">
+              Cadastrar ou atualizar bairro
+            </h2>
 
-          <p className="mt-1 text-sm text-slate-600">
-            Se o bairro já existir, o sistema atualiza o setor automaticamente.
-          </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Se o bairro já existir, o sistema atualiza o setor automaticamente.
+            </p>
 
-          <form onSubmit={salvarBairroSetor} className="mt-5 grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="text-sm font-semibold text-slate-700">
-                Bairro
-              </label>
-              <input
-                value={bairro}
-                onChange={(event) => setBairro(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                placeholder="Ex: Centro"
-                required
-              />
-            </div>
+            <form onSubmit={salvarBairroSetor} className="mt-5 grid gap-4 md:grid-cols-3">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Bairro
+                </label>
+                <input
+                  value={bairro}
+                  onChange={(event) => setBairro(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  placeholder="Ex: Centro"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700">
-                Setor
-              </label>
-              <input
-                value={setor}
-                onChange={(event) => setSetor(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                placeholder="Ex: Setor 1"
-                required
-              />
-            </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  Setor
+                </label>
+                <input
+                  value={setor}
+                  onChange={(event) => setSetor(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  placeholder="Ex: Setor 1"
+                  required
+                />
+              </div>
 
-            <div className="flex items-end">
-              <button
-                type="submit"
-                disabled={salvando}
-                className="w-full rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {salvando ? "Salvando..." : "Salvar bairro"}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={salvando}
+                  className="w-full rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {salvando ? "Salvando..." : "Salvar bairro"}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
+            <p className="text-lg font-bold">Acesso restrito a administradores.</p>
+            <p className="mt-2 text-sm">
+              Somente administradores podem alterar bairros e setores.
+            </p>
+          </div>
+        )}
 
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <input
@@ -245,12 +326,14 @@ export default function ConfiguracoesPage() {
                       {item.setor}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => preencherParaEditar(item)}
-                        className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
-                      >
-                        Editar
-                      </button>
+                      {podeAdministrar && (
+                        <button
+                          onClick={() => preencherParaEditar(item)}
+                          className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                        >
+                          Editar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
