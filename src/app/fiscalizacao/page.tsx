@@ -116,9 +116,13 @@ export default function FiscalizacaoPage() {
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [salvandoNovo, setSalvandoNovo] = useState(false);
   const [mensagemSucessoNovo, setMensagemSucessoNovo] = useState("");
+  const [buscandoLocalizacaoNovo, setBuscandoLocalizacaoNovo] = useState(false);
+  const [mensagemLocalizacaoNovo, setMensagemLocalizacaoNovo] = useState("");
 
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [buscandoLocalizacaoEdicao, setBuscandoLocalizacaoEdicao] = useState(false);
+  const [mensagemLocalizacaoEdicao, setMensagemLocalizacaoEdicao] = useState("");
   const [processoEditando, setProcessoEditando] =
     useState<Processo | null>(null);
 
@@ -320,6 +324,27 @@ export default function FiscalizacaoPage() {
       .replace(/[^a-z0-9]/g, "");
   }
 
+  async function buscarSetorPorBairro(bairro: string) {
+    const bairroNormalizado = normalizarTexto(bairro);
+
+    if (!bairroNormalizado) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from("bairros_setores")
+      .select("setor")
+      .eq("bairro_normalizado", bairroNormalizado)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao buscar setor pelo bairro:", error);
+      return null;
+    }
+
+    return data?.setor || null;
+  }
+
   async function buscarDadosAutomaticos(rua: string, numero: string) {
     const dadosPadrao = {
       bairro: null as string | null,
@@ -386,6 +411,7 @@ export default function FiscalizacaoPage() {
     valor: string
   ) {
     setMensagemSucessoNovo("");
+    setMensagemLocalizacaoNovo("");
     setNovoProcesso((dadosAtuais) => ({
       ...dadosAtuais,
       [campo]: valor,
@@ -396,14 +422,139 @@ export default function FiscalizacaoPage() {
     campo: keyof NovoProcessoForm,
     valor: string
   ) {
+    setMensagemLocalizacaoEdicao("");
     setProcessoEdicao((dadosAtuais) => ({
       ...dadosAtuais,
       [campo]: valor,
     }));
   }
 
+  async function preencherLocalizacaoNovo() {
+    const rua = novoProcesso.rua.trim();
+    const numero = novoProcesso.numero_rua.trim();
+
+    setMensagemLocalizacaoNovo("");
+
+    if (!rua || !numero) {
+      setMensagemLocalizacaoNovo(
+        "Informe rua e número para buscar bairro automaticamente."
+      );
+      return;
+    }
+
+    setBuscandoLocalizacaoNovo(true);
+
+    const dados = await buscarDadosAutomaticos(rua, numero);
+
+    setBuscandoLocalizacaoNovo(false);
+
+    if (!dados.bairro) {
+      setMensagemLocalizacaoNovo(
+        "Não foi possível encontrar o bairro automaticamente. Digite o bairro manualmente."
+      );
+      return;
+    }
+
+    const setorEncontrado =
+      dados.setor || (await buscarSetorPorBairro(dados.bairro));
+
+    setNovoProcesso((atual) => ({
+      ...atual,
+      bairro: dados.bairro || atual.bairro,
+      setor: setorEncontrado || atual.setor,
+    }));
+
+    if (!setorEncontrado) {
+      setMensagemLocalizacaoNovo(
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+      );
+      return;
+    }
+
+    setMensagemLocalizacaoNovo("Bairro e setor preenchidos automaticamente.");
+  }
+
+  async function preencherLocalizacaoEdicao() {
+    const rua = processoEdicao.rua.trim();
+    const numero = processoEdicao.numero_rua.trim();
+
+    setMensagemLocalizacaoEdicao("");
+
+    if (!rua || !numero) {
+      setMensagemLocalizacaoEdicao(
+        "Informe rua e número para buscar bairro automaticamente."
+      );
+      return;
+    }
+
+    setBuscandoLocalizacaoEdicao(true);
+
+    const dados = await buscarDadosAutomaticos(rua, numero);
+
+    setBuscandoLocalizacaoEdicao(false);
+
+    if (!dados.bairro) {
+      setMensagemLocalizacaoEdicao(
+        "Não foi possível encontrar o bairro automaticamente. Digite o bairro manualmente."
+      );
+      return;
+    }
+
+    const setorEncontrado =
+      dados.setor || (await buscarSetorPorBairro(dados.bairro));
+
+    setProcessoEdicao((atual) => ({
+      ...atual,
+      bairro: dados.bairro || atual.bairro,
+      setor: setorEncontrado || atual.setor,
+    }));
+
+    if (!setorEncontrado) {
+      setMensagemLocalizacaoEdicao(
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+      );
+      return;
+    }
+
+    setMensagemLocalizacaoEdicao("Bairro e setor preenchidos automaticamente.");
+  }
+
+  async function atualizarBairroNovo(valor: string) {
+    atualizarCampoNovoProcesso("bairro", valor);
+
+    const setorEncontrado = await buscarSetorPorBairro(valor);
+
+    if (setorEncontrado) {
+      setNovoProcesso((atual) => ({
+        ...atual,
+        bairro: valor,
+        setor: setorEncontrado,
+      }));
+
+      setMensagemLocalizacaoNovo("Setor preenchido automaticamente pelo bairro.");
+    }
+  }
+
+  async function atualizarBairroEdicao(valor: string) {
+    atualizarCampoEdicaoProcesso("bairro", valor);
+
+    const setorEncontrado = await buscarSetorPorBairro(valor);
+
+    if (setorEncontrado) {
+      setProcessoEdicao((atual) => ({
+        ...atual,
+        bairro: valor,
+        setor: setorEncontrado,
+      }));
+
+      setMensagemLocalizacaoEdicao("Setor preenchido automaticamente pelo bairro.");
+    }
+  }
+
   function abrirModalEdicao(processo: Processo) {
     setProcessoEditando(processo);
+    setMensagemLocalizacaoEdicao("");
+    setBuscandoLocalizacaoEdicao(false);
 
     setProcessoEdicao({
       sisgep: processo.sisgep || "",
@@ -423,10 +574,14 @@ export default function FiscalizacaoPage() {
   function fecharModalNovo() {
     setModalNovoAberto(false);
     setMensagemSucessoNovo("");
+    setMensagemLocalizacaoNovo("");
+    setBuscandoLocalizacaoNovo(false);
   }
 
   function fecharModalEdicao() {
     setModalEdicaoAberto(false);
+    setMensagemLocalizacaoEdicao("");
+    setBuscandoLocalizacaoEdicao(false);
     setProcessoEditando(null);
   }
 
@@ -470,13 +625,13 @@ export default function FiscalizacaoPage() {
     }));
 
     const bairroFinal =
-      dadosAutomaticos.bairro ||
       processoEdicao.bairro.trim() ||
+      dadosAutomaticos.bairro ||
       (enderecoMudou ? null : processoEditando.bairro);
 
     const setorFinal =
-      dadosAutomaticos.setor ||
       processoEdicao.setor.trim() ||
+      dadosAutomaticos.setor ||
       (enderecoMudou ? null : processoEditando.setor);
 
     const latitudeFinal =
@@ -571,8 +726,8 @@ export default function FiscalizacaoPage() {
       setor: dadosAutomaticos.setor || estadoAtual.setor,
     }));
 
-    const bairroFinal = dadosAutomaticos.bairro || novoProcesso.bairro.trim() || null;
-    const setorFinal = dadosAutomaticos.setor || novoProcesso.setor.trim() || null;
+    const bairroFinal = novoProcesso.bairro.trim() || dadosAutomaticos.bairro || null;
+    const setorFinal = novoProcesso.setor.trim() || dadosAutomaticos.setor || null;
 
     const mapaLink =
       dadosAutomaticos.latitude && dadosAutomaticos.longitude
@@ -1657,6 +1812,8 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <button
                 onClick={() => {
                   setMensagemSucessoNovo("");
+                  setMensagemLocalizacaoNovo("");
+                  setBuscandoLocalizacaoNovo(false);
                   setModalNovoAberto(true);
                 }}
                 className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
@@ -2562,12 +2719,33 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 }
               />
 
+              <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={preencherLocalizacaoNovo}
+                    disabled={buscandoLocalizacaoNovo}
+                    className="rounded-lg bg-blue-800 px-3 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {buscandoLocalizacaoNovo ? "Buscando..." : "Buscar bairro e setor"}
+                  </button>
+
+                  <span className="text-xs font-semibold text-blue-800">
+                    Preencha rua e número para buscar automaticamente.
+                  </span>
+                </div>
+
+                {mensagemLocalizacaoNovo && (
+                  <p className="mt-2 text-sm font-medium text-blue-800">
+                    {mensagemLocalizacaoNovo}
+                  </p>
+                )}
+              </div>
+
               <CampoTexto
                 label="Bairro"
                 value={novoProcesso.bairro}
-                onChange={(valor) =>
-                  atualizarCampoNovoProcesso("bairro", valor)
-                }
+                onChange={(valor) => atualizarBairroNovo(valor)}
               />
 
               <CampoTexto
@@ -2682,12 +2860,33 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 }
               />
 
+              <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={preencherLocalizacaoEdicao}
+                    disabled={buscandoLocalizacaoEdicao}
+                    className="rounded-lg bg-blue-800 px-3 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {buscandoLocalizacaoEdicao ? "Buscando..." : "Buscar bairro e setor"}
+                  </button>
+
+                  <span className="text-xs font-semibold text-blue-800">
+                    Preencha rua e número para buscar automaticamente.
+                  </span>
+                </div>
+
+                {mensagemLocalizacaoEdicao && (
+                  <p className="mt-2 text-sm font-medium text-blue-800">
+                    {mensagemLocalizacaoEdicao}
+                  </p>
+                )}
+              </div>
+
               <CampoTexto
                 label="Bairro"
                 value={processoEdicao.bairro}
-                onChange={(valor) =>
-                  atualizarCampoEdicaoProcesso("bairro", valor)
-                }
+                onChange={(valor) => atualizarBairroEdicao(valor)}
               />
 
               <CampoTexto
