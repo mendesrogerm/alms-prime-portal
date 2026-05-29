@@ -48,7 +48,8 @@ export default function FiscalizacaoPage() {
     useState<FiltroStatus>("pendentes");
   const [filtroAssunto, setFiltroAssunto] = useState("todos");
   const [filtroSetor, setFiltroSetor] = useState("todos");
-
+const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
+  useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(24);
   const [modoVisualizacao, setModoVisualizacao] =
@@ -1471,6 +1472,9 @@ export default function FiscalizacaoPage() {
   const total = processos.length;
   const pendentes = processos.filter((p) => !p.concluido).length;
   const concluidos = processos.filter((p) => p.concluido).length;
+  const totalLocalizacaoIncompleta = processos.filter(
+    (processo) => !processo.bairro?.trim() || !processo.setor?.trim()
+  ).length;
   const pendentesFiltrados = processosFiltrados.filter(
     (p) => !p.concluido
   ).length;
@@ -1965,7 +1969,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
       </header>
 
       <section className="mx-auto max-w-[1600px] px-6 py-8">
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <div className="mb-6 grid gap-4 sm:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-bold uppercase text-slate-500">Total</p>
             <p className="mt-2 text-3xl font-black text-slate-800">{total}</p>
@@ -1980,6 +1984,15 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <p className="text-xs font-bold uppercase text-slate-500">Concluídos</p>
             <p className="mt-2 text-3xl font-black text-green-600">{concluidos}</p>
           </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-amber-50 p-5 shadow-sm">
+            <p className="text-xs font-bold uppercase text-amber-700">
+              Sem bairro/setor
+            </p>
+            <p className="mt-2 text-3xl font-black text-amber-700">
+              {totalLocalizacaoIncompleta}
+            </p>
+          </div>
         </div>
 
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -1992,7 +2005,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
             />
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setFiltroStatus("todos")}
                 className={`rounded-lg px-3 py-2 text-sm font-bold ${
@@ -2024,6 +2037,17 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 }`}
               >
                 Concluídos
+              </button>
+
+              <button
+                onClick={() => setFiltroLocalizacaoIncompleta((ativo) => !ativo)}
+                className={`rounded-lg px-3 py-2 text-sm font-bold ${
+                  filtroLocalizacaoIncompleta
+                    ? "bg-amber-500 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                Sem bairro/setor
               </button>
             </div>
 
@@ -2436,15 +2460,23 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                           </h2>
                         </div>
 
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            processo.concluido
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {processo.concluido ? "Concluído" : "Pendente"}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          {(!processo.bairro?.trim() || !processo.setor?.trim()) && (
+                            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+                              Localização incompleta
+                            </span>
+                          )}
+
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-bold ${
+                              processo.concluido
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {processo.concluido ? "Concluído" : "Pendente"}
+                          </span>
+                        </div>
                       </div>
 
                       <p className="mt-4 text-sm font-semibold text-blue-700">
