@@ -455,21 +455,20 @@ export default function FiscalizacaoPage() {
       return;
     }
 
-    const setorEncontrado =
-      dados.setor || (await buscarSetorPorBairro(dados.bairro));
-
-    setNovoProcesso((atual) => ({
-      ...atual,
-      bairro: dados.bairro || atual.bairro,
-      setor: setorEncontrado || atual.setor,
-    }));
+    const setorEncontrado = await buscarSetorPorBairro(dados.bairro);
 
     if (!setorEncontrado) {
       setMensagemLocalizacaoNovo(
-        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+        `Localidade encontrada pela API: ${dados.bairro}. Informe o bairro correto manualmente.`
       );
       return;
     }
+
+    setNovoProcesso((atual) => ({
+      ...atual,
+      bairro: dados.bairro,
+      setor: setorEncontrado,
+    }));
 
     setMensagemLocalizacaoNovo("Bairro e setor preenchidos automaticamente.");
   }
@@ -500,21 +499,20 @@ export default function FiscalizacaoPage() {
       return;
     }
 
-    const setorEncontrado =
-      dados.setor || (await buscarSetorPorBairro(dados.bairro));
-
-    setProcessoEdicao((atual) => ({
-      ...atual,
-      bairro: dados.bairro || atual.bairro,
-      setor: setorEncontrado || atual.setor,
-    }));
+    const setorEncontrado = await buscarSetorPorBairro(dados.bairro);
 
     if (!setorEncontrado) {
       setMensagemLocalizacaoEdicao(
-        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+        `Localidade encontrada pela API: ${dados.bairro}. Informe o bairro correto manualmente.`
       );
       return;
     }
+
+    setProcessoEdicao((atual) => ({
+      ...atual,
+      bairro: dados.bairro,
+      setor: setorEncontrado,
+    }));
 
     setMensagemLocalizacaoEdicao("Bairro e setor preenchidos automaticamente.");
   }
