@@ -2496,12 +2496,9 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                           <b>Entrada:</b> {formatarData(processo.data_entrada)}
                         </p>
 
-                        {processo.concluido && (
-                          <p>
-                            <b>Conclusão:</b>{" "}
-                            {formatarData(processo.data_conclusao)}
-                          </p>
-                        )}
+                        <p>
+                          <b>Conclusão:</b> {formatarData(processo.data_conclusao)}
+                        </p>
 
                         <p>
                           <b>Aberto por:</b> {processo.aberto_por || "---"}
