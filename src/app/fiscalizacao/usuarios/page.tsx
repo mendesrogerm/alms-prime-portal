@@ -34,6 +34,13 @@ export default function UsuariosPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nivelSelecionado, setNivelSelecionado] = useState<NivelUsuario>("gestor");
+  const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState<PerfilUsuario | null>(null);
+  const [editarNome, setEditarNome] = useState("");
+  const [editarEmail, setEditarEmail] = useState("");
+  const [editarNivel, setEditarNivel] = useState<NivelUsuario>("gestor");
+  const [editarAtivo, setEditarAtivo] = useState(true);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
 
   useEffect(() => {
     verificarLoginECarregar();
@@ -172,13 +179,42 @@ export default function UsuariosPage() {
     await carregarUsuarios();
   }
 
-  async function atualizarUsuario(usuario: PerfilUsuario, atualizacao: Partial<PerfilUsuario>) {
+  function abrirModalEdicao(usuario: PerfilUsuario) {
+    setUsuarioEditando(usuario);
+    setEditarNome(usuario.nome || "");
+    setEditarEmail(usuario.email || "");
+    setEditarNivel(usuario.nivel);
+    setEditarAtivo(usuario.ativo);
+    setModalEdicaoAberto(true);
+  }
+
+  function fecharModalEdicao() {
+    setModalEdicaoAberto(false);
+    setUsuarioEditando(null);
+    setErro("");
+  }
+
+  async function salvarEdicaoUsuario(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!usuarioEditando) {
+      return;
+    }
+
     if (!perfilAtual || perfilAtual.nivel !== "admin") {
       alert("Acesso restrito a administradores.");
       return;
     }
 
-    if (usuario.id === perfilAtual.id && atualizacao.ativo === false) {
+    const nomeTrim = editarNome.trim();
+    const emailTrim = editarEmail.trim();
+
+    if (!nomeTrim || !emailTrim) {
+      setErro("Nome e e-mail são obrigatórios.");
+      return;
+    }
+
+    if (usuarioEditando.user_id === perfilAtual.user_id && !editarAtivo) {
       const confirmar = window.confirm(
         "Deseja desativar seu próprio acesso? Isso encerrará sua sessão atual."
       );
@@ -188,32 +224,46 @@ export default function UsuariosPage() {
       }
     }
 
-    const { error } = await supabase
-      .from("perfis_usuarios")
-      .update({
-        nivel: atualizacao.nivel ?? usuario.nivel,
-        ativo: atualizacao.ativo ?? usuario.ativo,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", usuario.id);
+    setSalvandoEdicao(true);
+    setErro("");
+    setMensagemSucesso("");
 
-    if (error) {
-      alert("Erro ao atualizar usuário: " + error.message);
+    const { data: sessao } = await supabase.auth.getSession();
+    const token = sessao.session?.access_token;
+
+    if (!token) {
+      setErro("Sessão expirada. Faça login novamente.");
+      setSalvandoEdicao(false);
       return;
     }
 
-    setUsuarios((listaAtual) =>
-      listaAtual.map((item) =>
-        item.id === usuario.id
-          ? {
-              ...item,
-              nivel: atualizacao.nivel ?? usuario.nivel,
-              ativo: atualizacao.ativo ?? usuario.ativo,
-              updated_at: new Date().toISOString(),
-            }
-          : item
-      )
-    );
+    const resposta = await fetch("/api/admin/atualizar-usuario", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        user_id: usuarioEditando.user_id,
+        nome: nomeTrim,
+        email: emailTrim,
+        nivel: editarNivel,
+        ativo: editarAtivo,
+      }),
+    });
+
+    const payload = await resposta.json().catch(() => ({}));
+
+    setSalvandoEdicao(false);
+
+    if (!resposta.ok) {
+      setErro(payload.erro || "Erro ao atualizar usuário.");
+      return;
+    }
+
+    setMensagemSucesso("Usuário atualizado com sucesso.");
+    fecharModalEdicao();
+    await carregarUsuarios();
   }
 
   const podeAdministrar = perfilAtual?.nivel === "admin";
@@ -348,6 +398,7 @@ export default function UsuariosPage() {
                       <th className="px-4 py-3">E-mail</th>
                       <th className="px-4 py-3">Nível</th>
                       <th className="px-4 py-3">Ativo</th>
+                      <th className="px-4 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
 
@@ -358,44 +409,33 @@ export default function UsuariosPage() {
                           {usuario.nome || "Sem nome"}
                         </td>
                         <td className="px-4 py-3 text-slate-600">{usuario.email || "---"}</td>
+                        <td className="px-4 py-3 text-slate-700">{usuario.nivel}</td>
                         <td className="px-4 py-3">
-                          <select
-                            value={usuario.nivel}
-                            onChange={(event) =>
-                              atualizarUsuario(usuario, {
-                                nivel: event.target.value as NivelUsuario,
-                              })
-                            }
-                            className="rounded-lg border border-slate-300 px-2 py-1 text-xs outline-none focus:border-blue-700"
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                              usuario.ativo
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
                           >
-                            {niveisUsuario.map((nivel) => (
-                              <option key={nivel} value={nivel}>
-                                {nivel}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-4 py-3">
-                          <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700">
-                            <input
-                              type="checkbox"
-                              checked={usuario.ativo}
-                              onChange={(event) =>
-                                atualizarUsuario(usuario, {
-                                  ativo: event.target.checked,
-                                })
-                              }
-                              className="h-4 w-4"
-                            />
                             {usuario.ativo ? "Ativo" : "Inativo"}
-                          </label>
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => abrirModalEdicao(usuario)}
+                            className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600"
+                          >
+                            Editar
+                          </button>
                         </td>
                       </tr>
                     ))}
 
                     {usuarios.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+                        <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
                           Nenhum usuário cadastrado.
                         </td>
                       </tr>
@@ -403,6 +443,97 @@ export default function UsuariosPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {modalEdicaoAberto && usuarioEditando && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold uppercase text-blue-700">Editar usuário</p>
+                  <h2 className="mt-1 text-xl font-bold text-slate-800">{usuarioEditando.nome || "Usuário"}</h2>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fecharModalEdicao}
+                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200"
+                >
+                  Fechar
+                </button>
+              </div>
+
+              <form onSubmit={salvarEdicaoUsuario} className="mt-5 space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Nome</label>
+                  <input
+                    value={editarNome}
+                    onChange={(event) => setEditarNome(event.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">E-mail</label>
+                  <input
+                    type="email"
+                    value={editarEmail}
+                    onChange={(event) => setEditarEmail(event.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Nível</label>
+                  <select
+                    value={editarNivel}
+                    onChange={(event) => setEditarNivel(event.target.value as NivelUsuario)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                  >
+                    {niveisUsuario.map((nivel) => (
+                      <option key={nivel} value={nivel}>
+                        {nivel}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <label className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={editarAtivo}
+                    onChange={(event) => setEditarAtivo(event.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  Usuário ativo
+                </label>
+
+                {erro && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                    {erro}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={fecharModalEdicao}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={salvandoEdicao}
+                    className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {salvandoEdicao ? "Salvando..." : "Salvar alterações"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
