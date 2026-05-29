@@ -14,10 +14,9 @@ import type {
   TipoFiltroPeriodo,
   ModoConclusao,
   NovoProcessoForm,
-  NivelUsuario,
-  PerfilUsuario,
   GrupoResumo,
 } from "./types";
+import { usePerfilUsuario } from "./hooks/usePerfilUsuario";
 import { opcoesAssunto } from "./constants";
 import {
   aplicarMascaraSisgep,
@@ -138,7 +137,15 @@ export default function FiscalizacaoPage() {
     setor: "",
     observacao: "",
   });
-  const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
+
+  const {
+    perfilUsuario,
+    carregarPerfilUsuario,
+    limparPerfilUsuario,
+    podeGerenciarProcessos,
+    podeExcluirProcessos,
+    podeAdministrarUsuarios,
+  } = usePerfilUsuario();
 
   async function registrarAuditoriaProcesso({
     processo,
@@ -173,11 +180,6 @@ export default function FiscalizacaoPage() {
       console.error("Erro ao registrar auditoria:", error);
     }
   }
-
-  const nivelUsuario = perfilUsuario?.nivel || "usuario";
-  const podeGerenciarProcessos = ["admin", "gestor"].includes(nivelUsuario);
-  const podeExcluirProcessos = nivelUsuario === "admin";
-  const podeAdministrarUsuarios = nivelUsuario === "admin";
 
   useEffect(() => {
     verificarLoginECarregarProcessos();
@@ -256,47 +258,28 @@ export default function FiscalizacaoPage() {
       return;
     }
 
-    const { data: perfilData, error: erroPerfil } = await supabase
-      .from("perfis_usuarios")
-      .select("*")
-      .eq("user_id", sessao.session.user.id)
-      .maybeSingle();
+    const { perfil, erro: erroPerfil } = await carregarPerfilUsuario(
+      sessao.session.user.id,
+      sessao.session.user.email
+    );
 
     if (erroPerfil) {
-      setErro("Erro ao carregar perfil do usuário: " + erroPerfil.message);
+      setErro(erroPerfil);
       setCarregando(false);
       return;
     }
 
-    const perfilFinal: PerfilUsuario = perfilData
-      ? {
-          id: perfilData.id,
-          user_id: perfilData.user_id,
-          email: perfilData.email ?? sessao.session.user.email ?? null,
-          nome: perfilData.nome ?? sessao.session.user.email ?? null,
-          nivel: (perfilData.nivel as NivelUsuario) || "usuario",
-          ativo: perfilData.ativo ?? true,
-          created_at: perfilData.created_at,
-          updated_at: perfilData.updated_at ?? null,
-        }
-      : {
-          id: sessao.session.user.id,
-          user_id: sessao.session.user.id,
-          email: sessao.session.user.email ?? null,
-          nome: sessao.session.user.email ?? null,
-          nivel: "usuario",
-          ativo: true,
-          created_at: new Date().toISOString(),
-          updated_at: null,
-        };
+    if (!perfil) {
+      setErro("Erro ao carregar perfil do usuário.");
+      setCarregando(false);
+      return;
+    }
 
-    if (!perfilFinal.ativo) {
+    if (!perfil.ativo) {
       await supabase.auth.signOut();
       router.push("/login");
       return;
     }
-
-    setPerfilUsuario(perfilFinal);
 
     const { data, error } = await supabase
       .from("processos")
@@ -317,7 +300,7 @@ export default function FiscalizacaoPage() {
   }
 
   async function sair() {
-    setPerfilUsuario(null);
+    limparPerfilUsuario();
     await supabase.auth.signOut();
     router.push("/login");
   }
