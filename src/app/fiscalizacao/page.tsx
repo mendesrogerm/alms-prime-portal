@@ -137,6 +137,15 @@ export default function FiscalizacaoPage() {
   );
   const [salvandoConclusao, setSalvandoConclusao] = useState(false);
 
+  const [modalCorrecaoDataAberto, setModalCorrecaoDataAberto] =
+    useState(false);
+  const [sisgepsCorrecaoData, setSisgepsCorrecaoData] = useState("");
+  const [novaDataConclusaoCorrecao, setNovaDataConclusaoCorrecao] = useState(
+    dataAtualInput()
+  );
+  const [salvandoCorrecaoData, setSalvandoCorrecaoData] = useState(false);
+  const [mensagemCorrecaoData, setMensagemCorrecaoData] = useState("");
+
   const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
     sisgep: "",
     data_entrada: dataAtualInput(),
@@ -274,6 +283,21 @@ export default function FiscalizacaoPage() {
     return dataAtualInput();
   }
 
+  function somenteNumeros(valor: string) {
+    return valor.replace(/\D/g, "");
+  }
+
+  function extrairSisgepsDigitados(valor: string) {
+    return Array.from(
+      new Set(
+        valor
+          .split(/[\s,;]+/)
+          .map((item) => somenteNumeros(item))
+          .filter((item) => item.length > 0)
+      )
+    );
+  }
+
   function aplicarMascaraSisgep(valor: string) {
     return valor
       .replace(/\D/g, "")
@@ -324,6 +348,22 @@ export default function FiscalizacaoPage() {
     setModalConclusaoAberto(false);
     setProcessoConclusao(null);
     setDataConclusaoSelecionada(dataAtualInput());
+  }
+
+  function abrirModalCorrecaoData() {
+    setSisgepsCorrecaoData("");
+    setNovaDataConclusaoCorrecao(dataAtualInput());
+    setMensagemCorrecaoData("");
+    setModalCorrecaoDataAberto(true);
+  }
+
+  function fecharModalCorrecaoData() {
+    if (salvandoCorrecaoData) return;
+
+    setModalCorrecaoDataAberto(false);
+    setSisgepsCorrecaoData("");
+    setNovaDataConclusaoCorrecao(dataAtualInput());
+    setMensagemCorrecaoData("");
   }
 
   function calcularDiasEntreDatas(
@@ -1135,6 +1175,106 @@ export default function FiscalizacaoPage() {
     fecharModalConclusao();
   }
 
+  async function corrigirDataConclusaoEmLote() {
+    setMensagemCorrecaoData("");
+
+    if (!novaDataConclusaoCorrecao) {
+      setMensagemCorrecaoData("Informe a nova data de conclusão.");
+      return;
+    }
+
+    if (novaDataConclusaoCorrecao > dataAtualInput()) {
+      setMensagemCorrecaoData("A data de conclusão não pode ser maior que hoje.");
+      return;
+    }
+
+    const sisgepsDigitados = extrairSisgepsDigitados(sisgepsCorrecaoData);
+
+    if (sisgepsDigitados.length === 0) {
+      setMensagemCorrecaoData("Informe pelo menos um número de SisGep.");
+      return;
+    }
+
+    const processosEncontrados = processos.filter((processo) =>
+      sisgepsDigitados.includes(somenteNumeros(processo.sisgep || ""))
+    );
+
+    if (processosEncontrados.length === 0) {
+      setMensagemCorrecaoData(
+        "Nenhum processo encontrado para os SisGeps informados."
+      );
+      return;
+    }
+
+    setSalvandoCorrecaoData(true);
+
+    const resultados = await Promise.all(
+      processosEncontrados.map(async (processo) => {
+        const diasCalculados = calcularDiasEntreDatas(
+          processo.data_entrada,
+          novaDataConclusaoCorrecao
+        );
+
+        const { error } = await supabase
+          .from("processos")
+          .update({
+            concluido: true,
+            data_conclusao: novaDataConclusaoCorrecao,
+            sla: diasCalculados,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", processo.id);
+
+        return {
+          id: processo.id,
+          sisgep: processo.sisgep,
+          erro: error,
+          diasCalculados,
+        };
+      })
+    );
+
+    setSalvandoCorrecaoData(false);
+
+    const erros = resultados.filter((resultado) => resultado.erro);
+    const sucessos = resultados.filter((resultado) => !resultado.erro);
+
+    if (sucessos.length > 0) {
+      setProcessos((listaAtual) =>
+        listaAtual.map((processo) => {
+          const resultado = sucessos.find((item) => item.id === processo.id);
+
+          if (!resultado) return processo;
+
+          return {
+            ...processo,
+            concluido: true,
+            data_conclusao: novaDataConclusaoCorrecao,
+            sla: resultado.diasCalculados,
+          };
+        })
+      );
+    }
+
+    const encontradosNumeros = processosEncontrados.map((processo) =>
+      somenteNumeros(processo.sisgep || "")
+    );
+
+    const naoEncontrados = sisgepsDigitados.filter(
+      (sisgep) => !encontradosNumeros.includes(sisgep)
+    );
+
+    setMensagemCorrecaoData(
+      `Atualização concluída. Sucesso: ${sucessos.length}. Erros: ${erros.length}. Não encontrados: ${naoEncontrados.length}.`
+    );
+
+    if (erros.length > 0) {
+      console.error("Erros ao corrigir data de conclusão:", erros);
+    }
+
+    await verificarLoginECarregarProcessos();
+  }
+
   async function alterarStatusProcesso(processo: Processo) {
     if (!processo.concluido) {
       abrirModalConclusaoIndividual(processo);
@@ -1848,6 +1988,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
               >
                 Novo processo
+              </button>
+
+              <button
+                onClick={abrirModalCorrecaoData}
+                className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-400"
+              >
+                Corrigir datas
               </button>
 
               <button
@@ -3028,6 +3175,89 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {salvandoConclusao ? "Salvando..." : "Confirmar conclusão"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalCorrecaoDataAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  Corrigir data de conclusão
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Informe os números de SisGep e escolha a nova data de conclusão.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fecharModalCorrecaoData}
+                className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+              >
+                Fechar
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="text-sm font-semibold text-slate-700">
+                SisGeps
+              </span>
+              <textarea
+                value={sisgepsCorrecaoData}
+                onChange={(event) => setSisgepsCorrecaoData(event.target.value)}
+                rows={6}
+                placeholder="Digite ou cole os SisGeps, separados por linha, vírgula ou espaço."
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              />
+            </label>
+
+            <label className="mt-4 block">
+              <span className="text-sm font-semibold text-slate-700">
+                Nova data de conclusão
+              </span>
+              <input
+                type="date"
+                value={novaDataConclusaoCorrecao}
+                max={dataAtualInput()}
+                onChange={(event) =>
+                  setNovaDataConclusaoCorrecao(event.target.value)
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              />
+            </label>
+
+            {mensagemCorrecaoData && (
+              <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800">
+                {mensagemCorrecaoData}
+              </div>
+            )}
+
+            <div className="mt-6 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Atenção: esta ação altera a data de conclusão dos processos encontrados e recalcula o SLA.
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
+              <button
+                type="button"
+                onClick={fecharModalCorrecaoData}
+                disabled={salvandoCorrecaoData}
+                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={corrigirDataConclusaoEmLote}
+                disabled={salvandoCorrecaoData}
+                className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {salvandoCorrecaoData ? "Atualizando..." : "Atualizar datas"}
               </button>
             </div>
           </div>
