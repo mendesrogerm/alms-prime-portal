@@ -375,6 +375,9 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
 
     return calcularDiasEntreDatas(processo.data_entrada);
   }
+  function isLocalizacaoIncompleta(processo: Processo) {
+  return !processo.bairro?.trim() || !processo.setor?.trim();
+}
 
   async function buscarSetorPorBairro(bairro: string) {
     const bairroNormalizado = normalizarTexto(bairro);
@@ -1388,53 +1391,57 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
   }, [processos]);
 
   const processosFiltrados = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
+  const termo = busca.trim().toLowerCase();
 
-    const listaFiltrada = processos.filter((processo) => {
-      const combinaStatus =
-        filtroStatus === "todos" ||
-        (filtroStatus === "pendentes" && !processo.concluido) ||
-        (filtroStatus === "concluidos" && processo.concluido);
+  const listaFiltrada = processos.filter((processo) => {
+    const combinaStatus =
+      filtroStatus === "todos" ||
+      (filtroStatus === "pendentes" && !processo.concluido) ||
+      (filtroStatus === "concluidos" && processo.concluido);
 
-      const combinaAssunto =
-        filtroAssunto === "todos" || processo.assunto === filtroAssunto;
+    const combinaAssunto =
+      filtroAssunto === "todos" || processo.assunto === filtroAssunto;
 
-      const combinaSetor =
-        filtroSetor === "todos" || processo.setor === filtroSetor;
+    const combinaSetor =
+      filtroSetor === "todos" || processo.setor === filtroSetor;
 
-      const textoBusca = [
-        processo.sisgep,
-        processo.assunto,
-        processo.aberto_por,
-        processo.rua,
-        processo.numero_rua,
-        processo.bairro,
-        processo.setor,
-        processo.observacao,
-      ]
-        .join(" ")
-        .toLowerCase();
+    const combinaLocalizacao =
+      !filtroLocalizacaoIncompleta || isLocalizacaoIncompleta(processo);
 
-      const combinaBusca = termo === "" || textoBusca.includes(termo);
+    const textoBusca = [
+      processo.sisgep,
+      processo.assunto,
+      processo.aberto_por,
+      processo.rua,
+      processo.numero_rua,
+      processo.bairro,
+      processo.setor,
+      processo.observacao,
+    ]
+      .join(" ")
+      .toLowerCase();
 
-      const dataParaFiltro =
-        tipoFiltroPeriodo === "entrada"
-          ? processo.data_entrada
-          : tipoFiltroPeriodo === "conclusao"
-            ? processo.data_conclusao
-            : null;
+    const combinaBusca = termo === "" || textoBusca.includes(termo);
 
-      const combinaPeriodo =
-        tipoFiltroPeriodo === "todos" || dataDentroDoPeriodo(dataParaFiltro);
+    const dataParaFiltro =
+      tipoFiltroPeriodo === "entrada"
+        ? processo.data_entrada
+        : tipoFiltroPeriodo === "conclusao"
+          ? processo.data_conclusao
+          : null;
 
-      return (
-        combinaStatus &&
-        combinaAssunto &&
-        combinaSetor &&
-        combinaBusca &&
-        combinaPeriodo
-      );
-    });
+    const combinaPeriodo =
+      tipoFiltroPeriodo === "todos" || dataDentroDoPeriodo(dataParaFiltro);
+
+    return (
+      combinaStatus &&
+      combinaAssunto &&
+      combinaSetor &&
+      combinaLocalizacao &&
+      combinaBusca &&
+      combinaPeriodo
+    );
+  });
 
     return [...listaFiltrada].sort((a, b) => {
       if (ordenacao === "dias_desc") {
@@ -1459,14 +1466,15 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     });
   }, [
     processos,
-    busca,
-    filtroStatus,
-    filtroAssunto,
-    filtroSetor,
-    ordenacao,
-    tipoFiltroPeriodo,
-    dataInicialFiltro,
-    dataFinalFiltro,
+  busca,
+  filtroStatus,
+  filtroAssunto,
+  filtroSetor,
+  filtroLocalizacaoIncompleta,
+  tipoFiltroPeriodo,
+  dataInicialFiltro,
+  dataFinalFiltro,
+  ordenacao,
   ]);
 
   const total = processos.length;
@@ -2666,7 +2674,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             {modoVisualizacao === "tabela" && (
               <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="w-full min-w-[1700px] border-collapse text-left text-sm">
+                <table className="min-w-[1500px] w-full border-collapse text-left text-sm">
                   <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="px-4 py-3">Selecionar</th>
@@ -2674,12 +2682,12 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       <th className="px-4 py-3">Status</th>
                       <th className="px-4 py-3">Entrada</th>
                       <th className="px-4 py-3">Dias</th>
-                      <th className="px-4 py-3">Assunto</th>
-                      <th className="px-4 py-3">Aberto por</th>
-                      <th className="px-4 py-3">Endereço</th>
-                      <th className="px-4 py-3">Bairro</th>
+                      <th className="min-w-[220px] max-w-[320px] px-4 py-3">Assunto</th>
+                      <th className="min-w-[180px] max-w-[260px] px-4 py-3">Aberto por</th>
+                      <th className="min-w-[260px] max-w-[360px] px-4 py-3">Endereço</th>
+                      <th className="min-w-[150px] max-w-[220px] px-4 py-3">Bairro</th>
                       <th className="px-4 py-3">Setor</th>
-                      <th className="sticky right-0 bg-slate-50 px-4 py-3 text-right">
+                      <th className="sticky right-0 bg-slate-50 px-4 py-3 text-right min-w-[300px]">
                         Ações
                       </th>
                     </tr>
@@ -2729,26 +2737,26 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             {dias}
                           </td>
 
-                          <td className="max-w-[220px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[220px] max-w-[320px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.assunto || "---"}
                             </span>
                           </td>
 
-                          <td className="max-w-[220px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[180px] max-w-[260px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.aberto_por || "---"}
                             </span>
                           </td>
 
-                          <td className="max-w-[260px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[260px] max-w-[360px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.rua || "---"}, nº{" "}
                               {processo.numero_rua || "---"}
                             </span>
                           </td>
 
-                          <td className="max-w-[180px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[150px] max-w-[220px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.bairro || "---"}
                             </span>
@@ -2760,8 +2768,8 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             </span>
                           </td>
 
-                          <td className="sticky right-0 bg-white px-4 py-3">
-                            <div className="flex justify-end gap-2">
+                          <td className="sticky right-0 bg-white px-4 py-3 min-w-[300px]">
+                            <div className="flex justify-end gap-2 flex-nowrap">
                               <a
                                 href={getLinkMapa(processo)}
                                 target="_blank"
