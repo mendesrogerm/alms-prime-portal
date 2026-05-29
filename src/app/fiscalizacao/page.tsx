@@ -286,6 +286,14 @@ export default function FiscalizacaoPage() {
     return data <= dataAtualInput();
   }
 
+  function alterarTipoFiltroPeriodo(valor: TipoFiltroPeriodo) {
+    setTipoFiltroPeriodo(valor);
+
+    if (valor === "conclusao") {
+      setFiltroStatus("concluidos");
+    }
+  }
+
   function abrirModalConclusaoIndividual(processo: Processo) {
     setModoConclusao("individual");
     setProcessoConclusao(processo);
@@ -1057,6 +1065,7 @@ export default function FiscalizacaoPage() {
         );
       }
 
+      await verificarLoginECarregarProcessos();
       fecharModalConclusao();
       return;
     }
@@ -1122,6 +1131,7 @@ export default function FiscalizacaoPage() {
       selecionadosAtuais.filter((id) => !idsConcluidos.includes(id))
     );
 
+    await verificarLoginECarregarProcessos();
     fecharModalConclusao();
   }
 
@@ -2028,7 +2038,9 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   <select
                     value={tipoFiltroPeriodo}
                     onChange={(event) =>
-                      setTipoFiltroPeriodo(event.target.value as TipoFiltroPeriodo)
+                      alterarTipoFiltroPeriodo(
+                        event.target.value as TipoFiltroPeriodo
+                      )
                     }
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
                   >
@@ -2036,6 +2048,12 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     <option value="entrada">Data de entrada</option>
                     <option value="conclusao">Data de conclusão</option>
                   </select>
+
+                  {tipoFiltroPeriodo === "conclusao" && (
+                    <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
+                      Filtro por data de conclusão exibe apenas processos concluídos.
+                    </p>
+                  )}
                 </div>
 
                 <div>
