@@ -35,6 +35,20 @@ type Anexo = {
   created_at: string;
 };
 
+type AuditoriaProcesso = {
+  id: string;
+  processo_id: string | null;
+  processo_sisgep: string | null;
+  user_id: string | null;
+  usuario_email: string | null;
+  usuario_nome: string | null;
+  acao: string;
+  descricao: string | null;
+  dados_anteriores: unknown | null;
+  dados_novos: unknown | null;
+  created_at: string;
+};
+
 type FiltroStatus = "todos" | "pendentes" | "concluidos";
 type ModoVisualizacao = "cards" | "tabela";
 type OrdenacaoProcessos =
@@ -158,6 +172,16 @@ export default function FiscalizacaoPage() {
   );
   const [salvandoCorrecaoData, setSalvandoCorrecaoData] = useState(false);
   const [mensagemCorrecaoData, setMensagemCorrecaoData] = useState("");
+
+  const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
+  const [processoHistorico, setProcessoHistorico] = useState<Processo | null>(
+    null
+  );
+  const [historicoProcesso, setHistoricoProcesso] = useState<
+    AuditoriaProcesso[]
+  >([]);
+  const [carregandoHistorico, setCarregandoHistorico] = useState(false);
+  const [erroHistorico, setErroHistorico] = useState("");
 
   const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
     sisgep: "",
@@ -377,6 +401,65 @@ export default function FiscalizacaoPage() {
 
   function dataAtualFormatoBanco() {
     return dataAtualInput();
+  }
+
+  function formatarDataHora(valor: string | null | undefined) {
+    if (!valor) return "---";
+
+    const data = new Date(valor);
+
+    if (Number.isNaN(data.getTime())) {
+      return "---";
+    }
+
+    return data.toLocaleString("pt-BR");
+  }
+
+  function rotuloAcaoAuditoria(acao: string) {
+    const mapa: Record<string, string> = {
+      processo_criado: "Processo criado",
+      processo_editado: "Processo editado",
+      processo_concluido: "Processo concluído",
+      processo_reaberto: "Processo reaberto",
+      processo_concluido_lote: "Processo concluído em lote",
+      data_conclusao_corrigida: "Data de conclusão corrigida",
+      anexo_enviado: "Anexo enviado",
+      anexo_excluido: "Anexo excluído",
+      processo_excluido: "Processo excluído",
+    };
+
+    return mapa[acao] || acao;
+  }
+
+  async function abrirHistoricoProcesso(processo: Processo) {
+    setProcessoHistorico(processo);
+    setHistoricoProcesso([]);
+    setErroHistorico("");
+    setModalHistoricoAberto(true);
+    setCarregandoHistorico(true);
+
+    const { data, error } = await supabase
+      .from("auditoria_processos")
+      .select("*")
+      .eq("processo_id", processo.id)
+      .order("created_at", { ascending: false });
+
+    setCarregandoHistorico(false);
+
+    if (error) {
+      setErroHistorico("Erro ao carregar histórico: " + error.message);
+      return;
+    }
+
+    setHistoricoProcesso((data || []) as AuditoriaProcesso[]);
+  }
+
+  function fecharHistoricoProcesso() {
+    setModalHistoricoAberto(false);
+    setProcessoHistorico(null);
+    setHistoricoProcesso([]);
+    setErroHistorico("");
+    setCarregandoHistorico(false);
   }
 
   function somenteNumeros(valor: string) {
@@ -2879,6 +2962,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         </div>
                       </div>
 
+                      <button
+                        onClick={() => abrirHistoricoProcesso(processo)}
+                        className="mt-4 w-full rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+                      >
+                        Histórico
+                      </button>
+
                       {podeGerenciarProcessos && (
                         <button
                           onClick={() => abrirModalEdicao(processo)}
@@ -3029,6 +3119,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                               >
                                 Maps
                               </a>
+
+                              <button
+                                onClick={() => abrirHistoricoProcesso(processo)}
+                                className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                              >
+                                Histórico
+                              </button>
 
                               {podeGerenciarProcessos && (
                                 <button
@@ -3536,6 +3633,82 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               >
                 {salvandoCorrecaoData ? "Atualizando..." : "Atualizar datas"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalHistoricoAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  Histórico do processo
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  SisGep: {processoHistorico?.sisgep || "---"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fecharHistoricoProcesso}
+                className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+              >
+                Fechar
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto p-6">
+              {carregandoHistorico && (
+                <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+                  Carregando histórico...
+                </div>
+              )}
+
+              {erroHistorico && (
+                <div className="rounded-lg bg-red-50 p-4 text-sm font-semibold text-red-700">
+                  {erroHistorico}
+                </div>
+              )}
+
+              {!carregandoHistorico && !erroHistorico && historicoProcesso.length === 0 && (
+                <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+                  Nenhum histórico registrado para este processo.
+                </div>
+              )}
+
+              {!carregandoHistorico && historicoProcesso.length > 0 && (
+                <div className="space-y-4">
+                  {historicoProcesso.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">
+                            {rotuloAcaoAuditoria(item.acao)}
+                          </p>
+
+                          <p className="mt-1 text-sm text-slate-600">
+                            {item.descricao || "Sem descrição."}
+                          </p>
+                        </div>
+
+                        <span className="text-xs font-semibold text-slate-500">
+                          {formatarDataHora(item.created_at)}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 text-xs text-slate-500">
+                        Usuário: {item.usuario_nome || item.usuario_email || "---"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
