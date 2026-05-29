@@ -356,6 +356,16 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     setModalCorrecaoDataAberto(true);
   }
 
+  function abrirModalCorrecaoLocalizacao() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para correção de localização.");
+      return;
+    }
+
+    // Implementação futura: abrir modal de correção de localização.
+    alert("Correção de localização será implementada na próxima etapa.");
+  }
+
   function fecharModalCorrecaoData() {
     if (salvandoCorrecaoData) return;
 
@@ -510,20 +520,20 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
       return;
     }
 
-    const setorEncontrado = await buscarSetorPorBairro(dados.bairro);
-
-    if (!setorEncontrado) {
-      setMensagemLocalizacaoNovo(
-        `Localidade encontrada pela API: ${dados.bairro}. Informe o bairro correto manualmente.`
-      );
-      return;
-    }
+    const setorEncontrado = dados.setor || (await buscarSetorPorBairro(dados.bairro));
 
     setNovoProcesso((atual) => ({
       ...atual,
-      bairro: dados.bairro,
-      setor: setorEncontrado,
+      bairro: dados.bairro || atual.bairro,
+      setor: setorEncontrado || atual.setor,
     }));
+
+    if (!setorEncontrado) {
+      setMensagemLocalizacaoNovo(
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+      );
+      return;
+    }
 
     setMensagemLocalizacaoNovo("Bairro e setor preenchidos automaticamente.");
   }
@@ -554,20 +564,20 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
       return;
     }
 
-    const setorEncontrado = await buscarSetorPorBairro(dados.bairro);
-
-    if (!setorEncontrado) {
-      setMensagemLocalizacaoEdicao(
-        `Localidade encontrada pela API: ${dados.bairro}. Informe o bairro correto manualmente.`
-      );
-      return;
-    }
+    const setorEncontrado = dados.setor || (await buscarSetorPorBairro(dados.bairro));
 
     setProcessoEdicao((atual) => ({
       ...atual,
-      bairro: dados.bairro,
-      setor: setorEncontrado,
+      bairro: dados.bairro || atual.bairro,
+      setor: setorEncontrado || atual.setor,
     }));
+
+    if (!setorEncontrado) {
+      setMensagemLocalizacaoEdicao(
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
+      );
+      return;
+    }
 
     setMensagemLocalizacaoEdicao("Bairro e setor preenchidos automaticamente.");
   }
@@ -1962,6 +1972,15 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-400"
                 >
                   Corrigir datas
+                </button>
+              )}
+
+              {podeGerenciarProcessos && (
+                <button
+                  onClick={abrirModalCorrecaoLocalizacao}
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-400"
+                >
+                  Corrigir localização
                 </button>
               )}
 
