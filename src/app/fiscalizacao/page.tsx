@@ -51,6 +51,8 @@ type NovoProcessoForm = {
   assunto: string;
   rua: string;
   numero_rua: string;
+  bairro: string;
+  setor: string;
   observacao: string;
 };
 
@@ -113,6 +115,7 @@ export default function FiscalizacaoPage() {
 
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [salvandoNovo, setSalvandoNovo] = useState(false);
+  const [mensagemSucessoNovo, setMensagemSucessoNovo] = useState("");
 
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
@@ -126,6 +129,8 @@ export default function FiscalizacaoPage() {
     assunto: "",
     rua: "",
     numero_rua: "",
+    bairro: "",
+    setor: "",
     observacao: "",
   });
 
@@ -136,6 +141,8 @@ export default function FiscalizacaoPage() {
     assunto: "",
     rua: "",
     numero_rua: "",
+    bairro: "",
+    setor: "",
     observacao: "",
   });
 
@@ -158,27 +165,43 @@ export default function FiscalizacaoPage() {
   ]);
 
   async function carregarAnexos(listaProcessos: Processo[]) {
-    if (listaProcessos.length === 0) {
+    const ids = listaProcessos
+      .map((processo) => processo.id)
+      .filter((id): id is string => Boolean(id));
+
+    if (ids.length === 0) {
       setAnexosPorProcesso({});
       return;
     }
 
-    const ids = listaProcessos.map((processo) => processo.id);
+    const tamanhoLote = 100;
+    const todosAnexos: Anexo[] = [];
 
-    const { data, error } = await supabase
-      .from("anexos")
-      .select("*")
-      .in("processo_id", ids)
-      .order("created_at", { ascending: false });
+    for (let indice = 0; indice < ids.length; indice += tamanhoLote) {
+      const loteIds = ids.slice(indice, indice + tamanhoLote);
 
-    if (error) {
-      console.error("Erro ao carregar anexos:", error.message);
-      return;
+      const { data, error } = await supabase
+        .from("anexos")
+        .select("*")
+        .in("processo_id", loteIds)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar anexos do lote:", {
+          lote: indice / tamanhoLote + 1,
+          quantidadeIds: loteIds.length,
+          error,
+        });
+
+        continue;
+      }
+
+      todosAnexos.push(...((data || []) as Anexo[]));
     }
 
     const agrupados: Record<string, Anexo[]> = {};
 
-    (data || []).forEach((anexo) => {
+    todosAnexos.forEach((anexo) => {
       if (!agrupados[anexo.processo_id]) {
         agrupados[anexo.processo_id] = [];
       }
@@ -234,6 +257,27 @@ export default function FiscalizacaoPage() {
 
   function dataAtualFormatoBanco() {
     return dataAtualInput();
+  }
+
+  function aplicarMascaraSisgep(valor: string) {
+    return valor
+      .replace(/\D/g, "")
+      .slice(0, 15)
+      .replace(/(\d{3})(?=\d)/g, "$1.");
+  }
+
+  function pedirDataConclusao() {
+    const dataPadrao = dataAtualFormatoBanco();
+    const valor = window.prompt(
+      "Informe a data de conclusão (YYYY-MM-DD):",
+      dataPadrao
+    );
+
+    if (valor === null) {
+      return null;
+    }
+
+    return valor.trim() || dataPadrao;
   }
 
   function calcularDiasEntreDatas(
@@ -341,6 +385,7 @@ export default function FiscalizacaoPage() {
     campo: keyof NovoProcessoForm,
     valor: string
   ) {
+    setMensagemSucessoNovo("");
     setNovoProcesso((dadosAtuais) => ({
       ...dadosAtuais,
       [campo]: valor,
@@ -367,10 +412,17 @@ export default function FiscalizacaoPage() {
       assunto: processo.assunto || "",
       rua: processo.rua || "",
       numero_rua: processo.numero_rua || "",
+      bairro: processo.bairro || "",
+      setor: processo.setor || "",
       observacao: processo.observacao || "",
     });
 
     setModalEdicaoAberto(true);
+  }
+
+  function fecharModalNovo() {
+    setModalNovoAberto(false);
+    setMensagemSucessoNovo("");
   }
 
   function fecharModalEdicao() {
@@ -411,12 +463,20 @@ export default function FiscalizacaoPage() {
       processoEdicao.numero_rua
     );
 
+    setProcessoEdicao((estadoAtual) => ({
+      ...estadoAtual,
+      bairro: dadosAutomaticos.bairro || estadoAtual.bairro,
+      setor: dadosAutomaticos.setor || estadoAtual.setor,
+    }));
+
     const bairroFinal =
-      dadosAutomaticos.bairro ??
+      dadosAutomaticos.bairro ||
+      processoEdicao.bairro.trim() ||
       (enderecoMudou ? null : processoEditando.bairro);
 
     const setorFinal =
-      dadosAutomaticos.setor ??
+      dadosAutomaticos.setor ||
+      processoEdicao.setor.trim() ||
       (enderecoMudou ? null : processoEditando.setor);
 
     const latitudeFinal =
@@ -505,6 +565,15 @@ export default function FiscalizacaoPage() {
       novoProcesso.numero_rua
     );
 
+    setNovoProcesso((estadoAtual) => ({
+      ...estadoAtual,
+      bairro: dadosAutomaticos.bairro || estadoAtual.bairro,
+      setor: dadosAutomaticos.setor || estadoAtual.setor,
+    }));
+
+    const bairroFinal = dadosAutomaticos.bairro || novoProcesso.bairro.trim() || null;
+    const setorFinal = dadosAutomaticos.setor || novoProcesso.setor.trim() || null;
+
     const mapaLink =
       dadosAutomaticos.latitude && dadosAutomaticos.longitude
         ? `https://www.google.com/maps/search/?api=1&query=${dadosAutomaticos.latitude},${dadosAutomaticos.longitude}`
@@ -527,8 +596,8 @@ export default function FiscalizacaoPage() {
         rua: novoProcesso.rua.trim() || null,
         numero_rua: novoProcesso.numero_rua.trim() || null,
         observacao: novoProcesso.observacao.trim() || null,
-        bairro: dadosAutomaticos.bairro,
-        setor: dadosAutomaticos.setor,
+        bairro: bairroFinal,
+        setor: setorFinal,
         latitude: dadosAutomaticos.latitude,
         longitude: dadosAutomaticos.longitude,
         mapa_link: mapaLink,
@@ -555,10 +624,12 @@ export default function FiscalizacaoPage() {
       assunto: "",
       rua: "",
       numero_rua: "",
+      bairro: "",
+      setor: "",
       observacao: "",
     });
 
-    setModalNovoAberto(false);
+    setMensagemSucessoNovo("Processo cadastrado com sucesso. Você já pode lançar outro.");
   }
 
   function limparNomeArquivo(nome: string) {
@@ -759,9 +830,15 @@ export default function FiscalizacaoPage() {
 
     if (!confirmar) return;
 
+    const dataConclusaoSelecionada = pedirDataConclusao();
+
+    if (dataConclusaoSelecionada === null) {
+      return;
+    }
+
     setBaixandoEmLote(true);
 
-    const dataConclusao = dataAtualFormatoBanco();
+    const dataConclusao = dataConclusaoSelecionada;
 
     const resultados = await Promise.all(
       processosParaConcluir.map(async (processo) => {
@@ -822,11 +899,61 @@ export default function FiscalizacaoPage() {
 
   async function alterarStatusProcesso(processo: Processo) {
     const novoStatus = !processo.concluido;
-    const dataConclusao = novoStatus ? dataAtualFormatoBanco() : null;
 
-    const diasCalculados = novoStatus
-      ? calcularDiasEntreDatas(processo.data_entrada, dataConclusao)
-      : calcularDiasEntreDatas(processo.data_entrada);
+    if (novoStatus) {
+      const dataConclusaoSelecionada = pedirDataConclusao();
+
+      if (dataConclusaoSelecionada === null) {
+        return;
+      }
+
+      const dataConclusao = dataConclusaoSelecionada;
+
+      const diasCalculados = calcularDiasEntreDatas(
+        processo.data_entrada,
+        dataConclusao
+      );
+
+      const { error } = await supabase
+        .from("processos")
+        .update({
+          concluido: true,
+          data_conclusao: dataConclusao,
+          sla: diasCalculados,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", processo.id);
+
+      if (error) {
+        alert("Erro ao atualizar processo: " + error.message);
+        return;
+      }
+
+      setProcessos((listaAtual) =>
+        listaAtual.map((item) =>
+          item.id === processo.id
+            ? {
+                ...item,
+                concluido: true,
+                data_conclusao: dataConclusao,
+                sla: diasCalculados,
+              }
+            : item
+        )
+      );
+
+      if (processo.concluido) {
+        setProcessosSelecionados((selecionadosAtuais) =>
+          selecionadosAtuais.filter((id) => id !== processo.id)
+        );
+      }
+
+      return;
+    }
+
+    const dataConclusao = null;
+
+    const diasCalculados = calcularDiasEntreDatas(processo.data_entrada);
 
     const { error } = await supabase
       .from("processos")
@@ -1528,7 +1655,10 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               </Link>
 
               <button
-                onClick={() => setModalNovoAberto(true)}
+                onClick={() => {
+                  setMensagemSucessoNovo("");
+                  setModalNovoAberto(true);
+                }}
                 className="rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-400"
               >
                 Novo processo
@@ -2362,17 +2492,23 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   Novo processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Informe apenas os dados de entrada. Bairro, setor, Maps e dias serão gerados pelo sistema.
+                  Informe os dados de entrada. Bairro e setor podem ser preenchidos automaticamente ou ajustados manualmente.
                 </p>
               </div>
 
               <button
-                onClick={() => setModalNovoAberto(false)}
+                onClick={fecharModalNovo}
                 className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
               >
                 Fechar
               </button>
             </div>
+
+            {mensagemSucessoNovo && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+                {mensagemSucessoNovo}
+              </div>
+            )}
 
             <form
               onSubmit={cadastrarNovoProcesso}
@@ -2389,7 +2525,12 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <CampoTexto
                 label="Nº SisGep *"
                 value={novoProcesso.sisgep}
-                onChange={(valor) => atualizarCampoNovoProcesso("sisgep", valor)}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso(
+                    "sisgep",
+                    aplicarMascaraSisgep(valor)
+                  )
+                }
                 required
                 placeholder="000.000.000.000.001"
               />
@@ -2421,6 +2562,22 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 }
               />
 
+              <CampoTexto
+                label="Bairro"
+                value={novoProcesso.bairro}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("bairro", valor)
+                }
+              />
+
+              <CampoTexto
+                label="Setor"
+                value={novoProcesso.setor}
+                onChange={(valor) =>
+                  atualizarCampoNovoProcesso("setor", valor)
+                }
+              />
+
               <CampoObservacao
                 value={novoProcesso.observacao}
                 onChange={(valor) =>
@@ -2431,7 +2588,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <div className="md:col-span-2 flex justify-end gap-3 border-t border-slate-200 pt-4">
                 <button
                   type="button"
-                  onClick={() => setModalNovoAberto(false)}
+                  onClick={fecharModalNovo}
                   className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
                 >
                   Cancelar
@@ -2459,7 +2616,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   Editar processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Altere os dados do processo. Ao salvar, bairro, setor, coordenadas, Maps e dias serão recalculados.
+                  Altere os dados do processo. Bairro e setor podem ser ajustados manualmente e recalculados pelo sistema.
                 </p>
               </div>
 
@@ -2487,7 +2644,10 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 label="Nº SisGep *"
                 value={processoEdicao.sisgep}
                 onChange={(valor) =>
-                  atualizarCampoEdicaoProcesso("sisgep", valor)
+                  atualizarCampoEdicaoProcesso(
+                    "sisgep",
+                    aplicarMascaraSisgep(valor)
+                  )
                 }
                 required
                 placeholder="000.000.000.000.001"
@@ -2519,6 +2679,22 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 value={processoEdicao.numero_rua}
                 onChange={(valor) =>
                   atualizarCampoEdicaoProcesso("numero_rua", valor)
+                }
+              />
+
+              <CampoTexto
+                label="Bairro"
+                value={processoEdicao.bairro}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("bairro", valor)
+                }
+              />
+
+              <CampoTexto
+                label="Setor"
+                value={processoEdicao.setor}
+                onChange={(valor) =>
+                  atualizarCampoEdicaoProcesso("setor", valor)
                 }
               />
 
