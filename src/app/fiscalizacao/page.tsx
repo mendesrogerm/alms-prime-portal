@@ -4,105 +4,21 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-
-type Processo = {
-  id: string;
-  sisgep: string;
-  concluido: boolean;
-  data_entrada: string | null;
-  data_conclusao: string | null;
-  sla: number;
-  aberto_por: string | null;
-  assunto: string | null;
-  rua: string | null;
-  numero_rua: string | null;
-  observacao: string | null;
-  bairro: string | null;
-  setor: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  mapa_link: string | null;
-};
-
-type Anexo = {
-  id: string;
-  processo_id: string;
-  processo_sisgep: string | null;
-  nome_arquivo: string | null;
-  url: string;
-  mime_type: string | null;
-  tamanho_bytes: number | null;
-  created_at: string;
-};
-
-type AuditoriaProcesso = {
-  id: string;
-  processo_id: string | null;
-  processo_sisgep: string | null;
-  user_id: string | null;
-  usuario_email: string | null;
-  usuario_nome: string | null;
-  acao: string;
-  descricao: string | null;
-  dados_anteriores: unknown | null;
-  dados_novos: unknown | null;
-  created_at: string;
-};
-
-type FiltroStatus = "todos" | "pendentes" | "concluidos";
-type ModoVisualizacao = "cards" | "tabela";
-type OrdenacaoProcessos =
-  | "dias_desc"
-  | "dias_asc"
-  | "entrada_recente"
-  | "entrada_antiga";
-type TipoFiltroPeriodo = "todos" | "entrada" | "conclusao";
-type ModoConclusao = "individual" | "lote";
-
-type NovoProcessoForm = {
-  sisgep: string;
-  data_entrada: string;
-  aberto_por: string;
-  assunto: string;
-  rua: string;
-  numero_rua: string;
-  bairro: string;
-  setor: string;
-  observacao: string;
-};
-
-type NivelUsuario = "admin" | "gestor" | "usuario";
-
-type PerfilUsuario = {
-  id: string;
-  user_id: string;
-  email: string | null;
-  nome: string | null;
-  nivel: NivelUsuario;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string | null;
-};
-
-type GrupoResumo = {
-  nome: string;
-  total: number;
-};
-
-const opcoesAssunto = [
-  "Ouvidoria/Denúncia",
-  "Inscrição Municipal/Alteração Contratual",
-  "Encerramento/Cancelamento",
-  "Processo Físico/Encerramento",
-  "IPTU",
-  "Outros/ Conferir no Processo",
-  "DRM/ISS",
-  "Revisão de Taxa",
-  "Pedidos de Feiras/Ambulantes",
-  "Horário Especial",
-  "Feiras Livres",
-  "Ministério Público",
-];
+import type {
+  Processo,
+  Anexo,
+  AuditoriaProcesso,
+  FiltroStatus,
+  ModoVisualizacao,
+  OrdenacaoProcessos,
+  TipoFiltroPeriodo,
+  ModoConclusao,
+  NovoProcessoForm,
+  NivelUsuario,
+  PerfilUsuario,
+  GrupoResumo,
+} from "./types";
+import { opcoesAssunto } from "./constants";
 
 export default function FiscalizacaoPage() {
   const router = useRouter();
