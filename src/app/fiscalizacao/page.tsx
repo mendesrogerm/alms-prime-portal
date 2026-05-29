@@ -43,6 +43,7 @@ type OrdenacaoProcessos =
   | "entrada_recente"
   | "entrada_antiga";
 type TipoFiltroPeriodo = "todos" | "entrada" | "conclusao";
+type ModoConclusao = "individual" | "lote";
 
 type NovoProcessoForm = {
   sisgep: string;
@@ -111,7 +112,6 @@ export default function FiscalizacaoPage() {
   const [processosSelecionados, setProcessosSelecionados] = useState<string[]>(
     []
   );
-  const [baixandoEmLote, setBaixandoEmLote] = useState(false);
 
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [salvandoNovo, setSalvandoNovo] = useState(false);
@@ -125,6 +125,17 @@ export default function FiscalizacaoPage() {
   const [mensagemLocalizacaoEdicao, setMensagemLocalizacaoEdicao] = useState("");
   const [processoEditando, setProcessoEditando] =
     useState<Processo | null>(null);
+
+  const [modalConclusaoAberto, setModalConclusaoAberto] = useState(false);
+  const [modoConclusao, setModoConclusao] =
+    useState<ModoConclusao>("individual");
+  const [processoConclusao, setProcessoConclusao] = useState<Processo | null>(
+    null
+  );
+  const [dataConclusaoSelecionada, setDataConclusaoSelecionada] = useState(
+    dataAtualInput()
+  );
+  const [salvandoConclusao, setSalvandoConclusao] = useState(false);
 
   const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
     sisgep: "",
@@ -270,18 +281,41 @@ export default function FiscalizacaoPage() {
       .replace(/(\d{3})(?=\d)/g, "$1.");
   }
 
-  function pedirDataConclusao() {
-    const dataPadrao = dataAtualFormatoBanco();
-    const valor = window.prompt(
-      "Informe a data de conclusão (YYYY-MM-DD):",
-      dataPadrao
+  function dataConclusaoValida(data: string) {
+    if (!data) return false;
+    return data <= dataAtualInput();
+  }
+
+  function abrirModalConclusaoIndividual(processo: Processo) {
+    setModoConclusao("individual");
+    setProcessoConclusao(processo);
+    setDataConclusaoSelecionada(processo.data_conclusao || dataAtualInput());
+    setModalConclusaoAberto(true);
+  }
+
+  function abrirModalConclusaoLote() {
+    const processosParaConcluir = processos.filter(
+      (processo) =>
+        processosSelecionados.includes(processo.id) && !processo.concluido
     );
 
-    if (valor === null) {
-      return null;
+    if (processosParaConcluir.length === 0) {
+      alert("Selecione pelo menos um processo pendente.");
+      return;
     }
 
-    return valor.trim() || dataPadrao;
+    setModoConclusao("lote");
+    setProcessoConclusao(null);
+    setDataConclusaoSelecionada(dataAtualInput());
+    setModalConclusaoAberto(true);
+  }
+
+  function fecharModalConclusao() {
+    if (salvandoConclusao) return;
+
+    setModalConclusaoAberto(false);
+    setProcessoConclusao(null);
+    setDataConclusaoSelecionada(dataAtualInput());
   }
 
   function calcularDiasEntreDatas(
@@ -966,45 +1000,84 @@ export default function FiscalizacaoPage() {
     );
   }
 
-  async function concluirSelecionadosEmLote() {
+  async function confirmarConclusao() {
+    if (!dataConclusaoValida(dataConclusaoSelecionada)) {
+      alert("A data de conclusão não pode ser maior que hoje.");
+      return;
+    }
+
+    setSalvandoConclusao(true);
+
+    if (modoConclusao === "individual") {
+      if (!processoConclusao) {
+        setSalvandoConclusao(false);
+        return;
+      }
+
+      const novoStatus = !processoConclusao.concluido;
+      const dataConclusao = novoStatus ? dataConclusaoSelecionada : null;
+
+      const diasCalculados = novoStatus
+        ? calcularDiasEntreDatas(processoConclusao.data_entrada, dataConclusao)
+        : calcularDiasEntreDatas(processoConclusao.data_entrada);
+
+      const { error } = await supabase
+        .from("processos")
+        .update({
+          concluido: novoStatus,
+          data_conclusao: dataConclusao,
+          sla: diasCalculados,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", processoConclusao.id);
+
+      setSalvandoConclusao(false);
+
+      if (error) {
+        alert("Erro ao atualizar processo: " + error.message);
+        return;
+      }
+
+      setProcessos((listaAtual) =>
+        listaAtual.map((item) =>
+          item.id === processoConclusao.id
+            ? {
+                ...item,
+                concluido: novoStatus,
+                data_conclusao: dataConclusao,
+                sla: diasCalculados,
+              }
+            : item
+        )
+      );
+
+      if (novoStatus) {
+        setProcessosSelecionados((selecionadosAtuais) =>
+          selecionadosAtuais.filter((id) => id !== processoConclusao.id)
+        );
+      }
+
+      fecharModalConclusao();
+      return;
+    }
+
     const processosParaConcluir = processos.filter(
       (processo) =>
         processosSelecionados.includes(processo.id) && !processo.concluido
     );
 
-    if (processosParaConcluir.length === 0) {
-      alert("Selecione pelo menos um processo pendente.");
-      return;
-    }
-
-    const confirmar = window.confirm(
-      `Deseja concluir ${processosParaConcluir.length} processo(s) selecionado(s)?`
-    );
-
-    if (!confirmar) return;
-
-    const dataConclusaoSelecionada = pedirDataConclusao();
-
-    if (dataConclusaoSelecionada === null) {
-      return;
-    }
-
-    setBaixandoEmLote(true);
-
-    const dataConclusao = dataConclusaoSelecionada;
-
     const resultados = await Promise.all(
       processosParaConcluir.map(async (processo) => {
         const diasCalculados = calcularDiasEntreDatas(
           processo.data_entrada,
-          dataConclusao
+          dataConclusaoSelecionada
         );
 
         const { error } = await supabase
           .from("processos")
           .update({
             concluido: true,
-            data_conclusao: dataConclusao,
+            data_conclusao: dataConclusaoSelecionada,
             sla: diasCalculados,
             updated_at: new Date().toISOString(),
           })
@@ -1018,7 +1091,7 @@ export default function FiscalizacaoPage() {
       })
     );
 
-    setBaixandoEmLote(false);
+    setSalvandoConclusao(false);
 
     const erros = resultados.filter((resultado) => resultado.erro);
 
@@ -1039,7 +1112,7 @@ export default function FiscalizacaoPage() {
         return {
           ...processo,
           concluido: true,
-          data_conclusao: dataConclusao,
+          data_conclusao: dataConclusaoSelecionada,
           sla: resultado.diasCalculados,
         };
       })
@@ -1048,64 +1121,18 @@ export default function FiscalizacaoPage() {
     setProcessosSelecionados((selecionadosAtuais) =>
       selecionadosAtuais.filter((id) => !idsConcluidos.includes(id))
     );
+
+    fecharModalConclusao();
   }
 
   async function alterarStatusProcesso(processo: Processo) {
-    const novoStatus = !processo.concluido;
-
-    if (novoStatus) {
-      const dataConclusaoSelecionada = pedirDataConclusao();
-
-      if (dataConclusaoSelecionada === null) {
-        return;
-      }
-
-      const dataConclusao = dataConclusaoSelecionada;
-
-      const diasCalculados = calcularDiasEntreDatas(
-        processo.data_entrada,
-        dataConclusao
-      );
-
-      const { error } = await supabase
-        .from("processos")
-        .update({
-          concluido: true,
-          data_conclusao: dataConclusao,
-          sla: diasCalculados,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", processo.id);
-
-      if (error) {
-        alert("Erro ao atualizar processo: " + error.message);
-        return;
-      }
-
-      setProcessos((listaAtual) =>
-        listaAtual.map((item) =>
-          item.id === processo.id
-            ? {
-                ...item,
-                concluido: true,
-                data_conclusao: dataConclusao,
-                sla: diasCalculados,
-              }
-            : item
-        )
-      );
-
-      if (processo.concluido) {
-        setProcessosSelecionados((selecionadosAtuais) =>
-          selecionadosAtuais.filter((id) => id !== processo.id)
-        );
-      }
-
+    if (!processo.concluido) {
+      abrirModalConclusaoIndividual(processo);
       return;
     }
 
+    const novoStatus = false;
     const dataConclusao = null;
-
     const diasCalculados = calcularDiasEntreDatas(processo.data_entrada);
 
     const { error } = await supabase
@@ -1135,12 +1162,6 @@ export default function FiscalizacaoPage() {
           : item
       )
     );
-
-    if (novoStatus) {
-      setProcessosSelecionados((selecionadosAtuais) =>
-        selecionadosAtuais.filter((id) => id !== processo.id)
-      );
-    }
   }
 
   function formatarData(data: string | null) {
@@ -2229,11 +2250,11 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               </button>
 
               <button
-                onClick={concluirSelecionadosEmLote}
-                disabled={baixandoEmLote || processosSelecionados.length === 0}
+                onClick={abrirModalConclusaoLote}
+                disabled={processosSelecionados.length === 0 || salvandoConclusao}
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {baixandoEmLote ? "Concluindo..." : "Concluir selecionados"}
+                Concluir selecionados
               </button>
             </div>
           </div>
@@ -2920,6 +2941,77 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {modalConclusaoAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  {modoConclusao === "individual"
+                    ? "Concluir processo"
+                    : "Concluir processos selecionados"}
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Escolha a data de conclusão. Não é permitido selecionar data futura.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fecharModalConclusao}
+                className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
+              >
+                Fechar
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="text-sm font-semibold text-slate-700">
+                Data de conclusão
+              </span>
+              <input
+                type="date"
+                value={dataConclusaoSelecionada}
+                max={dataAtualInput()}
+                onChange={(event) =>
+                  setDataConclusaoSelecionada(event.target.value)
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+              />
+            </label>
+
+            {!dataConclusaoValida(dataConclusaoSelecionada) && (
+              <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                A data de conclusão não pode ser maior que hoje.
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
+              <button
+                type="button"
+                onClick={fecharModalConclusao}
+                disabled={salvandoConclusao}
+                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmarConclusao}
+                disabled={
+                  salvandoConclusao ||
+                  !dataConclusaoValida(dataConclusaoSelecionada)
+                }
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {salvandoConclusao ? "Salvando..." : "Confirmar conclusão"}
+              </button>
+            </div>
           </div>
         </div>
       )}
