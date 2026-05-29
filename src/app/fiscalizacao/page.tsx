@@ -184,6 +184,40 @@ export default function FiscalizacaoPage() {
   });
   const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null);
 
+  async function registrarAuditoriaProcesso({
+    processo,
+    acao,
+    descricao,
+    dadosAnteriores,
+    dadosNovos,
+  }: {
+    processo?: Processo | null;
+    acao: string;
+    descricao?: string;
+    dadosAnteriores?: unknown;
+    dadosNovos?: unknown;
+  }) {
+    try {
+      const { data: sessao } = await supabase.auth.getSession();
+      const usuario = sessao.session?.user;
+
+      await supabase.from("auditoria_processos").insert({
+        processo_id: processo?.id || null,
+        processo_sisgep: processo?.sisgep || null,
+        user_id: usuario?.id || null,
+        usuario_email: perfilUsuario?.email || usuario?.email || null,
+        usuario_nome:
+          perfilUsuario?.nome || perfilUsuario?.email || usuario?.email || null,
+        acao,
+        descricao: descricao || null,
+        dados_anteriores: dadosAnteriores || null,
+        dados_novos: dadosNovos || null,
+      });
+    } catch (error) {
+      console.error("Erro ao registrar auditoria:", error);
+    }
+  }
+
   const nivelUsuario = perfilUsuario?.nivel || "usuario";
   const podeGerenciarProcessos = ["admin", "gestor"].includes(nivelUsuario);
   const podeExcluirProcessos = nivelUsuario === "admin";
@@ -860,6 +894,14 @@ export default function FiscalizacaoPage() {
           item.id === processoEditando.id ? data : item
         )
       );
+
+      void registrarAuditoriaProcesso({
+        processo: data,
+        acao: "processo_editado",
+        descricao: `Processo ${data.sisgep} editado.`,
+        dadosAnteriores: processoEditando,
+        dadosNovos: data,
+      });
     }
 
     fecharModalEdicao();
@@ -942,6 +984,13 @@ export default function FiscalizacaoPage() {
     if (data) {
       setProcessos((listaAtual) => [data, ...listaAtual]);
       setPaginaAtual(1);
+
+      void registrarAuditoriaProcesso({
+        processo: data,
+        acao: "processo_criado",
+        descricao: `Processo ${data.sisgep} cadastrado.`,
+        dadosNovos: data,
+      });
     }
 
     setNovoProcesso({
@@ -1027,6 +1076,13 @@ export default function FiscalizacaoPage() {
         ...atual,
         [processo.id]: [data, ...(atual[processo.id] || [])],
       }));
+
+      void registrarAuditoriaProcesso({
+        processo,
+        acao: "anexo_enviado",
+        descricao: `Anexo enviado no processo ${processo.sisgep}.`,
+        dadosNovos: data,
+      });
     }
   }
 
@@ -1076,6 +1132,13 @@ export default function FiscalizacaoPage() {
       return;
     }
 
+    const processoAuditoria =
+      processos.find((item) => item.id === anexo.processo_id) ||
+      ({
+        id: anexo.processo_id,
+        sisgep: anexo.processo_sisgep || "",
+      } as Processo);
+
     setAnexosPorProcesso((atual) => {
       const listaAtual = atual[anexo.processo_id] || [];
 
@@ -1083,6 +1146,13 @@ export default function FiscalizacaoPage() {
         ...atual,
         [anexo.processo_id]: listaAtual.filter((item) => item.id !== anexo.id),
       };
+    });
+
+    void registrarAuditoriaProcesso({
+      processo: processoAuditoria,
+      acao: "anexo_excluido",
+      descricao: `Anexo excluído do processo ${processoAuditoria.sisgep}.`,
+      dadosAnteriores: anexo,
     });
   }
 
@@ -1111,6 +1181,13 @@ export default function FiscalizacaoPage() {
     setProcessos((listaAtual) =>
       listaAtual.filter((item) => item.id !== processo.id)
     );
+
+    void registrarAuditoriaProcesso({
+      processo,
+      acao: "processo_excluido",
+      descricao: `Processo ${processo.sisgep} excluído.`,
+      dadosAnteriores: processo,
+    });
 
     setProcessosSelecionados((selecionadosAtuais) =>
       selecionadosAtuais.filter((id) => id !== processo.id)
@@ -1198,18 +1275,28 @@ export default function FiscalizacaoPage() {
         return;
       }
 
+      const processoAtualizado = {
+        ...processoConclusao,
+        concluido: novoStatus,
+        data_conclusao: dataConclusao,
+        sla: diasCalculados,
+      };
+
       setProcessos((listaAtual) =>
         listaAtual.map((item) =>
-          item.id === processoConclusao.id
-            ? {
-                ...item,
-                concluido: novoStatus,
-                data_conclusao: dataConclusao,
-                sla: diasCalculados,
-              }
-            : item
+          item.id === processoConclusao.id ? processoAtualizado : item
         )
       );
+
+      void registrarAuditoriaProcesso({
+        processo: processoAtualizado,
+        acao: novoStatus ? "processo_concluido" : "processo_reaberto",
+        descricao: novoStatus
+          ? `Processo ${processoConclusao.sisgep} concluído.`
+          : `Processo ${processoConclusao.sisgep} reaberto.`,
+        dadosAnteriores: processoConclusao,
+        dadosNovos: processoAtualizado,
+      });
 
       if (novoStatus) {
         setProcessosSelecionados((selecionadosAtuais) =>
@@ -1270,12 +1357,22 @@ export default function FiscalizacaoPage() {
 
         if (!resultado || resultado.erro) return processo;
 
-        return {
+        const processoAtualizado = {
           ...processo,
           concluido: true,
           data_conclusao: dataConclusaoSelecionada,
           sla: resultado.diasCalculados,
         };
+
+        void registrarAuditoriaProcesso({
+          processo: processoAtualizado,
+          acao: "processo_concluido_lote",
+          descricao: `Processo ${processo.sisgep} concluído em lote.`,
+          dadosAnteriores: processo,
+          dadosNovos: processoAtualizado,
+        });
+
+        return processoAtualizado;
       })
     );
 
@@ -1363,12 +1460,22 @@ export default function FiscalizacaoPage() {
 
           if (!resultado) return processo;
 
-          return {
+          const processoAtualizado = {
             ...processo,
             concluido: true,
             data_conclusao: novaDataConclusaoCorrecao,
             sla: resultado.diasCalculados,
           };
+
+          void registrarAuditoriaProcesso({
+            processo: processoAtualizado,
+            acao: "data_conclusao_corrigida",
+            descricao: `Data de conclusão do processo ${processo.sisgep} corrigida para ${novaDataConclusaoCorrecao}.`,
+            dadosAnteriores: processo,
+            dadosNovos: processoAtualizado,
+          });
+
+          return processoAtualizado;
         })
       );
     }
@@ -1422,18 +1529,28 @@ export default function FiscalizacaoPage() {
       return;
     }
 
+    const processoAtualizado = {
+      ...processo,
+      concluido: novoStatus,
+      data_conclusao: dataConclusao,
+      sla: diasCalculados,
+    };
+
     setProcessos((listaAtual) =>
       listaAtual.map((item) =>
-        item.id === processo.id
-          ? {
-              ...item,
-              concluido: novoStatus,
-              data_conclusao: dataConclusao,
-              sla: diasCalculados,
-            }
-          : item
+        item.id === processo.id ? processoAtualizado : item
       )
     );
+
+    void registrarAuditoriaProcesso({
+      processo: processoAtualizado,
+      acao: novoStatus ? "processo_concluido" : "processo_reaberto",
+      descricao: novoStatus
+        ? `Processo ${processo.sisgep} concluído.`
+        : `Processo ${processo.sisgep} reaberto.`,
+      dadosAnteriores: processo,
+      dadosNovos: processoAtualizado,
+    });
   }
 
   function formatarData(data: string | null) {
