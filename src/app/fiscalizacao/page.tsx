@@ -99,6 +99,14 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
   const [salvandoCorrecaoData, setSalvandoCorrecaoData] = useState(false);
   const [mensagemCorrecaoData, setMensagemCorrecaoData] = useState("");
 
+  const [modalCorrecaoLocalizacaoAberto, setModalCorrecaoLocalizacaoAberto] =
+    useState(false);
+  const [processoLocalizacaoEditando, setProcessoLocalizacaoEditando] =
+    useState<Processo | null>(null);
+  const [bairroCorrecaoLocalizacao, setBairroCorrecaoLocalizacao] = useState("");
+  const [setorCorrecaoLocalizacao, setSetorCorrecaoLocalizacao] = useState("");
+  const [mensagemCorrecaoLocalizacao, setMensagemCorrecaoLocalizacao] = useState("");
+
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
   const [processoHistorico, setProcessoHistorico] = useState<Processo | null>(
     null
@@ -358,12 +366,30 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
 
   function abrirModalCorrecaoLocalizacao() {
     if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para correção de localização.");
+      alert("Acesso restrito para corrigir localização.");
       return;
     }
 
-    // Implementação futura: abrir modal de correção de localização.
-    alert("Correção de localização será implementada na próxima etapa.");
+    setModalCorrecaoLocalizacaoAberto(true);
+    setProcessoLocalizacaoEditando(null);
+    setBairroCorrecaoLocalizacao("");
+    setSetorCorrecaoLocalizacao("");
+    setMensagemCorrecaoLocalizacao("");
+  }
+
+  function fecharModalCorrecaoLocalizacao() {
+    setModalCorrecaoLocalizacaoAberto(false);
+    setProcessoLocalizacaoEditando(null);
+    setBairroCorrecaoLocalizacao("");
+    setSetorCorrecaoLocalizacao("");
+    setMensagemCorrecaoLocalizacao("");
+  }
+
+  function selecionarProcessoParaCorrigirLocalizacao(processo: Processo) {
+    setProcessoLocalizacaoEditando(processo);
+    setBairroCorrecaoLocalizacao(processo.bairro || "");
+    setSetorCorrecaoLocalizacao(processo.setor || "");
+    setMensagemCorrecaoLocalizacao("");
   }
 
   function fecharModalCorrecaoData() {
@@ -1399,6 +1425,11 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
       )
     ).sort((a, b) => a.localeCompare(b));
   }, [processos]);
+
+  const processosComLocalizacaoIncompleta = useMemo(
+    () => processos.filter((processo) => isLocalizacaoIncompleta(processo)),
+    [processos]
+  );
 
   const processosFiltrados = useMemo(() => {
   const termo = busca.trim().toLowerCase();
@@ -3311,6 +3342,86 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               >
                 {salvandoCorrecaoData ? "Atualizando..." : "Atualizar datas"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalCorrecaoLocalizacaoAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-5xl rounded-2xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Corrigir localização</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fecharModalCorrecaoLocalizacao}
+                  className="rounded-lg bg-white px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="col-span-1 h-72 overflow-auto rounded border p-2">
+                {processosComLocalizacaoIncompleta.length === 0 ? (
+                  <p className="text-sm text-slate-500">Nenhum processo com localização incompleta.</p>
+                ) : (
+                  processosComLocalizacaoIncompleta.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => selecionarProcessoParaCorrigirLocalizacao(p)}
+                      className={`w-full text-left p-2 rounded ${
+                        processoLocalizacaoEditando?.id === p.id
+                          ? "bg-blue-50"
+                          : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="font-semibold text-sm">{p.sisgep}</div>
+                      <div className="text-xs text-slate-500 truncate">{`${p.rua || ""} ${p.numero_rua || ""}`}</div>
+                      <div className="text-xs text-slate-500">{p.bairro || "-"} · {p.setor || "-"}</div>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <div className="col-span-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700">Bairro</label>
+                  <input
+                    value={bairroCorrecaoLocalizacao}
+                    onChange={(e) => setBairroCorrecaoLocalizacao(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 mt-1 text-sm outline-none"
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-slate-700">Setor</label>
+                  <input
+                    value={setorCorrecaoLocalizacao}
+                    onChange={(e) => setSetorCorrecaoLocalizacao(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 mt-1 text-sm outline-none"
+                  />
+                </div>
+
+                <p className="mt-3 text-sm text-slate-500">{mensagemCorrecaoLocalizacao}</p>
+
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    onClick={fecharModalCorrecaoLocalizacao}
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-700 border"
+                  >
+                    Fechar
+                  </button>
+
+                  <button
+                    onClick={() => setMensagemCorrecaoLocalizacao("Salvamento será implementado na próxima etapa.")}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
+                  >
+                    Salvar correção
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
