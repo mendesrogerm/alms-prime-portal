@@ -35,6 +35,11 @@ import {
   somenteNumeros,
 } from "./utils";
 
+type BairroSetorOpcao = {
+  bairro: string;
+  setor: string;
+};
+
 export default function FiscalizacaoPage() {
   const router = useRouter();
 
@@ -106,6 +111,8 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
   const [bairroCorrecaoLocalizacao, setBairroCorrecaoLocalizacao] = useState("");
   const [setorCorrecaoLocalizacao, setSetorCorrecaoLocalizacao] = useState("");
   const [mensagemCorrecaoLocalizacao, setMensagemCorrecaoLocalizacao] = useState("");
+  const [opcoesBairrosSetores, setOpcoesBairrosSetores] = useState<BairroSetorOpcao[]>([]);
+  const [carregandoBairrosSetores, setCarregandoBairrosSetores] = useState(false);
 
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
   const [processoHistorico, setProcessoHistorico] = useState<Processo | null>(
@@ -375,6 +382,7 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     setBairroCorrecaoLocalizacao("");
     setSetorCorrecaoLocalizacao("");
     setMensagemCorrecaoLocalizacao("");
+    void carregarOpcoesBairrosSetores();
   }
 
   function fecharModalCorrecaoLocalizacao() {
@@ -495,6 +503,24 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     } catch {
       return dadosPadrao;
     }
+  }
+
+  async function carregarOpcoesBairrosSetores() {
+    setCarregandoBairrosSetores(true);
+
+    const { data, error } = await supabase
+      .from("bairros_setores")
+      .select("bairro,setor")
+      .order("bairro", { ascending: true });
+
+    setCarregandoBairrosSetores(false);
+
+    if (error) {
+      setMensagemCorrecaoLocalizacao("Erro ao carregar bairros/setores: " + error.message);
+      return;
+    }
+
+    setOpcoesBairrosSetores((data || []) as BairroSetorOpcao[]);
   }
 
   function atualizarCampoNovoProcesso(
@@ -3388,20 +3414,45 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <div className="col-span-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Bairro</label>
-                  <input
-                    value={bairroCorrecaoLocalizacao}
-                    onChange={(e) => setBairroCorrecaoLocalizacao(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 mt-1 text-sm outline-none"
-                  />
+
+                  {carregandoBairrosSetores ? (
+                    <p className="mt-1 text-sm text-slate-500">Carregando bairros e setores...</p>
+                  ) : (
+                    <select
+                      value={bairroCorrecaoLocalizacao}
+                      onChange={(event) => {
+                        const bairroSelecionado = event.target.value;
+                        const opcao = opcoesBairrosSetores.find(
+                          (item) => item.bairro === bairroSelecionado
+                        );
+
+                        setBairroCorrecaoLocalizacao(bairroSelecionado);
+                        setSetorCorrecaoLocalizacao(opcao?.setor || "");
+                        setMensagemCorrecaoLocalizacao(
+                          opcao?.setor ? "Setor preenchido automaticamente pelo bairro." : ""
+                        );
+                      }}
+                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
+                    >
+                      <option value="">Selecione o bairro...</option>
+                      {opcoesBairrosSetores.map((opcao) => (
+                        <option key={`${opcao.bairro}-${opcao.setor}`} value={opcao.bairro}>
+                          {opcao.bairro}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
                 </div>
 
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-slate-700">Setor</label>
                   <input
                     value={setorCorrecaoLocalizacao}
-                    onChange={(e) => setSetorCorrecaoLocalizacao(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 mt-1 text-sm outline-none"
+                    readOnly
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-700 outline-none"
                   />
+                  <p className="mt-2 text-sm text-slate-500">O setor é preenchido automaticamente conforme o bairro selecionado.</p>
                 </div>
 
                 <p className="mt-3 text-sm text-slate-500">{mensagemCorrecaoLocalizacao}</p>
