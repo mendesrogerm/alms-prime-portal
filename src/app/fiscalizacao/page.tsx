@@ -113,6 +113,7 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
   const [mensagemCorrecaoLocalizacao, setMensagemCorrecaoLocalizacao] = useState("");
   const [opcoesBairrosSetores, setOpcoesBairrosSetores] = useState<BairroSetorOpcao[]>([]);
   const [carregandoBairrosSetores, setCarregandoBairrosSetores] = useState(false);
+  const [salvandoCorrecaoLocalizacao, setSalvandoCorrecaoLocalizacao] = useState(false);
 
   const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
   const [processoHistorico, setProcessoHistorico] = useState<Processo | null>(
@@ -386,6 +387,8 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
   }
 
   function fecharModalCorrecaoLocalizacao() {
+    if (salvandoCorrecaoLocalizacao) return;
+
     setModalCorrecaoLocalizacaoAberto(false);
     setProcessoLocalizacaoEditando(null);
     setBairroCorrecaoLocalizacao("");
@@ -521,6 +524,66 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     }
 
     setOpcoesBairrosSetores((data || []) as BairroSetorOpcao[]);
+  }
+
+  async function salvarCorrecaoLocalizacao() {
+    if (!podeGerenciarProcessos) {
+      alert("Acesso restrito para corrigir localização.");
+      return;
+    }
+
+    if (!processoLocalizacaoEditando) {
+      setMensagemCorrecaoLocalizacao("Selecione um processo.");
+      return;
+    }
+
+    const bairroFinal = bairroCorrecaoLocalizacao.trim();
+    const setorFinal = setorCorrecaoLocalizacao.trim();
+
+    if (!bairroFinal || !setorFinal) {
+      setMensagemCorrecaoLocalizacao("Selecione um bairro válido para preencher bairro e setor.");
+      return;
+    }
+
+    setSalvandoCorrecaoLocalizacao(true);
+    setMensagemCorrecaoLocalizacao("");
+
+    const { data, error } = await supabase
+      .from("processos")
+      .update({
+        bairro: bairroFinal,
+        setor: setorFinal,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", processoLocalizacaoEditando.id)
+      .select()
+      .single();
+
+    setSalvandoCorrecaoLocalizacao(false);
+
+    if (error) {
+      setMensagemCorrecaoLocalizacao("Erro ao corrigir localização: " + error.message);
+      return;
+    }
+
+    if (data) {
+      setProcessos((listaAtual) =>
+        listaAtual.map((item) => (item.id === processoLocalizacaoEditando.id ? data : item))
+      );
+
+      await registrarAuditoriaProcesso({
+        processo: processoLocalizacaoEditando,
+        acao: "localizacao_corrigida",
+        descricao: `Localização do processo ${processoLocalizacaoEditando.sisgep} corrigida.`,
+        dadosAnteriores: processoLocalizacaoEditando,
+        dadosNovos: data,
+      });
+    }
+
+    setMensagemCorrecaoLocalizacao("Localização corrigida com sucesso.");
+    setProcessoLocalizacaoEditando(null);
+    setBairroCorrecaoLocalizacao("");
+    setSetorCorrecaoLocalizacao("");
   }
 
   function atualizarCampoNovoProcesso(
@@ -3466,10 +3529,11 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   </button>
 
                   <button
-                    onClick={() => setMensagemCorrecaoLocalizacao("Salvamento será implementado na próxima etapa.")}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500"
+                    onClick={salvarCorrecaoLocalizacao}
+                    disabled={salvandoCorrecaoLocalizacao}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Salvar correção
+                    {salvandoCorrecaoLocalizacao ? "Salvando..." : "Salvar correção"}
                   </button>
                 </div>
               </div>
