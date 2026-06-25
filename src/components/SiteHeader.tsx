@@ -17,14 +17,14 @@ export function SiteHeader() {
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between gap-6">
       <a href="/" className="flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-cyan-300/10 p-1.5.5 shadow-lg shadow-cyan-400/40">
+        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-[#082033]/80 p-1.5 shadow-lg shadow-cyan-400/40 ring-1 ring-cyan-300/20">
           <Image
             src="/logo-alms-prime.png"
             alt="Logo ALMS Prime"
-            width={80}
-            height={80}
+            width={96}
+            height={96}
             priority
-            className="h-full w-full object-contain"
+            className="h-full w-full object-contain drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]"
           />
         </div>
 
@@ -38,7 +38,7 @@ export function SiteHeader() {
         </div>
       </a>
 
-      <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+      <nav className="hidden items-center gap-6 text-sm text-slate-200 md:flex">
         {navItems.map((item) => (
           <a
             key={item.href}
@@ -70,14 +70,14 @@ export function SiteHeader() {
       </button>
 
       {menuAberto ? (
-        <div className="absolute right-0 top-16 z-50 w-72 rounded-3xl border border-white/10 bg-slate-950/95 p-4 shadow-2xl shadow-black/40 backdrop-blur md:hidden">
+        <div className="absolute right-0 top-16 z-50 w-72 rounded-3xl border border-white/10 bg-[#071b2d]/95 p-4 shadow-2xl shadow-black/40 backdrop-blur md:hidden">
           <nav className="flex flex-col gap-2">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuAberto(false)}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-cyan-300/10 hover:text-cyan-200"
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-cyan-300/10 hover:text-cyan-200"
               >
                 {item.label}
               </a>
@@ -96,8 +96,3 @@ export function SiteHeader() {
     </header>
   );
 }
-
-
-
-
-
