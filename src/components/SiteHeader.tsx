@@ -1,4 +1,6 @@
-﻿const navItems = [
+﻿import Image from "next/image";
+
+const navItems = [
   { label: "Início", href: "/" },
   { label: "Sobre", href: "/sobre" },
   { label: "Soluções", href: "/solucoes" },
@@ -10,11 +12,17 @@ export function SiteHeader() {
   return (
     <header className="mx-auto flex max-w-7xl items-center justify-between gap-6">
       <a href="/" className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-lg shadow-cyan-500/10">
-          <span className="text-sm font-black tracking-tight text-cyan-200">
-            AP
-          </span>
+        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/30 bg-slate-950/70 p-1 shadow-lg shadow-cyan-500/10">
+          <Image
+            src="/logo-alms-prime.png"
+            alt="Logo ALMS Prime"
+            width={80}
+            height={80}
+            priority
+            className="h-full w-full object-contain"
+          />
         </div>
+
         <div>
           <p className="text-sm font-black tracking-[0.28em] text-white">
             ALMS PRIME
@@ -27,7 +35,11 @@ export function SiteHeader() {
 
       <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
         {navItems.map((item) => (
-          <a key={item.href} className="transition hover:text-cyan-200" href={item.href}>
+          <a
+            key={item.href}
+            className="transition hover:text-cyan-200"
+            href={item.href}
+          >
             {item.label}
           </a>
         ))}
@@ -42,3 +54,4 @@ export function SiteHeader() {
     </header>
   );
 }
+

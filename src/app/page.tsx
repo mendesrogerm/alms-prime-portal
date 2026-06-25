@@ -78,7 +78,7 @@ export default function Home() {
               Ecossistema digital para negócios modernos
             </div>
 
-            <h1 className="max-w-4xl text-4xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-4xl font-black leading-[0.98] tracking-tight text-white sm:text-5xl lg:text-6xl">
               Tecnologia, gestão e sistemas para a sua operação crescer.
             </h1>
 
@@ -318,3 +318,4 @@ export default function Home() {
     </main>
   );
 }
+
