@@ -1,4 +1,6 @@
-﻿const links = [
+﻿import Image from "next/image";
+
+const links = [
   { label: "Início", href: "/" },
   { label: "Sobre", href: "/sobre" },
   { label: "Soluções", href: "/solucoes" },
@@ -20,8 +22,14 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
         <div>
           <a href="/" className="inline-flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#071b2d] text-sm font-black tracking-tight text-cyan-300 shadow-lg shadow-slate-300/40">
-              AP
+            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200 bg-[#071b2d] p-1.5 shadow-lg shadow-slate-300/40">
+              <Image
+                src="/logo-alms-prime.png"
+                alt="Logo ALMS Prime"
+                width={96}
+                height={96}
+                className="h-full w-full object-contain"
+              />
             </div>
 
             <div>
@@ -96,7 +104,7 @@ export function SiteFooter() {
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-3 border-t border-slate-200 pt-6 text-sm font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 ALMS Prime. Todos os direitos reservados.</p>
 
-        <p>Desenvolvido para tecnologia, gestão e soluções digitais.</p>
+        <p>Tecnologia, gestão e soluções digitais.</p>
       </div>
     </footer>
   );
