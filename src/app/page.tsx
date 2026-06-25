@@ -65,9 +65,9 @@ const etapas = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+    <main className="min-h-screen overflow-hidden bg-[#071b2d] text-white">
       <section className="relative isolate px-6 py-8 sm:px-10 lg:px-16">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_32%),linear-gradient(135deg,#020617_0%,#07111f_48%,#020617_100%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.34),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.26),transparent_32%),linear-gradient(135deg,#082033_0%,#0d3148_48%,#061728_100%)]" />
         <div className="absolute left-1/2 top-0 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
 
         <SiteHeader />
@@ -108,7 +108,7 @@ export default function Home() {
               {pilares.map((pilar) => (
                 <div
                   key={pilar}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-200"
+                  className="rounded-2xl border border-cyan-200/15 bg-white/[0.08] px-4 py-3 text-sm font-semibold text-slate-200"
                 >
                   {pilar}
                 </div>
@@ -118,8 +118,8 @@ export default function Home() {
 
           <div className="relative">
             <div className="absolute -inset-6 rounded-[2.5rem] bg-cyan-400/10 blur-3xl" />
-            <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-black/40 backdrop-blur">
-              <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-6">
+            <div className="relative rounded-[2rem] border border-cyan-200/15 bg-white/[0.09] p-5 shadow-2xl shadow-black/40 backdrop-blur">
+              <div className="rounded-[1.5rem] border border-cyan-200/15 bg-slate-900/80 p-6">
                 <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-5">
                   <div>
                     <p className="text-sm font-bold text-cyan-200">
@@ -139,7 +139,7 @@ export default function Home() {
                     <a
                       key={sistema.nome}
                       href={sistema.href}
-                      className="block rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition hover:border-cyan-300/50 hover:bg-cyan-300/10"
+                      className="block rounded-2xl border border-cyan-200/15 bg-white/[0.08] p-4 transition hover:border-cyan-300/50 hover:bg-cyan-300/10"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -183,7 +183,7 @@ export default function Home() {
             {etapas.map((item, index) => (
               <div
                 key={item.titulo}
-                className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-7"
+                className="rounded-[2rem] border border-cyan-200/15 bg-white/[0.08] p-7"
               >
                 <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300/10 text-lg font-black text-cyan-200">
                   {index + 1}
@@ -218,11 +218,11 @@ export default function Home() {
               <a
                 key={sistema.nome}
                 href={sistema.href}
-                className="group rounded-[2rem] border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:bg-cyan-300/10"
+                className="group rounded-[2rem] border border-cyan-200/15 bg-white/[0.08] p-7 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:bg-cyan-300/10"
               >
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <div className="mb-4 inline-flex rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-cyan-200">
+                    <div className="mb-4 inline-flex rounded-full border border-cyan-200/15 px-3 py-1 text-xs font-bold text-cyan-200">
                       {sistema.destaque}
                     </div>
                     <h3 className="text-2xl font-black text-white">
@@ -268,7 +268,7 @@ export default function Home() {
             ].map((texto) => (
               <div
                 key={texto}
-                className="rounded-3xl border border-white/10 bg-slate-950/50 p-6"
+                className="rounded-3xl border border-cyan-200/15 bg-slate-950/50 p-6"
               >
                 <p className="leading-7 text-slate-300">{texto}</p>
               </div>
@@ -318,4 +318,6 @@ export default function Home() {
     </main>
   );
 }
+
+
 
