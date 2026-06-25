@@ -57,8 +57,26 @@
       {
         "@type": "SiteNavigationElement",
         position: 5,
+        name: "Gestão de Clientes",
+        url: "https://www.almsprime.com.br/gestao-de-clientes",
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 6,
         name: "Contato",
         url: "https://www.almsprime.com.br/contato",
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 7,
+        name: "Política de Privacidade",
+        url: "https://www.almsprime.com.br/politica-de-privacidade",
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 8,
+        name: "Termos de Uso",
+        url: "https://www.almsprime.com.br/termos-de-uso",
       },
     ],
   };
