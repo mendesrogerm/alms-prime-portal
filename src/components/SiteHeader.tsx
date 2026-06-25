@@ -8,6 +8,7 @@ const navItems = [
   { label: "Sobre", href: "/sobre" },
   { label: "Soluções", href: "/solucoes" },
   { label: "Sistemas", href: "/sistemas" },
+  { label: "Gestão", href: "/gestao-de-clientes" },
   { label: "Contato", href: "/contato" },
 ];
 
@@ -38,7 +39,7 @@ export function SiteHeader() {
         </div>
       </a>
 
-      <nav className="hidden items-center gap-6 text-sm text-slate-200 md:flex">
+      <nav className="hidden items-center gap-5 text-sm text-slate-200 md:flex">
         {navItems.map((item) => (
           <a
             key={item.href}

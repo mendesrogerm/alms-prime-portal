@@ -1,0 +1,385 @@
+﻿import type { Metadata } from "next";
+import { SiteFooter } from "../../components/SiteFooter";
+import { SiteHeader } from "../../components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "Sistema de Gestão de Clientes",
+  description:
+    "Sistema ALMS Prime para controlar clientes, testes, planos, vencimentos, renovações, financeiro simples, servidores e mensagens comerciais.",
+};
+
+const dores = [
+  "Clientes espalhados no WhatsApp, caderno ou planilha.",
+  "Testes criados, mas sem controle claro de quem ainda está avaliando.",
+  "Vencimentos esquecidos e renovações perdidas.",
+  "Dificuldade para saber quem pagou, quem venceu e quem precisa de atenção.",
+  "Mensagens comerciais repetidas digitadas manualmente todos os dias.",
+  "Falta de visão clara sobre planos, servidores, receitas e operação.",
+];
+
+const modulos = [
+  {
+    titulo: "Clientes",
+    descricao:
+      "Cadastre clientes, contatos, observações, plano contratado, servidor e situação comercial.",
+  },
+  {
+    titulo: "Testes",
+    descricao:
+      "Organize testes enviados, acompanhe prazos e identifique oportunidades de conversão.",
+  },
+  {
+    titulo: "Vencimentos",
+    descricao:
+      "Veja clientes vencidos, vencendo hoje e próximos vencimentos para agir no momento certo.",
+  },
+  {
+    titulo: "Planos",
+    descricao:
+      "Controle planos mensais, trimestrais, anuais e valores da operação.",
+  },
+  {
+    titulo: "Financeiro simples",
+    descricao:
+      "Acompanhe entradas, renovações, pagamentos e visão básica de receita.",
+  },
+  {
+    titulo: "Mensagens prontas",
+    descricao:
+      "Use textos comerciais padronizados para atendimento, teste, cobrança e renovação.",
+  },
+  {
+    titulo: "Servidores",
+    descricao:
+      "Organize informações dos servidores utilizados e relacione cada cliente à estrutura correta.",
+  },
+  {
+    titulo: "Painel WhatsApp",
+    descricao:
+      "Acompanhe solicitações, conversas e leads recebidos pelos fluxos comerciais.",
+  },
+];
+
+const beneficios = [
+  "Menos esquecimento de vencimentos.",
+  "Mais controle sobre testes e renovações.",
+  "Atendimento mais rápido e padronizado.",
+  "Visão clara de clientes ativos, vencidos e em teste.",
+  "Organização comercial sem depender apenas de planilhas.",
+  "Base preparada para evoluir com novos módulos.",
+];
+
+const publico = [
+  "Revendedores e prestadores de serviços recorrentes.",
+  "Operações que trabalham com clientes mensais.",
+  "Quem envia testes antes de fechar assinatura.",
+  "Quem precisa controlar pagamentos e vencimentos.",
+  "Pequenos negócios que querem sair do improviso.",
+  "Equipes que atendem pelo WhatsApp e precisam organizar leads.",
+];
+
+const perguntas = [
+  {
+    pergunta: "Esse sistema substitui minha planilha?",
+    resposta:
+      "Sim. A ideia é tirar o controle principal da planilha e centralizar clientes, testes, planos, vencimentos e financeiro simples em um ambiente mais organizado.",
+  },
+  {
+    pergunta: "Serve apenas para IPTV?",
+    resposta:
+      "Não. A estrutura foi pensada para operações recorrentes, clientes mensais, testes, renovações e controle comercial. Pode ser adaptada para outros serviços recorrentes.",
+  },
+  {
+    pergunta: "Tem controle financeiro completo?",
+    resposta:
+      "O foco inicial é financeiro simples: entradas, planos, pagamentos, renovações e visão operacional. Módulos financeiros mais avançados podem ser evoluídos por etapa.",
+  },
+  {
+    pergunta: "Funciona pelo celular?",
+    resposta:
+      "Sim. O sistema é web e pode ser acessado pelo navegador em computador, notebook, tablet ou celular.",
+  },
+];
+
+export default function GestaoDeClientesPage() {
+  return (
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <section className="relative overflow-hidden bg-[#071b2d] px-6 py-6 text-white sm:px-10 lg:px-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.30),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_32%),linear-gradient(135deg,#082033_0%,#0d3148_52%,#061728_100%)]" />
+
+        <div className="relative">
+          <SiteHeader />
+
+          <div className="mx-auto grid max-w-7xl items-center gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
+            <div>
+              <div className="inline-flex rounded-full border border-cyan-200/20 bg-cyan-300/10 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-cyan-200">
+                Sistema de gestão comercial
+              </div>
+
+              <h1 className="mt-6 max-w-5xl text-5xl font-black leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                Controle clientes, testes, vencimentos e renovações em um só lugar.
+              </h1>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-200">
+                O sistema ALMS Prime Gestão de Clientes foi criado para quem
+                vende serviços recorrentes e precisa parar de perder informações
+                no WhatsApp, caderno ou planilha.
+              </p>
+
+              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+                <a
+                  href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-emerald-400 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-slate-950 shadow-2xl shadow-emerald-950/20 transition hover:-translate-y-1 hover:bg-emerald-300"
+                >
+                  Solicitar demonstração
+                </a>
+
+                <a
+                  href="#modulos"
+                  className="rounded-full border border-white/20 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white transition hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-cyan-300/10"
+                >
+                  Ver módulos
+                </a>
+              </div>
+
+              <div className="mt-9 grid max-w-3xl gap-4 sm:grid-cols-3">
+                {[
+                  ["Clientes", "organizados"],
+                  ["Testes", "controlados"],
+                  ["Renovações", "no prazo"],
+                ].map(([numero, texto]) => (
+                  <div
+                    key={numero}
+                    className="rounded-3xl border border-white/10 bg-white/[0.07] p-5"
+                  >
+                    <p className="text-2xl font-black text-cyan-200">
+                      {numero}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-slate-300">
+                      {texto}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-6 rounded-[2.5rem] bg-cyan-400/10 blur-3xl" />
+
+              <div className="relative rounded-[2rem] border border-cyan-200/15 bg-white/[0.09] p-5 shadow-2xl shadow-black/40 backdrop-blur">
+                <div className="rounded-[1.5rem] border border-cyan-200/15 bg-slate-900/80 p-6">
+                  <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-5">
+                    <div>
+                      <p className="text-sm font-bold text-cyan-200">
+                        Painel comercial
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        Clientes, testes e vencimentos
+                      </p>
+                    </div>
+
+                    <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-300">
+                      Online
+                    </span>
+                  </div>
+
+                  <div className="grid gap-4">
+                    {[
+                      ["Clientes ativos", "128"],
+                      ["Testes em andamento", "17"],
+                      ["Vencem hoje", "06"],
+                      ["Renovações próximas", "24"],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.06] p-4"
+                      >
+                        <span className="font-semibold text-slate-200">
+                          {label}
+                        </span>
+                        <span className="text-2xl font-black text-cyan-200">
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+                    <p className="text-sm font-bold text-emerald-200">
+                      Operação mais clara, atendimento mais rápido e menos
+                      renovações esquecidas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+              Dor do negócio
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+              Você ainda controla sua operação no improviso?
+            </h2>
+
+            <p className="mt-5 leading-8 text-slate-700">
+              Quando clientes, testes, vencimentos e pagamentos ficam espalhados,
+              a operação começa a perder vendas, tempo e previsibilidade.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {dores.map((dor) => (
+              <div
+                key={dor}
+                className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-300/30"
+              >
+                <p className="leading-7 text-slate-700">{dor}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="modulos"
+        className="bg-white px-6 py-20 sm:px-10 lg:px-16"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-emerald-700">
+              Módulos
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+              Tudo que você precisa para organizar a gestão comercial.
+            </h2>
+
+            <p className="mt-5 leading-8 text-slate-700">
+              A plataforma reúne os principais controles da operação em telas
+              simples, diretas e preparadas para uso diário.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {modulos.map((modulo) => (
+              <article
+                key={modulo.titulo}
+                className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 transition hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-cyan-50"
+              >
+                <h3 className="text-xl font-black text-slate-950">
+                  {modulo.titulo}
+                </h3>
+
+                <p className="mt-4 leading-7 text-slate-700">
+                  {modulo.descricao}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-300/30 sm:p-10">
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+              Benefícios
+            </p>
+
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              O que muda na operação
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              {beneficios.map((beneficio) => (
+                <div
+                  key={beneficio}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 font-semibold text-slate-700"
+                >
+                  {beneficio}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-300/30 sm:p-10">
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-emerald-700">
+              Para quem é
+            </p>
+
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              Ideal para quem trabalha com recorrência
+            </h2>
+
+            <div className="mt-8 grid gap-4">
+              {publico.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 font-semibold text-slate-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#071b2d] px-6 py-20 text-white sm:px-10 lg:px-16">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
+              Demonstração
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+              Veja se o sistema faz sentido para sua operação.
+            </h2>
+
+            <p className="mt-5 leading-8 text-slate-200">
+              Chame no WhatsApp, explique como você controla clientes hoje e
+              veja como a ALMS Prime pode ajudar a organizar sua rotina comercial.
+            </p>
+
+            <a
+              href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20uma%20demonstra%C3%A7%C3%A3o%20do%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
+              target="_blank"
+              rel="noreferrer"
+              className="mt-8 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+            >
+              Chamar no WhatsApp
+            </a>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {perguntas.map((item) => (
+              <div
+                key={item.pergunta}
+                className="rounded-3xl border border-white/10 bg-white/[0.07] p-6"
+              >
+                <h3 className="text-lg font-black text-white">
+                  {item.pergunta}
+                </h3>
+
+                <p className="mt-3 leading-7 text-slate-300">
+                  {item.resposta}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <SiteFooter />
+    </main>
+  );
+}

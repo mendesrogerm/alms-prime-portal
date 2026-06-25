@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/sobre",
     "/solucoes",
     "/sistemas",
+    "/gestao-de-clientes",
     "/contato",
     "/politica-de-privacidade",
     "/termos-de-uso",
@@ -19,6 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}${rota}`,
     lastModified: new Date(),
     changeFrequency: rota === "" ? "weekly" : "monthly",
-    priority: rota === "" ? 1 : 0.8,
+    priority: rota === "" ? 1 : rota === "/gestao-de-clientes" ? 0.9 : 0.8,
   }));
 }
