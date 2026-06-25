@@ -128,6 +128,33 @@ const comparativos = [
   },
 ];
 
+const passosDemo = [
+  {
+    numero: "01",
+    titulo: "Você chama no WhatsApp",
+    descricao:
+      "Explique como controla clientes hoje: planilha, WhatsApp, caderno ou outro sistema.",
+  },
+  {
+    numero: "02",
+    titulo: "Entendemos sua operação",
+    descricao:
+      "Avaliamos se o sistema faz sentido para sua rotina de clientes, testes, vencimentos e renovações.",
+  },
+  {
+    numero: "03",
+    titulo: "Apresentamos a solução",
+    descricao:
+      "Mostramos os módulos principais e como eles podem ajudar a organizar sua operação comercial.",
+  },
+  {
+    numero: "04",
+    titulo: "Definimos o melhor caminho",
+    descricao:
+      "Caso faça sentido, alinhamos próximos passos, acesso, ajustes necessários e evolução por etapas.",
+  },
+];
+
 const perguntas = [
   {
     pergunta: "Esse sistema substitui minha planilha?",
@@ -496,6 +523,56 @@ export default function GestaoDeClientesPage() {
         </div>
       </section>
 
+      <section className="bg-white px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="max-w-3xl">
+              <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+                Demonstração
+              </p>
+
+              <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                Como funciona a demonstração?
+              </h2>
+
+              <p className="mt-5 leading-8 text-slate-700">
+                O objetivo não é empurrar um sistema. É entender sua operação e
+                mostrar se a solução realmente ajuda a organizar sua rotina.
+              </p>
+            </div>
+
+            <a
+              href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
+              target="_blank"
+              rel="noreferrer"
+              className="w-fit rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+            >
+              Agendar demonstração
+            </a>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {passosDemo.map((passo) => (
+              <div
+                key={passo.numero}
+                className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 transition hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-cyan-50"
+              >
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-100 text-sm font-black text-cyan-700">
+                  {passo.numero}
+                </div>
+
+                <h3 className="text-xl font-black text-slate-950">
+                  {passo.titulo}
+                </h3>
+
+                <p className="mt-4 leading-7 text-slate-700">
+                  {passo.descricao}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="bg-[#071b2d] px-6 py-20 text-white sm:px-10 lg:px-16">
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
@@ -545,6 +622,8 @@ export default function GestaoDeClientesPage() {
     </main>
   );
 }
+
+
 
 
 
