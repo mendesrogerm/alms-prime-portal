@@ -1,4 +1,8 @@
-﻿const sistemas = [
+﻿import { PageHero } from "../../components/PageHero";
+import { SiteFooter } from "../../components/SiteFooter";
+import { SiteHeader } from "../../components/SiteHeader";
+
+const sistemas = [
   {
     nome: "Gestão de Clientes",
     categoria: "Gestão comercial",
@@ -55,55 +59,13 @@ export default function SistemasPage() {
       <section className="relative overflow-hidden px-6 py-8 sm:px-10 lg:px-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
 
-        <header className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10">
-              <span className="text-sm font-black text-cyan-200">AP</span>
-            </div>
-            <div>
-              <p className="text-sm font-black tracking-[0.28em]">
-                ALMS PRIME
-              </p>
-              <p className="text-xs text-slate-400">Portal institucional</p>
-            </div>
-          </a>
+        <SiteHeader />
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-            <a href="/" className="transition hover:text-cyan-200">
-              Início
-            </a>
-            <a href="/sobre" className="transition hover:text-cyan-200">
-              Sobre
-            </a>
-            <a href="/solucoes" className="transition hover:text-cyan-200">
-              Soluções
-            </a>
-            <a href="/contato" className="transition hover:text-cyan-200">
-              Contato
-            </a>
-          </nav>
-
-          <a
-            href="/login"
-            className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold transition hover:border-cyan-300/60 hover:bg-cyan-300/10"
-          >
-            Área interna
-          </a>
-        </header>
-
-        <div className="mx-auto max-w-7xl py-20">
-          <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
-            Sistemas ALMS Prime
-          </p>
-          <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl">
-            Um ecossistema de projetos digitais conectados à operação.
-          </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-            Esta área reúne os sistemas, módulos e projetos da ALMS Prime. A
-            ideia é centralizar tudo em um único portal institucional, deixando
-            cada solução organizada, acessível e pronta para evolução.
-          </p>
-        </div>
+        <PageHero
+          eyebrow="Sistemas ALMS Prime"
+          title="Um ecossistema de projetos digitais conectados à operação."
+          description="Esta área reúne os sistemas, módulos e projetos da ALMS Prime. A ideia é centralizar tudo em um único portal institucional, deixando cada solução organizada, acessível e pronta para evolução."
+        />
       </section>
 
       <section className="px-6 pb-24 sm:px-10 lg:px-16">
@@ -136,6 +98,8 @@ export default function SistemasPage() {
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

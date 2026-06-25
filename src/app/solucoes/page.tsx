@@ -1,4 +1,8 @@
-﻿const solucoes = [
+﻿import { PageHero } from "../../components/PageHero";
+import { SiteFooter } from "../../components/SiteFooter";
+import { SiteHeader } from "../../components/SiteHeader";
+
+const solucoes = [
   {
     titulo: "Sistemas de gestão",
     texto:
@@ -37,55 +41,14 @@ export default function SolucoesPage() {
       <section className="relative overflow-hidden px-6 py-8 sm:px-10 lg:px-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
 
-        <header className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-          <a href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10">
-              <span className="text-sm font-black text-cyan-200">AP</span>
-            </div>
-            <div>
-              <p className="text-sm font-black tracking-[0.28em]">
-                ALMS PRIME
-              </p>
-              <p className="text-xs text-slate-400">Portal institucional</p>
-            </div>
-          </a>
+        <SiteHeader />
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-            <a href="/" className="transition hover:text-cyan-200">
-              Início
-            </a>
-            <a href="/sobre" className="transition hover:text-cyan-200">
-              Sobre
-            </a>
-            <a href="/sistemas" className="transition hover:text-cyan-200">
-              Sistemas
-            </a>
-            <a href="/contato" className="transition hover:text-cyan-200">
-              Contato
-            </a>
-          </nav>
-
-          <a
-            href="/login"
-            className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold transition hover:border-cyan-300/60 hover:bg-cyan-300/10"
-          >
-            Área interna
-          </a>
-        </header>
-
-        <div className="mx-auto max-w-7xl py-20">
-          <p className="text-sm font-black uppercase tracking-[0.28em] text-emerald-300">
-            Soluções
-          </p>
-          <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl">
-            Soluções digitais para organizar processos e acelerar decisões.
-          </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-            A ALMS Prime atua na criação de sistemas, portais, dashboards e
-            automações pensados para tornar a operação mais simples, clara e
-            controlável.
-          </p>
-        </div>
+        <PageHero
+          eyebrow="Soluções"
+          title="Soluções digitais para organizar processos e acelerar decisões."
+          description="A ALMS Prime atua na criação de sistemas, portais, dashboards e automações pensados para tornar a operação mais simples, clara e controlável."
+          accent="emerald"
+        />
       </section>
 
       <section className="px-6 pb-24 sm:px-10 lg:px-16">
@@ -101,6 +64,8 @@ export default function SolucoesPage() {
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }
