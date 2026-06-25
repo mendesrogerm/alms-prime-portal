@@ -7,6 +7,7 @@ const links = [
   { label: "Sistemas", href: "/sistemas" },
   { label: "Contato", href: "/contato" },
   { label: "Privacidade", href: "/politica-de-privacidade" },
+  { label: "Termos de Uso", href: "/termos-de-uso" },
 ];
 
 const solucoes = [
