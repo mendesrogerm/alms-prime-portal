@@ -1,7 +1,14 @@
-﻿import { PageHero } from "../../components/PageHero";
+﻿import type { Metadata } from "next";
+import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 
+
+export const metadata: Metadata = {
+  title: "Contato",
+  description:
+    "Fale com a ALMS Prime pelo WhatsApp, conheça os sistemas disponíveis, acesse a área interna ou solicite um projeto digital sob medida.",
+};
 const canais = [
   {
     titulo: "Falar pelo WhatsApp",
@@ -131,3 +138,4 @@ export default function ContatoPage() {
     </main>
   );
 }
+

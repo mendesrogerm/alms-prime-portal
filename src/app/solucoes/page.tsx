@@ -1,7 +1,14 @@
-﻿import { PageHero } from "../../components/PageHero";
+﻿import type { Metadata } from "next";
+import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 
+
+export const metadata: Metadata = {
+  title: "Soluções Digitais",
+  description:
+    "Soluções digitais da ALMS Prime para sistemas de gestão, portais institucionais, automações comerciais, dashboards e projetos sob medida.",
+};
 const solucoes = [
   {
     titulo: "Sistemas de gestão",
@@ -249,3 +256,4 @@ export default function SolucoesPage() {
     </main>
   );
 }
+

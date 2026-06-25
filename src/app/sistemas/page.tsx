@@ -1,7 +1,14 @@
-﻿import { PageHero } from "../../components/PageHero";
+﻿import type { Metadata } from "next";
+import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 
+
+export const metadata: Metadata = {
+  title: "Sistemas ALMS Prime",
+  description:
+    "Conheça os sistemas, módulos e projetos digitais da ALMS Prime para gestão, operação, controle e crescimento.",
+};
 const sistemas = [
   {
     nome: "Gestão de Clientes",
@@ -275,3 +282,4 @@ export default function SistemasPage() {
     </main>
   );
 }
+

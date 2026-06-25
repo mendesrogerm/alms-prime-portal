@@ -1,7 +1,14 @@
-﻿import { PageHero } from "../../components/PageHero";
+﻿import type { Metadata } from "next";
+import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 
+
+export const metadata: Metadata = {
+  title: "Sobre a ALMS Prime",
+  description:
+    "Conheça a ALMS Prime, marca de tecnologia, gestão e soluções digitais criada para transformar processos em sistemas, portais e automações.",
+};
 const pilares = [
   {
     titulo: "Tecnologia aplicada",
@@ -257,3 +264,4 @@ export default function SobrePage() {
     </main>
   );
 }
+
