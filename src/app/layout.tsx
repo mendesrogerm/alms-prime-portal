@@ -1,8 +1,12 @@
-﻿import type { Metadata } from "next";
+﻿import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { FloatingWhatsApp } from "../components/FloatingWhatsApp";
 import { StructuredData } from "../components/StructuredData";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#071b2d",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.almsprime.com.br"),
@@ -35,12 +39,21 @@ export const metadata: Metadata = {
     siteName: "ALMS Prime",
     locale: "pt_BR",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
     description:
       "Portal institucional da ALMS Prime para sistemas, soluções digitais e projetos sob medida.",
+    images: ["/twitter-image"],
   },
   robots: {
     index: true,
