@@ -1,4 +1,7 @@
-﻿const sistemas = [
+﻿import { SiteFooter } from "../components/SiteFooter";
+import { SiteHeader } from "../components/SiteHeader";
+
+const sistemas = [
   {
     nome: "Gestão de Clientes",
     descricao:
@@ -67,45 +70,7 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_32%),linear-gradient(135deg,#020617_0%,#07111f_48%,#020617_100%)]" />
         <div className="absolute left-1/2 top-0 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
 
-        <header className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-          <a href="/" className="group flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-lg shadow-cyan-500/10">
-              <span className="text-sm font-black tracking-tight text-cyan-200">
-                AP
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-black tracking-[0.28em] text-white">
-                ALMS PRIME
-              </p>
-              <p className="text-xs text-slate-400">
-                Tecnologia • Gestão • Soluções digitais
-              </p>
-            </div>
-          </a>
-
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-            <a className="transition hover:text-cyan-200" href="/solucoes">
-              Soluções
-            </a>
-            <a className="transition hover:text-cyan-200" href="/sistemas">
-              Sistemas
-            </a>
-            <a className="transition hover:text-cyan-200" href="/sobre">
-              Método
-            </a>
-            <a className="transition hover:text-cyan-200" href="/contato">
-              Contato
-            </a>
-          </nav>
-
-          <a
-            href="/login"
-            className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-cyan-300/60 hover:bg-cyan-300/10"
-          >
-            Área interna
-          </a>
-        </header>
+        <SiteHeader />
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 py-20 lg:grid-cols-[1.08fr_0.92fr] lg:py-28">
           <div>
@@ -170,7 +135,7 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-4">
-                  {sistemas.slice(0, 4).map((sistema) => (
+                  {sistemas.map((sistema) => (
                     <a
                       key={sistema.nome}
                       href={sistema.href}
@@ -349,13 +314,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 px-6 py-8 text-sm text-slate-400 sm:px-10 lg:px-16">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 sm:flex-row">
-          <p>© 2026 ALMS Prime. Todos os direitos reservados.</p>
-          <p>Tecnologia, gestão e soluções digitais.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
-
