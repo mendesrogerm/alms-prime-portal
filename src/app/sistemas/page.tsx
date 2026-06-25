@@ -5,51 +5,124 @@ import { SiteHeader } from "../../components/SiteHeader";
 const sistemas = [
   {
     nome: "Gestão de Clientes",
-    categoria: "Gestão comercial",
+    categoria: "Sistema comercial",
+    status: "Em produção",
     descricao:
-      "Sistema para controlar clientes, testes, assinaturas, vencimentos, planos, servidores, financeiro e atendimento comercial.",
+      "Sistema para organizar clientes, testes, planos, vencimentos, servidores, financeiro e mensagens comerciais.",
+    recursos: [
+      "Cadastro de clientes",
+      "Controle de testes",
+      "Planos e assinaturas",
+      "Financeiro simples",
+      "Mensagens prontas",
+    ],
     href: "https://clientes.almsprime.com.br",
-    status: "Operacional",
+    cta: "Acessar sistema",
+    externo: true,
+    destaque: true,
   },
   {
     nome: "Bolão Copa",
-    categoria: "Eventos e comunidades",
+    categoria: "Projeto esportivo",
+    status: "Em produção",
     descricao:
-      "Plataforma para criação e administração de bolões, participantes, pagamentos, rankings, perguntas e repasses.",
+      "Plataforma para bolões, participantes, pagamentos, palpites, resultados, auditoria e gestão administrativa.",
+    recursos: [
+      "Cadastro de bolões",
+      "Participantes",
+      "Pagamentos",
+      "Resultados",
+      "Painel administrativo",
+    ],
     href: "https://bolao.almsprime.com.br",
-    status: "Em evolução",
+    cta: "Acessar projeto",
+    externo: true,
+    destaque: true,
   },
   {
     nome: "ALMS Prime Cripto",
-    categoria: "Dados e investimentos",
+    categoria: "Dashboard financeiro",
+    status: "Disponível no portal",
     descricao:
-      "Painel para acompanhar carteira, ciclos, transações, gráficos, notícias, sentimento de mercado e indicadores.",
+      "Área experimental para acompanhamento de informações, ativos e funcionalidades relacionadas ao ambiente cripto.",
+    recursos: [
+      "Painel interno",
+      "Dados organizados",
+      "Acesso pelo portal",
+      "Base para evolução",
+    ],
     href: "/cripto",
-    status: "Módulo interno",
+    cta: "Ver módulo",
+    externo: false,
+    destaque: false,
   },
   {
     nome: "Fiscalização SisGep",
-    categoria: "Operação e controle",
+    categoria: "Ferramenta operacional",
+    status: "Disponível no portal",
     descricao:
-      "Ferramenta para acompanhamento de processos, mapas, setores, usuários, anexos, relatórios e dados operacionais.",
+      "Módulo voltado para consulta, organização e apoio operacional em rotinas de fiscalização e controle.",
+    recursos: [
+      "Consulta estruturada",
+      "Apoio operacional",
+      "Tela dedicada",
+      "Integração ao portal",
+    ],
     href: "/fiscalizacao",
-    status: "Módulo interno",
+    cta: "Ver módulo",
+    externo: false,
+    destaque: false,
   },
   {
     nome: "Gestão Comercial Simples",
     categoria: "Sistema de gestão",
-    descricao:
-      "Projeto voltado para empresas que precisam organizar clientes, financeiro, relatórios, processos e rotina comercial.",
-    href: "#",
     status: "Em preparação",
+    descricao:
+      "Sistema para gestão comercial, financeiro simples, auditoria, relatórios e módulos opcionais conforme necessidade do cliente.",
+    recursos: [
+      "Gestão comercial",
+      "Financeiro simples",
+      "Auditoria",
+      "Relatórios",
+      "Módulos opcionais",
+    ],
+    href: "https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20sobre%20o%20sistema%20Gest%C3%A3o%20Comercial%20Simples.",
+    cta: "Consultar disponibilidade",
+    externo: true,
+    destaque: false,
   },
   {
-    nome: "Novos Projetos ALMS",
-    categoria: "Expansão",
+    nome: "Projetos sob medida",
+    categoria: "Desenvolvimento personalizado",
+    status: "Sob demanda",
     descricao:
-      "Área reservada para futuros sistemas, ferramentas internas, portais de clientes e soluções digitais sob medida.",
-    href: "#",
-    status: "Em breve",
+      "Criação de portais, sistemas, automações e painéis personalizados para empresas que precisam organizar processos específicos.",
+    recursos: [
+      "Portais digitais",
+      "Sistemas internos",
+      "Automações",
+      "Dashboards",
+      "Projetos personalizados",
+    ],
+    href: "https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20conversar%20sobre%20um%20projeto%20sob%20medida%20com%20a%20ALMS%20Prime.",
+    cta: "Solicitar projeto",
+    externo: true,
+    destaque: false,
+  },
+];
+
+const indicadores = [
+  {
+    numero: "2+",
+    texto: "sistemas em produção",
+  },
+  {
+    numero: "4+",
+    texto: "módulos e projetos no ecossistema",
+  },
+  {
+    numero: "100%",
+    texto: "foco em organização e operação",
   },
 ];
 
@@ -57,45 +130,144 @@ export default function SistemasPage() {
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
       <section className="relative overflow-hidden bg-[#071b2d] px-6 py-6 text-white sm:px-10 lg:px-16">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.26),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.22),transparent_32%),linear-gradient(135deg,#082033_0%,#0d3148_52%,#061728_100%)]" />
 
-        <SiteHeader />
+        <div className="relative">
+          <SiteHeader />
 
-        <PageHero
-          eyebrow="Sistemas ALMS Prime"
-          title="Um ecossistema de projetos digitais conectados à operação."
-          description="Esta área reúne os sistemas, módulos e projetos da ALMS Prime. A ideia é centralizar tudo em um único portal institucional, deixando cada solução organizada, acessível e pronta para evolução."
-        />
+          <PageHero
+            eyebrow="Sistemas"
+            title="Produtos digitais da ALMS Prime"
+            description="Conheça os sistemas, módulos e projetos digitais que fazem parte do ecossistema ALMS Prime para gestão, operação, controle e crescimento."
+          />
+        </div>
       </section>
 
       <section className="-mt-6 px-6 pb-20 pt-12 sm:px-10 lg:px-16">
-        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-7xl gap-4 sm:grid-cols-3">
+          {indicadores.map((item) => (
+            <div
+              key={item.texto}
+              className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-300/30"
+            >
+              <p className="text-4xl font-black text-cyan-700">{item.numero}</p>
+              <p className="mt-2 text-sm font-bold uppercase tracking-wide text-slate-600">
+                {item.texto}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-7xl gap-6 lg:grid-cols-2">
           {sistemas.map((sistema) => (
             <a
               key={sistema.nome}
               href={sistema.href}
-              className="group rounded-[2rem] border border-slate-200 bg-white p-7 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:bg-cyan-300/10"
+              target={sistema.externo ? "_blank" : undefined}
+              rel={sistema.externo ? "noreferrer" : undefined}
+              className={`group rounded-[2rem] border bg-white p-7 shadow-xl shadow-slate-300/30 transition hover:-translate-y-1 hover:shadow-2xl ${
+                sistema.destaque
+                  ? "border-cyan-300/60"
+                  : "border-slate-200 hover:border-cyan-300/60"
+              }`}
             >
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="mb-4 inline-flex rounded-full border border-slate-200 px-3 py-1 text-xs font-bold text-cyan-200">
-                    {sistema.categoria}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-700">
+                      {sistema.categoria}
+                    </span>
+
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-700">
+                      {sistema.status}
+                    </span>
                   </div>
-                  <h2 className="text-2xl font-black">{sistema.nome}</h2>
-                  <p className="mt-4 leading-7 text-slate-700">
-                    {sistema.descricao}
-                  </p>
+
+                  <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                    {sistema.nome}
+                  </h2>
                 </div>
-                <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-slate-700">
-                  {sistema.status}
-                </span>
+
+                {sistema.destaque ? (
+                  <span className="w-fit rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-200">
+                    Destaque
+                  </span>
+                ) : null}
               </div>
 
-              <div className="mt-7 text-sm font-black uppercase tracking-wide text-cyan-200">
-                Acessar projeto →
+              <p className="mt-5 leading-8 text-slate-700">
+                {sistema.descricao}
+              </p>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {sistema.recursos.map((recurso) => (
+                  <div
+                    key={recurso}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700"
+                  >
+                    {recurso}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-7 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition group-hover:bg-cyan-500 group-hover:text-slate-950">
+                {sistema.cta}
               </div>
             </a>
           ))}
+        </div>
+
+        <div className="mx-auto mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-300/30">
+          <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="p-8 sm:p-10">
+              <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+                Solução personalizada
+              </p>
+
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+                Precisa de um sistema específico para sua operação?
+              </h2>
+
+              <p className="mt-5 max-w-3xl leading-8 text-slate-700">
+                A ALMS Prime pode estruturar um projeto sob medida para organizar
+                processos, automatizar etapas comerciais, controlar informações e
+                criar uma base digital mais profissional para o seu negócio.
+              </p>
+
+              <a
+                href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20criar%20um%20sistema%20sob%20medida%20com%20a%20ALMS%20Prime."
+                target="_blank"
+                rel="noreferrer"
+                className="mt-8 inline-flex rounded-full bg-emerald-400 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+              >
+                Conversar pelo WhatsApp
+              </a>
+            </div>
+
+            <div className="bg-[#071b2d] p-8 text-white sm:p-10">
+              <p className="text-sm font-black uppercase tracking-[0.28em] text-emerald-300">
+                Áreas atendidas
+              </p>
+
+              <div className="mt-6 space-y-4">
+                {[
+                  "Gestão de clientes e recorrências",
+                  "Portais institucionais",
+                  "Painéis administrativos",
+                  "Controle financeiro simples",
+                  "Automações comerciais",
+                  "Dashboards e relatórios",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-white/10 bg-white/[0.07] p-4 text-sm font-semibold text-slate-100"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -103,9 +275,3 @@ export default function SistemasPage() {
     </main>
   );
 }
-
-
-
-
-
-
