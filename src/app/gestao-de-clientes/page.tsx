@@ -60,6 +60,29 @@ const modulos = [
   },
 ];
 
+const perdas = [
+  {
+    titulo: "Renovações esquecidas",
+    descricao:
+      "Quando o vencimento não aparece com clareza, o cliente pode vencer, parar de usar e não renovar.",
+  },
+  {
+    titulo: "Testes sem follow-up",
+    descricao:
+      "Um teste enviado sem acompanhamento vira oportunidade perdida, mesmo quando o cliente tinha interesse.",
+  },
+  {
+    titulo: "Atendimento repetitivo",
+    descricao:
+      "Digitar as mesmas mensagens todos os dias consome tempo e aumenta o risco de respostas incompletas.",
+  },
+  {
+    titulo: "Falta de visão do negócio",
+    descricao:
+      "Sem painel, fica difícil saber quantos clientes estão ativos, vencidos, em teste ou próximos de renovar.",
+  },
+];
+
 const beneficios = [
   "Menos esquecimento de vencimentos.",
   "Mais controle sobre testes e renovações.",
@@ -381,6 +404,53 @@ export default function GestaoDeClientesPage() {
       </section>
 
       <section className="px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-300/30">
+          <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="bg-[#071b2d] p-8 text-white sm:p-10">
+              <p className="text-sm font-black uppercase tracking-[0.28em] text-emerald-300">
+                Custo do improviso
+              </p>
+
+              <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+                Quanto custa não controlar sua operação?
+              </h2>
+
+              <p className="mt-5 leading-8 text-slate-200">
+                O problema nem sempre é falta de cliente. Muitas vezes, a perda
+                está na falta de controle: teste sem retorno, renovação esquecida,
+                vencimento perdido e atendimento sem padrão.
+              </p>
+
+              <a
+                href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20entender%20como%20o%20sistema%20ALMS%20Prime%20pode%20ajudar%20a%20reduzir%20perdas%20na%20minha%20opera%C3%A7%C3%A3o."
+                target="_blank"
+                rel="noreferrer"
+                className="mt-8 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+              >
+                Reduzir perdas agora
+              </a>
+            </div>
+
+            <div className="grid gap-4 p-8 sm:p-10 md:grid-cols-2">
+              {perdas.map((perda) => (
+                <div
+                  key={perda.titulo}
+                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6"
+                >
+                  <h3 className="text-xl font-black text-slate-950">
+                    {perda.titulo}
+                  </h3>
+
+                  <p className="mt-3 leading-7 text-slate-700">
+                    {perda.descricao}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-300/30 sm:p-10">
             <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
@@ -475,5 +545,7 @@ export default function GestaoDeClientesPage() {
     </main>
   );
 }
+
+
 
 
