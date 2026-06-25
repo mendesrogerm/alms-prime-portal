@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/solucoes",
     "/sistemas",
     "/contato",
+    "/politica-de-privacidade",
     "/cripto",
     "/fiscalizacao",
   ];

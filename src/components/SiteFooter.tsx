@@ -6,6 +6,7 @@ const links = [
   { label: "Soluções", href: "/solucoes" },
   { label: "Sistemas", href: "/sistemas" },
   { label: "Contato", href: "/contato" },
+  { label: "Privacidade", href: "/politica-de-privacidade" },
 ];
 
 const solucoes = [
