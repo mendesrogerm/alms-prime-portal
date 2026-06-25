@@ -25,8 +25,8 @@ const canais = [
 
 export default function ContatoPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="relative overflow-hidden px-6 py-8 sm:px-10 lg:px-16">
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <section className="relative overflow-hidden bg-[#071b2d] px-6 py-8 text-white sm:px-10 lg:px-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.16),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
 
         <SiteHeader />
@@ -46,10 +46,10 @@ export default function ContatoPage() {
               href={canal.href}
               target={canal.href.startsWith("http") ? "_blank" : undefined}
               rel={canal.href.startsWith("http") ? "noreferrer" : undefined}
-              className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-emerald-300/50 hover:bg-emerald-300/10"
+              className="rounded-[2rem] border border-slate-200 bg-white p-7 transition hover:-translate-y-1 hover:border-emerald-300/50 hover:bg-emerald-300/10"
             >
               <h2 className="text-2xl font-black">{canal.titulo}</h2>
-              <p className="mt-4 leading-7 text-slate-300">{canal.texto}</p>
+              <p className="mt-4 leading-7 text-slate-700">{canal.texto}</p>
               <div className="mt-7 text-sm font-black uppercase tracking-wide text-emerald-200">
                 {canal.botao} →
               </div>
@@ -62,3 +62,6 @@ export default function ContatoPage() {
     </main>
   );
 }
+
+
+

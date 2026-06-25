@@ -17,7 +17,7 @@ export function SiteHeader() {
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between gap-6">
       <a href="/" className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/30 bg-slate-950/70 p-1 shadow-lg shadow-cyan-500/10">
+        <div className="flex h-13 w-13 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-cyan-300/10 p-1 shadow-lg shadow-cyan-500/20">
           <Image
             src="/logo-alms-prime.png"
             alt="Logo ALMS Prime"
@@ -32,7 +32,7 @@ export function SiteHeader() {
           <p className="text-sm font-black tracking-[0.28em] text-white">
             ALMS PRIME
           </p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-cyan-100/80">
             Tecnologia • Gestão • Soluções digitais
           </p>
         </div>
@@ -96,3 +96,6 @@ export function SiteHeader() {
     </header>
   );
 }
+
+
+

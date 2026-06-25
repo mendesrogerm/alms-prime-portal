@@ -55,8 +55,8 @@ const sistemas = [
 
 export default function SistemasPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="relative overflow-hidden px-6 py-8 sm:px-10 lg:px-16">
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <section className="relative overflow-hidden bg-[#071b2d] px-6 py-8 text-white sm:px-10 lg:px-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
 
         <SiteHeader />
@@ -74,19 +74,19 @@ export default function SistemasPage() {
             <a
               key={sistema.nome}
               href={sistema.href}
-              className="group rounded-[2rem] border border-white/10 bg-white/[0.04] p-7 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:bg-cyan-300/10"
+              className="group rounded-[2rem] border border-slate-200 bg-white p-7 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:bg-cyan-300/10"
             >
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="mb-4 inline-flex rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-cyan-200">
+                  <div className="mb-4 inline-flex rounded-full border border-slate-200 px-3 py-1 text-xs font-bold text-cyan-200">
                     {sistema.categoria}
                   </div>
                   <h2 className="text-2xl font-black">{sistema.nome}</h2>
-                  <p className="mt-4 leading-7 text-slate-300">
+                  <p className="mt-4 leading-7 text-slate-700">
                     {sistema.descricao}
                   </p>
                 </div>
-                <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-slate-200">
+                <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-slate-700">
                   {sistema.status}
                 </span>
               </div>
@@ -103,3 +103,6 @@ export default function SistemasPage() {
     </main>
   );
 }
+
+
+
