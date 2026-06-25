@@ -1,5 +1,7 @@
 ﻿import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { FloatingWhatsApp } from "../components/FloatingWhatsApp";
+import { StructuredData } from "../components/StructuredData";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,11 +56,12 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="pt-BR" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <StructuredData />
         {children}
         <FloatingWhatsApp />
       </body>
