@@ -85,16 +85,16 @@ export default function Home() {
           </a>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-            <a className="transition hover:text-cyan-200" href="#solucoes">
+            <a className="transition hover:text-cyan-200" href="/solucoes">
               Soluções
             </a>
-            <a className="transition hover:text-cyan-200" href="#sistemas">
+            <a className="transition hover:text-cyan-200" href="/sistemas">
               Sistemas
             </a>
-            <a className="transition hover:text-cyan-200" href="#metodo">
+            <a className="transition hover:text-cyan-200" href="/sobre">
               Método
             </a>
-            <a className="transition hover:text-cyan-200" href="#contato">
+            <a className="transition hover:text-cyan-200" href="/contato">
               Contato
             </a>
           </nav>
@@ -126,13 +126,13 @@ export default function Home() {
 
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <a
-                href="#sistemas"
+                href="/sistemas"
                 className="rounded-full bg-cyan-300 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:bg-cyan-200"
               >
                 Conhecer sistemas
               </a>
               <a
-                href="#contato"
+                href="/contato"
                 className="rounded-full border border-white/15 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white transition hover:border-emerald-300/70 hover:bg-emerald-300/10"
               >
                 Falar com a ALMS Prime
@@ -358,3 +358,4 @@ export default function Home() {
     </main>
   );
 }
+
