@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo-alms-prime.png",
         width: 1200,
         height: 630,
         alt: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
     description:
       "Portal institucional da ALMS Prime para sistemas, soluções digitais e projetos sob medida.",
-    images: ["/twitter-image"],
+    images: ["/logo-alms-prime.png"],
   },
   robots: {
     index: true,
