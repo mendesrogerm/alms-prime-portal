@@ -6,9 +6,9 @@ const sistemas = [
     nome: "Gestão de Clientes",
     descricao:
       "Controle de clientes, testes, assinaturas, vencimentos, planos, servidores, financeiro e atendimento comercial.",
-    status: "Sistema operacional",
-    href: "https://clientes.almsprime.com.br",
-    destaque: "Gestão comercial",
+    status: "Landing comercial",
+    href: "/gestao-de-clientes",
+    destaque: "Gestão de clientes",
   },
   {
     nome: "Bolão Copa",
@@ -208,8 +208,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="max-w-xl text-slate-300">
-              Centralize aqui os principais projetos da ALMS Prime. Conforme
-              novos sistemas forem criados, eles entram neste portal.
+              Conheça os principais projetos da ALMS Prime, incluindo a landing comercial do sistema de Gestão de Clientes para operações recorrentes.
             </p>
           </div>
 
@@ -318,6 +317,8 @@ export default function Home() {
     </main>
   );
 }
+
+
 
 
 
