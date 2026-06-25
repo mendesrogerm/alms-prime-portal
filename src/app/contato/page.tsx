@@ -26,7 +26,7 @@ const canais = [
 export default function ContatoPage() {
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
-      <section className="relative overflow-hidden bg-[#071b2d] px-6 py-8 text-white sm:px-10 lg:px-16">
+      <section className="relative overflow-hidden bg-[#071b2d] px-6 py-6 text-white sm:px-10 lg:px-16">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.16),transparent_34%),linear-gradient(135deg,#020617_0%,#07111f_52%,#020617_100%)]" />
 
         <SiteHeader />
@@ -38,7 +38,7 @@ export default function ContatoPage() {
         />
       </section>
 
-      <section className="px-6 pb-24 sm:px-10 lg:px-16">
+      <section className="-mt-6 px-6 pb-20 pt-12 sm:px-10 lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-3">
           {canais.map((canal) => (
             <a
@@ -62,6 +62,8 @@ export default function ContatoPage() {
     </main>
   );
 }
+
+
 
 
 

@@ -17,7 +17,7 @@ export function SiteHeader() {
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between gap-6">
       <a href="/" className="flex items-center gap-3">
-        <div className="flex h-13 w-13 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-cyan-300/10 p-1 shadow-lg shadow-cyan-500/20">
+        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-cyan-300/10 p-1.5 shadow-lg shadow-cyan-500/20">
           <Image
             src="/logo-alms-prime.png"
             alt="Logo ALMS Prime"
@@ -96,6 +96,7 @@ export function SiteHeader() {
     </header>
   );
 }
+
 
 
 
