@@ -5,12 +5,14 @@ const links = [
   { label: "Sobre", href: "/sobre" },
   { label: "Soluções", href: "/solucoes" },
   { label: "Sistemas", href: "/sistemas" },
+  { label: "Gestão de Clientes", href: "/gestao-de-clientes" },
   { label: "Contato", href: "/contato" },
   { label: "Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
 ];
 
 const solucoes = [
+  "Sistema de gestão de clientes",
   "Sistemas de gestão",
   "Portais institucionais",
   "Automações comerciais",

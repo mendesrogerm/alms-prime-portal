@@ -23,9 +23,9 @@ const sistemas = [
       "Financeiro simples",
       "Mensagens prontas",
     ],
-    href: "https://clientes.almsprime.com.br",
-    cta: "Acessar sistema",
-    externo: true,
+    href: "/gestao-de-clientes",
+    cta: "Conhecer solução",
+    externo: false,
     destaque: true,
   },
   {
@@ -43,7 +43,7 @@ const sistemas = [
     ],
     href: "https://bolao.almsprime.com.br",
     cta: "Acessar projeto",
-    externo: true,
+    externo: false,
     destaque: true,
   },
   {
@@ -95,7 +95,7 @@ const sistemas = [
     ],
     href: "https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20sobre%20o%20sistema%20Gest%C3%A3o%20Comercial%20Simples.",
     cta: "Consultar disponibilidade",
-    externo: true,
+    externo: false,
     destaque: false,
   },
   {
@@ -113,7 +113,7 @@ const sistemas = [
     ],
     href: "https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20conversar%20sobre%20um%20projeto%20sob%20medida%20com%20a%20ALMS%20Prime.",
     cta: "Solicitar projeto",
-    externo: true,
+    externo: false,
     destaque: false,
   },
 ];
@@ -282,4 +282,5 @@ export default function SistemasPage() {
     </main>
   );
 }
+
 
