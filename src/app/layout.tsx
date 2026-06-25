@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
+    icon: "/logo-alms-prime.png",
+    shortcut: "/logo-alms-prime.png",
+    apple: "/logo-alms-prime.png",
   },
 };
 
@@ -61,4 +61,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 
