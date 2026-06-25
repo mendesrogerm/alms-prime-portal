@@ -20,7 +20,7 @@ $graphics.FillRectangle($bgBrush, $rect)
 $cyanGlow = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(55, 34, 211, 238))
 $greenGlow = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(45, 52, 211, 153))
 $graphics.FillEllipse($cyanGlow, -190, -170, 520, 520)
-$graphics.FillEllipse($greenGlow, 870, 310, 480, 480)
+$graphics.FillEllipse($greenGlow, 890, 330, 440, 440)
 
 $borderPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(80, 125, 211, 252), 2)
 $graphics.DrawRectangle($borderPen, 55, 55, 1090, 520)
@@ -33,8 +33,8 @@ $greenBrush = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslat
 $brandFont = New-Object System.Drawing.Font("Segoe UI", 30, [System.Drawing.FontStyle]::Bold)
 $subtitleFont = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
 $badgeFont = New-Object System.Drawing.Font("Segoe UI", 15, [System.Drawing.FontStyle]::Bold)
-$titleFont = New-Object System.Drawing.Font("Segoe UI", 44, [System.Drawing.FontStyle]::Bold)
-$descFont = New-Object System.Drawing.Font("Segoe UI", 21, [System.Drawing.FontStyle]::Regular)
+$titleFont = New-Object System.Drawing.Font("Segoe UI", 42, [System.Drawing.FontStyle]::Bold)
+$descFont = New-Object System.Drawing.Font("Segoe UI", 20, [System.Drawing.FontStyle]::Regular)
 $footerFont = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
 
 $logoBoxBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(235, 255, 255, 255))
@@ -59,18 +59,19 @@ $graphics.DrawRectangle($badgePen, 90, 230, 285, 42)
 $graphics.DrawString("PORTAL INSTITUCIONAL", $badgeFont, $cyanBrush, 113, 239)
 
 $graphics.DrawString("Tecnologia, gestão", $titleFont, $whiteBrush, 90, 315)
-$graphics.DrawString("e soluções digitais", $titleFont, $whiteBrush, 90, 370)
-$graphics.DrawString("para sua operação crescer", $titleFont, $whiteBrush, 90, 425)
+$graphics.DrawString("e soluções digitais", $titleFont, $whiteBrush, 90, 368)
+$graphics.DrawString("para sua operação crescer", $titleFont, $whiteBrush, 90, 421)
 
 $graphics.DrawString(
-  "Sistemas, portais, automações e dashboards para organizar processos e acelerar decisões.",
+  "Sistemas, portais e automações para organizar processos.",
   $descFont,
   $lightBrush,
-  [System.Drawing.RectangleF]::new(92, 500, 950, 45)
+  92,
+  497
 )
 
-$graphics.DrawString("www.almsprime.com.br", $footerFont, $greenBrush, 90, 555)
-$graphics.DrawString("ALMS Prime", $footerFont, $greenBrush, 930, 555)
+$graphics.DrawString("www.almsprime.com.br", $footerFont, $greenBrush, 90, 550)
+$graphics.DrawString("ALMS Prime", $footerFont, $greenBrush, 930, 550)
 
 $bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Png)
 
