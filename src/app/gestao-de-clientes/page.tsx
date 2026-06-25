@@ -128,6 +128,25 @@ const comparativos = [
   },
 ];
 
+const comparativoPlanilha = [
+  {
+    planilha: "Depende de preenchimento manual e disciplina diária.",
+    sistema: "Centraliza a rotina em telas próprias para clientes, testes e vencimentos.",
+  },
+  {
+    planilha: "Fácil de esquecer datas, retornos e renovações.",
+    sistema: "Mostra vencimentos, testes e situações importantes com mais clareza.",
+  },
+  {
+    planilha: "Não foi feita para atendimento comercial recorrente.",
+    sistema: "Foi pensado para acompanhar clientes, planos, mensagens e renovações.",
+  },
+  {
+    planilha: "Fica confusa conforme a base de clientes cresce.",
+    sistema: "Mantém a operação mais organizada mesmo com mais clientes e informações.",
+  },
+];
+
 const passosDemo = [
   {
     numero: "01",
@@ -523,6 +542,64 @@ export default function GestaoDeClientesPage() {
         </div>
       </section>
 
+      <section className="px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+              Planilha x Sistema
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+              Planilha ajuda no começo. Sistema ajuda a operação crescer.
+            </h2>
+
+            <p className="mt-5 leading-8 text-slate-700">
+              A planilha pode funcionar quando há poucos clientes. Mas, quando
+              entram testes, vencimentos, planos, pagamentos e mensagens, o
+              controle manual começa a custar tempo e oportunidades.
+            </p>
+          </div>
+
+          <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-300/30">
+            <div className="grid bg-slate-950 text-white md:grid-cols-2">
+              <div className="p-5 text-sm font-black uppercase tracking-wide text-rose-200">
+                Controle em planilha
+              </div>
+
+              <div className="border-t border-white/10 p-5 text-sm font-black uppercase tracking-wide text-cyan-200 md:border-l md:border-t-0">
+                Controle em sistema
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-200">
+              {comparativoPlanilha.map((item) => (
+                <div key={item.planilha} className="grid md:grid-cols-2">
+                  <div className="bg-rose-50 p-6">
+                    <p className="leading-7 text-slate-700">{item.planilha}</p>
+                  </div>
+
+                  <div className="border-t border-slate-200 bg-cyan-50 p-6 md:border-l md:border-t-0">
+                    <p className="font-semibold leading-7 text-slate-800">
+                      {item.sistema}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-300/30">
+            <h3 className="text-3xl font-black tracking-tight text-slate-950">
+              A planilha guarda dados. O sistema ajuda a agir.
+            </h3>
+
+            <p className="mx-auto mt-4 max-w-3xl leading-8 text-slate-700">
+              O objetivo é transformar informação em rotina: acompanhar,
+              cobrar, renovar, atender e vender com mais organização.
+            </p>
+          </div>
+        </div>
+      </section>
       <section className="bg-white px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -622,6 +699,8 @@ export default function GestaoDeClientesPage() {
     </main>
   );
 }
+
+
 
 
 
