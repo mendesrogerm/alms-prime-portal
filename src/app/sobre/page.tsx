@@ -22,7 +22,7 @@ export default function SobrePage() {
         <PageHero
           eyebrow="Sobre a ALMS Prime"
           title="Tecnologia aplicada à gestão, operação e crescimento."
-          description="A marca ALMS Prime nasceu para transformar ideias, processos e necessidades operacionais em soluções digitais práticas. O portal institucional será a central do ecossistema ALMS Prime, reunindo projetos próprios, sistemas comerciais, módulos internos e novas soluções."
+          description="A marcA marca ALMS Prime nasceu para transformar ideias, processos e necessidades operacionais em soluções digitais práticas. O portal institucional será a central do ecossistema ALMS Prime, reunindo projetos próprios, sistemas comerciais, módulos internos e novas soluções."
         />
       </section>
 
@@ -56,6 +56,7 @@ export default function SobrePage() {
     </main>
   );
 }
+
 
 
 
