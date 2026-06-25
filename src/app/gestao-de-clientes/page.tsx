@@ -78,6 +78,33 @@ const publico = [
   "Equipes que atendem pelo WhatsApp e precisam organizar leads.",
 ];
 
+const comparativos = [
+  {
+    antes: "Clientes espalhados em conversas de WhatsApp, anotações e planilhas.",
+    depois: "Clientes organizados em uma base central, com dados, plano, status e observações.",
+  },
+  {
+    antes: "Testes enviados sem acompanhamento claro de prazo e retorno.",
+    depois: "Testes controlados com visão de quem está avaliando e quem precisa de contato.",
+  },
+  {
+    antes: "Vencimentos esquecidos e renovações perdidas por falta de alerta visual.",
+    depois: "Vencimentos visíveis por período, facilitando cobrança, renovação e follow-up.",
+  },
+  {
+    antes: "Pagamentos anotados manualmente, sem visão simples da receita.",
+    depois: "Controle financeiro básico para acompanhar entradas, planos e renovações.",
+  },
+  {
+    antes: "Mensagens digitadas do zero em cada atendimento.",
+    depois: "Mensagens prontas para agilizar teste, venda, cobrança e renovação.",
+  },
+  {
+    antes: "Operação dependente da memória e do improviso.",
+    depois: "Rotina mais profissional, organizada e preparada para crescer.",
+  },
+];
+
 const perguntas = [
   {
     pergunta: "Esse sistema substitui minha planilha?",
@@ -249,6 +276,71 @@ export default function GestaoDeClientesPage() {
         </div>
       </section>
 
+      <section className="px-6 py-20 sm:px-10 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black uppercase tracking-[0.28em] text-cyan-700">
+              Antes x Depois
+            </p>
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+              Saia do improviso e leve sua operação para um controle profissional.
+            </h2>
+
+            <p className="mt-5 leading-8 text-slate-700">
+              O sistema não serve apenas para cadastrar clientes. Ele ajuda a
+              mudar a forma como você acompanha testes, vencimentos, pagamentos,
+              mensagens e renovações.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-2">
+            {comparativos.map((item) => (
+              <div
+                key={item.antes}
+                className="grid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-300/30 md:grid-cols-2"
+              >
+                <div className="border-b border-slate-200 bg-slate-50 p-6 md:border-b-0 md:border-r">
+                  <div className="mb-4 inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-rose-700">
+                    Antes
+                  </div>
+
+                  <p className="leading-7 text-slate-700">{item.antes}</p>
+                </div>
+
+                <div className="bg-cyan-50 p-6">
+                  <div className="mb-4 inline-flex rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-700">
+                    Depois
+                  </div>
+
+                  <p className="leading-7 text-slate-800">{item.depois}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 rounded-[2rem] border border-cyan-200 bg-white p-8 text-center shadow-xl shadow-slate-300/30">
+            <h3 className="text-3xl font-black tracking-tight text-slate-950">
+              Sua operação não precisa depender da memória.
+            </h3>
+
+            <p className="mx-auto mt-4 max-w-3xl leading-8 text-slate-700">
+              Com uma base organizada, você ganha clareza para vender melhor,
+              acompanhar clientes e agir antes de perder uma renovação.
+            </p>
+
+            <a
+              href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20sair%20da%20planilha%20e%20conhecer%20o%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
+              target="_blank"
+              rel="noreferrer"
+              className="mt-7 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+            >
+              Quero organizar minha operação
+            </a>
+          </div>
+        </div>
+      </section>
+
       <section
         id="modulos"
         className="bg-white px-6 py-20 sm:px-10 lg:px-16"
@@ -383,3 +475,5 @@ export default function GestaoDeClientesPage() {
     </main>
   );
 }
+
+
