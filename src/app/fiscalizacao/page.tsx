@@ -53,8 +53,8 @@ export default function FiscalizacaoPage() {
     useState<FiltroStatus>("pendentes");
   const [filtroAssunto, setFiltroAssunto] = useState("todos");
   const [filtroSetor, setFiltroSetor] = useState("todos");
-const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
-  useState(false);
+  const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
+    useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [itensPorPagina, setItensPorPagina] = useState(24);
   const [modoVisualizacao, setModoVisualizacao] =
@@ -148,6 +148,13 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     setor: "",
     observacao: "",
   });
+
+  // --- ESTADOS DO RELATÓRIO PERSONALIZADO DE PENDÊNCIAS ---
+  const [modalRelatorioAberto, setModalRelatorioAberto] = useState(false);
+  const [relSetoresSelecionados, setRelSetoresSelecionados] = useState<string[]>([]);
+  const [relAssuntosSelecionados, setRelAssuntosSelecionados] = useState<string[]>([]);
+  const [relBairrosSelecionados, setRelBairrosSelecionados] = useState<string[]>([]);
+  const [relFiltroSla, setRelFiltroSla] = useState("todos");
 
   const {
     perfilUsuario,
@@ -1669,6 +1676,40 @@ const [filtroLocalizacaoIncompleta, setFiltroLocalizacaoIncompleta] =
     };
   }, [processosFiltrados]);
 
+  // --- LÓGICA DO RELATÓRIO PERSONALIZADO ---
+  const processosPendentesRelatorio = useMemo(() => processos.filter((p) => !p.concluido), [processos]);
+
+  const relSetoresDisponiveis = useMemo(() => Array.from(new Set(processosPendentesRelatorio.map((p) => p.setor?.trim()).filter((s): s is string => Boolean(s)))).sort((a, b) => a.localeCompare(b)), [processosPendentesRelatorio]);
+  const relAssuntosDisponiveis = useMemo(() => Array.from(new Set(processosPendentesRelatorio.map((p) => p.assunto?.trim()).filter((a): a is string => Boolean(a)))).sort((a, b) => a.localeCompare(b)), [processosPendentesRelatorio]);
+  const relBairrosDisponiveis = useMemo(() => Array.from(new Set(processosPendentesRelatorio.map((p) => p.bairro?.trim()).filter((b): b is string => Boolean(b)))).sort((a, b) => a.localeCompare(b)), [processosPendentesRelatorio]);
+
+  const preRelatorioFiltrados = useMemo(() => {
+    return processosPendentesRelatorio.filter((p) => {
+      const combinaSetor = relSetoresSelecionados.length === 0 || relSetoresSelecionados.includes(p.setor?.trim() || "");
+      const combinaAssunto = relAssuntosSelecionados.length === 0 || relAssuntosSelecionados.includes(p.assunto?.trim() || "");
+      const combinaBairro = relBairrosSelecionados.length === 0 || relBairrosSelecionados.includes(p.bairro?.trim() || "");
+      
+      const dias = obterDiasDoProcesso(p);
+      let combinaSla = true;
+      if (relFiltroSla === "critico") combinaSla = dias >= 15;
+      if (relFiltroSla === "atencao") combinaSla = dias >= 10 && dias < 15;
+      if (relFiltroSla === "normal") combinaSla = dias < 10;
+
+      return combinaSetor && combinaAssunto && combinaBairro && combinaSla;
+    }).sort((a, b) => obterDiasDoProcesso(b) - obterDiasDoProcesso(a));
+  }, [processosPendentesRelatorio, relSetoresSelecionados, relAssuntosSelecionados, relBairrosSelecionados, relFiltroSla]);
+
+  function alternarCheckboxRelatorio(valor: string, lista: string[], setLista: React.Dispatch<React.SetStateAction<string[]>>) {
+    setLista(lista.includes(valor) ? lista.filter((item) => item !== valor) : [...lista, valor]);
+  }
+
+  function limparFiltrosRelatorio() {
+    setRelSetoresSelecionados([]);
+    setRelAssuntosSelecionados([]);
+    setRelBairrosSelecionados([]);
+    setRelFiltroSla("todos");
+  }
+
   const totalPaginas = Math.max(
     1,
     Math.ceil(processosFiltrados.length / itensPorPagina)
@@ -1973,6 +2014,86 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
     janela.document.open();
     janela.document.write(html);
     janela.document.close();
+  }
+
+  function gerarRelatorioPendenciasPersonalizado() {
+    if (preRelatorioFiltrados.length === 0) {
+      alert("Nenhum processo pendente encontrado com os filtros selecionados.");
+      return;
+    }
+
+    const dataGeracao = new Date().toLocaleString("pt-BR");
+    const linhasTabela = preRelatorioFiltrados.map((processo) => {
+      const dias = obterDiasDoProcesso(processo);
+      const endereco = `${processo.rua || "---"}, nº ${processo.numero_rua || "---"}`;
+
+      return `
+        <tr>
+          <td>${escaparHtml(processo.sisgep)}</td>
+          <td>${escaparHtml(formatarData(processo.data_entrada))}</td>
+          <td style="color: ${dias >= 15 ? '#b91c1c' : dias >= 10 ? '#b45309' : '#15803d'}; font-weight: bold;">
+            ${escaparHtml(String(dias))}
+          </td>
+          <td>${escaparHtml(processo.assunto || "---")}</td>
+          <td>${escaparHtml(processo.aberto_por || "---")}</td>
+          <td>${escaparHtml(endereco)}</td>
+          <td>${escaparHtml(processo.bairro || "---")}</td>
+          <td>${escaparHtml(processo.setor || "---")}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const html = `
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>Relatório de Pendências SisGep</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; margin: 32px; background: #fff; color: #0f172a; }
+            header { border-bottom: 3px solid #b91c1c; padding-bottom: 16px; margin-bottom: 20px; }
+            h1 { margin: 0; color: #b91c1c; font-size: 26px; }
+            .subtitulo { margin-top: 6px; color: #475569; font-size: 13px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
+            th { background: #b91c1c; color: #ffffff; padding: 8px; text-align: left; border: 1px solid #b91c1c; }
+            td { padding: 7px; border: 1px solid #cbd5e1; vertical-align: top; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            .resumo { margin-top: 15px; font-size: 14px; font-weight: bold; background: #fee2e2; padding: 10px; border-radius: 8px; border: 1px solid #f87171; color: #991b1b; }
+            @media print { body { margin: 14mm; } table { page-break-inside: auto; } tr { page-break-inside: avoid; page-break-after: auto; } }
+          </style>
+        </head>
+        <body>
+          <header>
+            <h1>Relatório de Pendências SisGep</h1>
+            <div class="subtitulo">Gerado em ${escaparHtml(dataGeracao)} pelo ALMS PRIME</div>
+          </header>
+          <div class="resumo">Total de processos pendentes no relatório: ${preRelatorioFiltrados.length}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>SisGep</th>
+                <th>Entrada</th>
+                <th>Dias Atraso</th>
+                <th>Assunto</th>
+                <th>Aberto por</th>
+                <th>Endereço</th>
+                <th>Bairro</th>
+                <th>Setor</th>
+              </tr>
+            </thead>
+            <tbody>${linhasTabela}</tbody>
+          </table>
+          <script>
+            window.onload = function() { window.focus(); window.print(); };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const janela = window.open("", "_blank", "width=1200,height=800");
+    if (!janela) { alert("Permita pop-ups para gerar o relatório."); return; }
+    janela.document.open(); janela.document.write(html); janela.document.close();
   }
 
   function maiorValor(lista: GrupoResumo[]) {
@@ -2382,6 +2503,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={() => { limparFiltrosRelatorio(); setModalRelatorioAberto(true); }}
+                  className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500"
+                >
+                  Relatório Personalizado
+                </button>
+
                 <button
                   onClick={limparTodosFiltros}
                   className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
@@ -3614,6 +3742,100 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE RELATÓRIO DE PENDÊNCIAS */}
+      {modalRelatorioAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+            
+            <div className="flex flex-shrink-0 items-start justify-between border-b border-slate-200 p-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800">Gerar Relatório de Pendências</h2>
+                <p className="mt-1 text-sm text-slate-600">Selecione múltiplas opções. O relatório mostrará apenas os itens que combinam com os filtros abaixo.</p>
+              </div>
+              <button onClick={() => setModalRelatorioAberto(false)} className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200">
+                Fechar
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-red-800 uppercase">Processos Encontrados</p>
+                  <p className="text-xs text-red-600">Prontos para impressão</p>
+                </div>
+                <p className="text-4xl font-black text-red-700">{preRelatorioFiltrados.length}</p>
+              </div>
+
+              <div className="mb-4">
+                <label className="text-sm font-bold text-slate-800 mb-2 block">Nível de Atraso (SLA)</label>
+                <div className="flex gap-2">
+                  {[
+                    { id: "todos", label: "Todos pendentes" },
+                    { id: "critico", label: "Críticos (15+ dias)" },
+                    { id: "atencao", label: "Atenção (10 a 14 dias)" },
+                    { id: "normal", label: "Normal (Até 9 dias)" },
+                  ].map((opcao) => (
+                    <label key={opcao.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100">
+                      <input type="radio" name="sla" checked={relFiltroSla === opcao.id} onChange={() => setRelFiltroSla(opcao.id)} className="h-4 w-4" />
+                      <span>{opcao.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="text-sm font-bold text-slate-800">Setores</label>
+                    <button onClick={() => setRelSetoresSelecionados([])} className="text-xs text-blue-600 hover:underline">Limpar</button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-inner">
+                    {relSetoresDisponiveis.map((setor) => (
+                      <label key={setor} className="flex cursor-pointer items-center gap-2 py-1 text-sm text-slate-700 hover:bg-slate-200/50 rounded px-1">
+                        <input type="checkbox" checked={relSetoresSelecionados.includes(setor)} onChange={() => alternarCheckboxRelatorio(setor, relSetoresSelecionados, setRelSetoresSelecionados)} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                        {setor}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="text-sm font-bold text-slate-800">Assuntos</label>
+                    <button onClick={() => setRelAssuntosSelecionados([])} className="text-xs text-blue-600 hover:underline">Limpar</button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3 shadow-inner">
+                    {relAssuntosDisponiveis.map((assunto) => (
+                      <label key={assunto} className="flex cursor-pointer items-center gap-2 py-1 text-sm text-slate-700 hover:bg-slate-200/50 rounded px-1">
+                        <input type="checkbox" checked={relAssuntosSelecionados.includes(assunto)} onChange={() => alternarCheckboxRelatorio(assunto, relAssuntosSelecionados, setRelAssuntosSelecionados)} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                        {assunto}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 p-6">
+              <button type="button" onClick={limparFiltrosRelatorio} className="text-sm font-bold text-slate-500 hover:text-slate-800">
+                Zerar Filtros
+              </button>
+              
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setModalRelatorioAberto(false)} className="rounded-lg bg-white border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
+                  Cancelar
+                </button>
+
+                <button type="button" onClick={gerarRelatorioPendenciasPersonalizado} disabled={preRelatorioFiltrados.length === 0} className="rounded-lg bg-red-700 px-6 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Gerar Relatório
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
