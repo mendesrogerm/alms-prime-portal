@@ -2954,7 +2954,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       <th className="min-w-[260px] max-w-[360px] px-4 py-3">Endereço</th>
                       <th className="min-w-[200px] px-4 py-3">Bairro</th>
                      <th className="min-w-[200px] px-4 py-3">Setor</th>
-                      <th className="sticky right-0 bg-slate-50 px-4 py-3 text-right min-w-[300px]">
+                      <th className="bg-slate-50 px-4 py-3 text-right min-w-[300px]">
                         Ações
                       </th>
                     </tr>
@@ -3035,7 +3035,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             </span>
                           </td>
 
-                          <td className="sticky right-0 bg-white px-4 py-3 min-w-[300px]">
+                          <td className="px-4 py-3 min-w-[300px]">
                             <div className="flex justify-end gap-2 flex-nowrap">
                               <a
                                 href={getLinkMapa(processo)}
