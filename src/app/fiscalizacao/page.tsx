@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -149,7 +149,7 @@ export default function FiscalizacaoPage() {
     observacao: "",
   });
 
-  // --- ESTADOS DO RELATÃ“RIO PERSONALIZADO DE PENDÃŠNCIAS ---
+  // --- ESTADOS DO RELATÓRIO PERSONALIZADO DE PENDÊNCIAS ---
   const [modalRelatorioAberto, setModalRelatorioAberto] = useState(false);
   const [relSetoresSelecionados, setRelSetoresSelecionados] = useState<string[]>([]);
   const [relAssuntosSelecionados, setRelAssuntosSelecionados] = useState<string[]>([]);
@@ -252,7 +252,7 @@ export default function FiscalizacaoPage() {
     }
 
     if (!perfil) {
-      setErro("Erro ao carregar perfil do usuÃ¡rio.");
+      setErro("Erro ao carregar perfil do usuário.");
       setCarregando(false);
       return;
     }
@@ -303,7 +303,7 @@ export default function FiscalizacaoPage() {
     setCarregandoHistorico(false);
 
     if (error) {
-      setErroHistorico("Erro ao carregar histÃ³rico: " + error.message);
+      setErroHistorico("Erro ao carregar histórico: " + error.message);
       return;
     }
 
@@ -340,7 +340,7 @@ export default function FiscalizacaoPage() {
 
   function abrirModalConclusaoLote() {
     if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para conclusÃ£o de processos.");
+      alert("Acesso restrito para conclusão de processos.");
       return;
     }
 
@@ -370,7 +370,7 @@ export default function FiscalizacaoPage() {
 
   function abrirModalCorrecaoData() {
     if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para correÃ§Ã£o de datas.");
+      alert("Acesso restrito para correção de datas.");
       return;
     }
 
@@ -382,7 +382,7 @@ export default function FiscalizacaoPage() {
 
   function abrirModalCorrecaoLocalizacao() {
     if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para corrigir localizaÃ§Ã£o.");
+      alert("Acesso restrito para corrigir localização.");
       return;
     }
 
@@ -536,7 +536,7 @@ export default function FiscalizacaoPage() {
 
   async function salvarCorrecaoLocalizacao() {
     if (!podeGerenciarProcessos) {
-      alert("Acesso restrito para corrigir localizaÃ§Ã£o.");
+      alert("Acesso restrito para corrigir localização.");
       return;
     }
 
@@ -549,7 +549,7 @@ export default function FiscalizacaoPage() {
     const setorFinal = setorCorrecaoLocalizacao.trim();
 
     if (!bairroFinal || !setorFinal) {
-      setMensagemCorrecaoLocalizacao("Selecione um bairro vÃ¡lido para preencher bairro e setor.");
+      setMensagemCorrecaoLocalizacao("Selecione um bairro válido para preencher bairro e setor.");
       return;
     }
 
@@ -570,7 +570,7 @@ export default function FiscalizacaoPage() {
     setSalvandoCorrecaoLocalizacao(false);
 
     if (error) {
-      setMensagemCorrecaoLocalizacao("Erro ao corrigir localizaÃ§Ã£o: " + error.message);
+      setMensagemCorrecaoLocalizacao("Erro ao corrigir localização: " + error.message);
       return;
     }
 
@@ -582,13 +582,13 @@ export default function FiscalizacaoPage() {
       await registrarAuditoriaProcesso({
         processo: processoLocalizacaoEditando,
         acao: "localizacao_corrigida",
-        descricao: `LocalizaÃ§Ã£o do processo ${processoLocalizacaoEditando.sisgep} corrigida.`,
+        descricao: `Localização do processo ${processoLocalizacaoEditando.sisgep} corrigida.`,
         dadosAnteriores: processoLocalizacaoEditando,
         dadosNovos: data,
       });
     }
 
-    setMensagemCorrecaoLocalizacao("LocalizaÃ§Ã£o corrigida com sucesso.");
+    setMensagemCorrecaoLocalizacao("Localização corrigida com sucesso.");
     setProcessoLocalizacaoEditando(null);
     setBairroCorrecaoLocalizacao("");
     setSetorCorrecaoLocalizacao("");
@@ -625,7 +625,7 @@ export default function FiscalizacaoPage() {
 
     if (!rua || !numero) {
       setMensagemLocalizacaoNovo(
-        "Informe rua e nÃºmero para buscar bairro automaticamente."
+        "Informe rua e número para buscar bairro automaticamente."
       );
       return;
     }
@@ -638,7 +638,7 @@ export default function FiscalizacaoPage() {
 
     if (!dados.bairro) {
       setMensagemLocalizacaoNovo(
-        "NÃ£o foi possÃ­vel encontrar o bairro automaticamente. Digite o bairro manualmente."
+        "Não foi possível encontrar o bairro automaticamente. Digite o bairro manualmente."
       );
       return;
     }
@@ -653,7 +653,7 @@ export default function FiscalizacaoPage() {
 
     if (!setorEncontrado) {
       setMensagemLocalizacaoNovo(
-        "Bairro encontrado, mas o setor nÃ£o foi localizado. Digite o setor manualmente."
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
       );
       return;
     }
@@ -669,7 +669,7 @@ export default function FiscalizacaoPage() {
 
     if (!rua || !numero) {
       setMensagemLocalizacaoEdicao(
-        "Informe rua e nÃºmero para buscar bairro automaticamente."
+        "Informe rua e número para buscar bairro automaticamente."
       );
       return;
     }
@@ -682,7 +682,7 @@ export default function FiscalizacaoPage() {
 
     if (!dados.bairro) {
       setMensagemLocalizacaoEdicao(
-        "NÃ£o foi possÃ­vel encontrar o bairro automaticamente. Digite o bairro manualmente."
+        "Não foi possível encontrar o bairro automaticamente. Digite o bairro manualmente."
       );
       return;
     }
@@ -697,7 +697,7 @@ export default function FiscalizacaoPage() {
 
     if (!setorEncontrado) {
       setMensagemLocalizacaoEdicao(
-        "Bairro encontrado, mas o setor nÃ£o foi localizado. Digite o setor manualmente."
+        "Bairro encontrado, mas o setor não foi localizado. Digite o setor manualmente."
       );
       return;
     }
@@ -789,7 +789,7 @@ export default function FiscalizacaoPage() {
     }
 
     if (!processoEdicao.sisgep.trim()) {
-      alert("Informe o nÃºmero SisGep.");
+      alert("Informe o número SisGep.");
       return;
     }
 
@@ -807,7 +807,7 @@ export default function FiscalizacaoPage() {
       processoEdicao.rua.trim() !== ruaAnterior.trim() ||
       processoEdicao.numero_rua.trim() !== numeroAnterior.trim();
 
-    const endereco = `${processoEdicao.rua}, ${processoEdicao.numero_rua}, Santana de ParnaÃ­ba, SP`;
+    const endereco = `${processoEdicao.rua}, ${processoEdicao.numero_rua}, Santana de Parnaíba, SP`;
 
     const dadosAutomaticos = await buscarDadosAutomaticos(
       processoEdicao.rua,
@@ -911,7 +911,7 @@ export default function FiscalizacaoPage() {
     }
 
     if (!novoProcesso.sisgep.trim()) {
-      alert("Informe o nÃºmero SisGep.");
+      alert("Informe o número SisGep.");
       return;
     }
 
@@ -922,7 +922,7 @@ export default function FiscalizacaoPage() {
 
     setSalvandoNovo(true);
 
-    const endereco = `${novoProcesso.rua}, ${novoProcesso.numero_rua}, Santana de ParnaÃ­ba, SP`;
+    const endereco = `${novoProcesso.rua}, ${novoProcesso.numero_rua}, Santana de Parnaíba, SP`;
 
     const dadosAutomaticos = await buscarDadosAutomaticos(
       novoProcesso.rua,
@@ -1000,7 +1000,7 @@ export default function FiscalizacaoPage() {
       observacao: "",
     });
 
-    setMensagemSucessoNovo("Processo cadastrado com sucesso. VocÃª jÃ¡ pode lanÃ§ar outro.");
+    setMensagemSucessoNovo("Processo cadastrado com sucesso. Você já pode lançar outro.");
   }
 
   async function abrirAnexo(anexo: Anexo) {
@@ -1009,7 +1009,7 @@ export default function FiscalizacaoPage() {
       .createSignedUrl(anexo.url, 60 * 5);
 
     if (error || !data?.signedUrl) {
-      alert("Erro ao abrir anexo: " + (error?.message || "link nÃ£o gerado"));
+      alert("Erro ao abrir anexo: " + (error?.message || "link não gerado"));
       return;
     }
 
@@ -1023,7 +1023,7 @@ export default function FiscalizacaoPage() {
     }
 
     const confirmar = window.confirm(
-      `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita.`
+      `Tem certeza que deseja excluir o processo ${processo.sisgep}? Essa ação não poderá ser desfeita.`
     );
 
     if (!confirmar) return;
@@ -1045,7 +1045,7 @@ export default function FiscalizacaoPage() {
     void registrarAuditoriaProcesso({
       processo,
       acao: "processo_excluido",
-      descricao: `Processo ${processo.sisgep} excluÃ­do.`,
+      descricao: `Processo ${processo.sisgep} excluído.`,
       dadosAnteriores: processo,
     });
 
@@ -1072,7 +1072,7 @@ export default function FiscalizacaoPage() {
       .map((processo) => processo.id);
 
     if (idsPendentesFiltrados.length === 0) {
-      alert("NÃ£o hÃ¡ processos pendentes na pÃ¡gina atual.");
+      alert("Não há processos pendentes na página atual.");
       return;
     }
 
@@ -1099,7 +1099,7 @@ export default function FiscalizacaoPage() {
     }
 
     if (!dataConclusaoValida(dataConclusaoSelecionada)) {
-      alert("A data de conclusÃ£o nÃ£o pode ser maior que hoje.");
+      alert("A data de conclusão não pode ser maior que hoje.");
       return;
     }
 
@@ -1152,7 +1152,7 @@ export default function FiscalizacaoPage() {
         processo: processoAtualizado,
         acao: novoStatus ? "processo_concluido" : "processo_reaberto",
         descricao: novoStatus
-          ? `Processo ${processoConclusao.sisgep} concluÃ­do.`
+          ? `Processo ${processoConclusao.sisgep} concluído.`
           : `Processo ${processoConclusao.sisgep} reaberto.`,
         dadosAnteriores: processoConclusao,
         dadosNovos: processoAtualizado,
@@ -1204,7 +1204,7 @@ export default function FiscalizacaoPage() {
     const erros = resultados.filter((resultado) => resultado.erro);
 
     if (erros.length > 0) {
-      alert(`Alguns processos nÃ£o foram concluÃ­dos. Erros: ${erros.length}`);
+      alert(`Alguns processos não foram concluídos. Erros: ${erros.length}`);
     }
 
     const idsConcluidos = resultados
@@ -1227,7 +1227,7 @@ export default function FiscalizacaoPage() {
         void registrarAuditoriaProcesso({
           processo: processoAtualizado,
           acao: "processo_concluido_lote",
-          descricao: `Processo ${processo.sisgep} concluÃ­do em lote.`,
+          descricao: `Processo ${processo.sisgep} concluído em lote.`,
           dadosAnteriores: processo,
           dadosNovos: processoAtualizado,
         });
@@ -1253,19 +1253,19 @@ export default function FiscalizacaoPage() {
     setMensagemCorrecaoData("");
 
     if (!novaDataConclusaoCorrecao) {
-      setMensagemCorrecaoData("Informe a nova data de conclusÃ£o.");
+      setMensagemCorrecaoData("Informe a nova data de conclusão.");
       return;
     }
 
     if (novaDataConclusaoCorrecao > dataAtualInput()) {
-      setMensagemCorrecaoData("A data de conclusÃ£o nÃ£o pode ser maior que hoje.");
+      setMensagemCorrecaoData("A data de conclusão não pode ser maior que hoje.");
       return;
     }
 
     const sisgepsDigitados = extrairSisgepsDigitados(sisgepsCorrecaoData);
 
     if (sisgepsDigitados.length === 0) {
-      setMensagemCorrecaoData("Informe pelo menos um nÃºmero de SisGep.");
+      setMensagemCorrecaoData("Informe pelo menos um número de SisGep.");
       return;
     }
 
@@ -1330,7 +1330,7 @@ export default function FiscalizacaoPage() {
           void registrarAuditoriaProcesso({
             processo: processoAtualizado,
             acao: "data_conclusao_corrigida",
-            descricao: `Data de conclusÃ£o do processo ${processo.sisgep} corrigida para ${novaDataConclusaoCorrecao}.`,
+            descricao: `Data de conclusão do processo ${processo.sisgep} corrigida para ${novaDataConclusaoCorrecao}.`,
             dadosAnteriores: processo,
             dadosNovos: processoAtualizado,
           });
@@ -1349,11 +1349,11 @@ export default function FiscalizacaoPage() {
     );
 
     setMensagemCorrecaoData(
-      `AtualizaÃ§Ã£o concluÃ­da. Sucesso: ${sucessos.length}. Erros: ${erros.length}. NÃ£o encontrados: ${naoEncontrados.length}.`
+      `Atualização concluída. Sucesso: ${sucessos.length}. Erros: ${erros.length}. Não encontrados: ${naoEncontrados.length}.`
     );
 
     if (erros.length > 0) {
-      console.error("Erros ao corrigir data de conclusÃ£o:", erros);
+      console.error("Erros ao corrigir data de conclusão:", erros);
     }
 
     await verificarLoginECarregarProcessos();
@@ -1406,7 +1406,7 @@ export default function FiscalizacaoPage() {
       processo: processoAtualizado,
       acao: novoStatus ? "processo_concluido" : "processo_reaberto",
       descricao: novoStatus
-        ? `Processo ${processo.sisgep} concluÃ­do.`
+        ? `Processo ${processo.sisgep} concluído.`
         : `Processo ${processo.sisgep} reaberto.`,
       dadosAnteriores: processo,
       dadosNovos: processoAtualizado,
@@ -1418,7 +1418,7 @@ export default function FiscalizacaoPage() {
 
     const endereco = `${processo.rua || ""}, ${
       processo.numero_rua || ""
-    }, Santana de ParnaÃ­ba, SP`;
+    }, Santana de Parnaíba, SP`;
 
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       endereco
@@ -1494,7 +1494,7 @@ export default function FiscalizacaoPage() {
     const mapa = new Map<string, number>();
 
     lista.forEach((processo) => {
-      const valor = processo[campo]?.trim() || "NÃ£o informado";
+      const valor = processo[campo]?.trim() || "Não informado";
       mapa.set(valor, (mapa.get(valor) || 0) + 1);
     });
 
@@ -1677,7 +1677,7 @@ export default function FiscalizacaoPage() {
     };
   }, [processosFiltrados]);
 
-  // --- LÃ“GICA DO RELATÃ“RIO PERSONALIZADO ---
+  // --- LÓGICA DO RELATÓRIO PERSONALIZADO ---
   const processosPendentesRelatorio = useMemo(() => processos.filter((p) => !p.concluido), [processos]);
 
   const relSetoresDisponiveis = useMemo(() => Array.from(new Set(processosPendentesRelatorio.map((p) => p.setor?.trim()).filter((s): s is string => Boolean(s)))).sort((a, b) => a.localeCompare(b)), [processosPendentesRelatorio]);
@@ -1740,7 +1740,7 @@ export default function FiscalizacaoPage() {
 
   function exportarProcessosCsv() {
     if (processosFiltrados.length === 0) {
-      alert("NÃ£o hÃ¡ processos para exportar com os filtros atuais.");
+      alert("Não há processos para exportar com os filtros atuais.");
       return;
     }
 
@@ -1748,25 +1748,25 @@ export default function FiscalizacaoPage() {
       "Status",
       "SisGep",
       "Data de Entrada",
-      "Data de ConclusÃ£o",
+      "Data de Conclusão",
       "Dias",
       "Aberto Por",
       "Assunto",
       "Rua",
-      "NÃºmero",
+      "Número",
       "Bairro",
       "Setor",
       "Latitude",
       "Longitude",
       "Link Maps",
-      "ObservaÃ§Ã£o",
+      "Observação",
     ];
 
     const linhas = processosFiltrados.map((processo) => {
       const dias = obterDiasDoProcesso(processo);
 
       return [
-        processo.concluido ? "ConcluÃ­do" : "Pendente",
+        processo.concluido ? "Concluído" : "Pendente",
         processo.sisgep,
         formatarData(processo.data_entrada),
         formatarData(processo.data_conclusao),
@@ -1806,21 +1806,21 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
   function descricaoFiltroPeriodo() {
     if (tipoFiltroPeriodo === "todos") {
-      return "Sem filtro de perÃ­odo";
+      return "Sem filtro de período";
     }
 
     const tipo =
-      tipoFiltroPeriodo === "entrada" ? "Data de entrada" : "Data de conclusÃ£o";
+      tipoFiltroPeriodo === "entrada" ? "Data de entrada" : "Data de conclusão";
 
-    const inicio = dataInicialFiltro ? formatarData(dataInicialFiltro) : "inÃ­cio";
+    const inicio = dataInicialFiltro ? formatarData(dataInicialFiltro) : "início";
     const fim = dataFinalFiltro ? formatarData(dataFinalFiltro) : "hoje";
 
-    return `${tipo}: ${inicio} atÃ© ${fim}`;
+    return `${tipo}: ${inicio} até ${fim}`;
   }
 
   function abrirRelatorioImpressao() {
     if (processosFiltrados.length === 0) {
-      alert("NÃ£o hÃ¡ processos para gerar relatÃ³rio com os filtros atuais.");
+      alert("Não há processos para gerar relatório com os filtros atuais.");
       return;
     }
 
@@ -1829,14 +1829,14 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
     const linhasTabela = processosFiltrados
       .map((processo) => {
         const dias = obterDiasDoProcesso(processo);
-        const endereco = `${processo.rua || "---"}, nÂº ${
+        const endereco = `${processo.rua || "---"}, nº ${
           processo.numero_rua || "---"
         }`;
 
         return `
           <tr>
             <td>${escaparHtml(processo.sisgep)}</td>
-            <td>${escaparHtml(processo.concluido ? "ConcluÃ­do" : "Pendente")}</td>
+            <td>${escaparHtml(processo.concluido ? "Concluído" : "Pendente")}</td>
             <td>${escaparHtml(formatarData(processo.data_entrada))}</td>
             <td>${escaparHtml(String(dias))}</td>
             <td>${escaparHtml(processo.assunto || "---")}</td>
@@ -1854,7 +1854,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
       <html lang="pt-BR">
         <head>
           <meta charset="utf-8" />
-          <title>RelatÃ³rio FiscalizaÃ§Ã£o SisGep</title>
+          <title>Relatório Fiscalização SisGep</title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -1948,7 +1948,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
         </head>
         <body>
           <header>
-            <h1>RelatÃ³rio FiscalizaÃ§Ã£o SisGep</h1>
+            <h1>Relatório Fiscalização SisGep</h1>
             <div class="subtitulo">Gerado em ${escaparHtml(dataGeracao)} pelo ALMS PRIME</div>
           </header>
 
@@ -1958,21 +1958,21 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             Status: ${escaparHtml(filtroStatus)}<br />
             Assunto: ${escaparHtml(filtroAssunto === "todos" ? "Todos" : filtroAssunto)}<br />
             Setor: ${escaparHtml(filtroSetor === "todos" ? "Todos" : filtroSetor)}<br />
-            PerÃ­odo: ${escaparHtml(descricaoFiltroPeriodo())}<br />
-            OrdenaÃ§Ã£o: ${escaparHtml(ordenacao)}
+            Período: ${escaparHtml(descricaoFiltroPeriodo())}<br />
+            Ordenação: ${escaparHtml(ordenacao)}
           </section>
 
           <section class="cards">
             <div class="card"><p>Total filtrado</p><strong>${processosFiltrados.length}</strong></div>
             <div class="card"><p>Pendentes</p><strong>${pendentesFiltrados}</strong></div>
-            <div class="card"><p>ConcluÃ­dos</p><strong>${concluidosFiltrados}</strong></div>
-            <div class="card"><p>CrÃ­ticos +15 dias</p><strong>${relatorioResumido.pendentesCriticos}</strong></div>
+            <div class="card"><p>Concluídos</p><strong>${concluidosFiltrados}</strong></div>
+            <div class="card"><p>Críticos +15 dias</p><strong>${relatorioResumido.pendentesCriticos}</strong></div>
           </section>
 
           <section class="cards">
-            <div class="card"><p>AtenÃ§Ã£o +10 dias</p><strong>${relatorioResumido.pendentesAtencao}</strong></div>
-            <div class="card"><p>MÃ©dia dias filtrados</p><strong>${relatorioResumido.mediaDias.toFixed(1)}</strong></div>
-            <div class="card"><p>MÃ©dia concluÃ­dos</p><strong>${relatorioResumido.mediaDiasConcluidos.toFixed(1)}</strong></div>
+            <div class="card"><p>Atenção +10 dias</p><strong>${relatorioResumido.pendentesAtencao}</strong></div>
+            <div class="card"><p>Média dias filtrados</p><strong>${relatorioResumido.mediaDias.toFixed(1)}</strong></div>
+            <div class="card"><p>Média concluídos</p><strong>${relatorioResumido.mediaDiasConcluidos.toFixed(1)}</strong></div>
             <div class="card"><p>Total geral</p><strong>${total}</strong></div>
           </section>
 
@@ -1985,7 +1985,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 <th>Dias</th>
                 <th>Assunto</th>
                 <th>Aberto por</th>
-                <th>EndereÃ§o</th>
+                <th>Endereço</th>
                 <th>Bairro</th>
                 <th>Setor</th>
               </tr>
@@ -1993,7 +1993,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <tbody>${linhasTabela}</tbody>
           </table>
 
-          <div class="rodape">ALMS PRIME â€” RelatÃ³rio gerado a partir dos filtros atuais.</div>
+          <div class="rodape">ALMS PRIME — Relatório gerado a partir dos filtros atuais.</div>
 
           <script>
             window.onload = function() {
@@ -2008,7 +2008,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
     const janela = window.open("", "_blank", "width=1200,height=800");
 
     if (!janela) {
-      alert("Permita pop-ups para gerar o relatÃ³rio de impressÃ£o/PDF.");
+      alert("Permita pop-ups para gerar o relatório de impressão/PDF.");
       return;
     }
 
@@ -2026,7 +2026,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
     const dataGeracao = new Date().toLocaleString("pt-BR");
     const linhasTabela = preRelatorioFiltrados.map((processo) => {
       const dias = obterDiasDoProcesso(processo);
-      const endereco = `${processo.rua || "---"}, nÂº ${processo.numero_rua || "---"}`;
+      const endereco = `${processo.rua || "---"}, nº ${processo.numero_rua || "---"}`;
 
       return `
         <tr>
@@ -2049,7 +2049,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
       <html lang="pt-BR">
         <head>
           <meta charset="utf-8" />
-          <title>RelatÃ³rio de PendÃªncias SisGep</title>
+          <title>Relatório de Pendências SisGep</title>
           <style>
             * { box-sizing: border-box; }
             body { font-family: Arial, sans-serif; margin: 32px; background: #fff; color: #0f172a; }
@@ -2066,10 +2066,10 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
         </head>
         <body>
           <header>
-            <h1>RelatÃ³rio de PendÃªncias SisGep</h1>
+            <h1>Relatório de Pendências SisGep</h1>
             <div class="subtitulo">Gerado em ${escaparHtml(dataGeracao)} pelo ALMS PRIME</div>
           </header>
-          <div class="resumo">Total de processos pendentes no relatÃ³rio: ${preRelatorioFiltrados.length}</div>
+          <div class="resumo">Total de processos pendentes no relatório: ${preRelatorioFiltrados.length}</div>
           <table>
             <thead>
               <tr>
@@ -2078,7 +2078,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 <th>Dias Atraso</th>
                 <th>Assunto</th>
                 <th>Aberto por</th>
-                <th>EndereÃ§o</th>
+                <th>Endereço</th>
                 <th>Bairro</th>
                 <th>Setor</th>
               </tr>
@@ -2093,7 +2093,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
     `;
 
     const janela = window.open("", "_blank", "width=1200,height=800");
-    if (!janela) { alert("Permita pop-ups para gerar o relatÃ³rio."); return; }
+    if (!janela) { alert("Permita pop-ups para gerar o relatório."); return; }
     janela.document.open(); janela.document.write(html); janela.document.close();
   }
 
@@ -2151,13 +2151,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 href="/"
                 className="text-sm font-semibold text-blue-200 hover:text-white"
               >
-                â† Voltar ao portal
+                ← Voltar ao portal
               </Link>
 
-              <h1 className="mt-4 text-3xl font-bold">FiscalizaÃ§Ã£o SisGep</h1>
+              <h1 className="mt-4 text-3xl font-bold">Fiscalização SisGep</h1>
 
               <p className="mt-2 text-blue-100">
-                Sistema de controle de processos, mapas, anexos, dashboard e relatÃ³rios.
+                Sistema de controle de processos, mapas, anexos, dashboard e relatórios.
               </p>
             </div>
 
@@ -2181,7 +2181,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   href="/fiscalizacao/usuarios"
                   className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-bold text-white hover:bg-violet-600"
                 >
-                  UsuÃ¡rios
+                  Usuários
                 </Link>
               )}
 
@@ -2190,7 +2190,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   href="/fiscalizacao/configuracoes"
                   className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
                 >
-                  ConfiguraÃ§Ãµes
+                  Configurações
                 </Link>
               )}
 
@@ -2222,7 +2222,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   onClick={abrirModalCorrecaoLocalizacao}
                   className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-400"
                 >
-                  Corrigir localizaÃ§Ã£o
+                  Corrigir localização
                 </button>
               )}
 
@@ -2250,7 +2250,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase text-slate-500">ConcluÃ­dos</p>
+            <p className="text-xs font-bold uppercase text-slate-500">Concluídos</p>
             <p className="mt-2 text-3xl font-black text-green-600">{concluidos}</p>
           </div>
 
@@ -2270,7 +2270,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               type="text"
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
-              placeholder="Buscar por SisGep, assunto, bairro, setor ou endereÃ§o..."
+              placeholder="Buscar por SisGep, assunto, bairro, setor ou endereço..."
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
             />
 
@@ -2305,7 +2305,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
-                ConcluÃ­dos
+                Concluídos
               </button>
 
               <button
@@ -2322,7 +2322,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-semibold text-slate-600">
-                Processos por pÃ¡gina
+                Processos por página
               </label>
 
               <select
@@ -2330,16 +2330,16 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 onChange={(event) => setItensPorPagina(Number(event.target.value))}
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
               >
-                <option value={12}>12 por pÃ¡gina</option>
-                <option value={24}>24 por pÃ¡gina</option>
-                <option value={48}>48 por pÃ¡gina</option>
-                <option value={96}>96 por pÃ¡gina</option>
+                <option value={12}>12 por página</option>
+                <option value={24}>24 por página</option>
+                <option value={48}>48 por página</option>
+                <option value={96}>96 por página</option>
               </select>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-semibold text-slate-600">
-                VisualizaÃ§Ã£o
+                Visualização
               </label>
 
               <div className="grid grid-cols-2 gap-2">
@@ -2428,7 +2428,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <div className="grid gap-4 md:grid-cols-4">
                 <div>
                   <label className="text-sm font-semibold text-slate-600">
-                    Filtrar por perÃ­odo
+                    Filtrar por período
                   </label>
 
                   <select
@@ -2440,14 +2440,14 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
                   >
-                    <option value="todos">Sem filtro de perÃ­odo</option>
+                    <option value="todos">Sem filtro de período</option>
                     <option value="entrada">Data de entrada</option>
-                    <option value="conclusao">Data de conclusÃ£o</option>
+                    <option value="conclusao">Data de conclusão</option>
                   </select>
 
                   {tipoFiltroPeriodo === "conclusao" && (
                     <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
-                      Filtro por data de conclusÃ£o exibe apenas processos concluÃ­dos.
+                      Filtro por data de conclusão exibe apenas processos concluídos.
                     </p>
                   )}
                 </div>
@@ -2485,19 +2485,19 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     onClick={limparFiltroPeriodo}
                     className="w-full rounded-lg bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300"
                   >
-                    Limpar perÃ­odo
+                    Limpar período
                   </button>
                 </div>
               </div>
 
               <p className="mt-3 text-xs text-slate-500">
-                O filtro por perÃ­odo tambÃ©m serÃ¡ aplicado na exportaÃ§Ã£o CSV.
+                O filtro por período também será aplicado na exportação CSV.
               </p>
             </div>
 
             <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-600">RelatÃ³rio</p>
+                <p className="text-sm font-semibold text-slate-600">Relatório</p>
                 <p className="text-xs text-slate-500">
                   Exporta todos os processos filtrados na tela.
                 </p>
@@ -2508,7 +2508,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   onClick={() => { limparFiltrosRelatorio(); setModalRelatorioAberto(true); }}
                   className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500"
                 >
-                  RelatÃ³rio Personalizado
+                  Relatório Personalizado
                 </button>
 
                 <button
@@ -2522,7 +2522,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   onClick={abrirRelatorioImpressao}
                   className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
                 >
-                  RelatÃ³rio PDF
+                  Relatório PDF
                 </button>
 
                 <button
@@ -2556,7 +2556,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             <div className="rounded-xl bg-green-50 p-3">
               <p className="text-xs font-bold uppercase text-green-700">
-                ConcluÃ­dos filtrados
+                Concluídos filtrados
               </p>
               <p className="text-2xl font-black text-green-700">
                 {concluidosFiltrados}
@@ -2575,7 +2575,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-800">
-                RelatÃ³rio resumido dos filtros
+                Relatório resumido dos filtros
               </h2>
 
               <p className="mt-1 text-sm text-slate-600">
@@ -2586,7 +2586,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-xl bg-red-50 p-4">
                 <p className="text-xs font-bold uppercase text-red-700">
-                  CrÃ­ticos +15 dias
+                  Críticos +15 dias
                 </p>
                 <p className="text-2xl font-black text-red-700">
                   {relatorioResumido.pendentesCriticos}
@@ -2595,7 +2595,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
               <div className="rounded-xl bg-yellow-50 p-4">
                 <p className="text-xs font-bold uppercase text-yellow-700">
-                  AtenÃ§Ã£o +10 dias
+                  Atenção +10 dias
                 </p>
                 <p className="text-2xl font-black text-yellow-700">
                   {relatorioResumido.pendentesAtencao}
@@ -2604,7 +2604,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-bold uppercase text-slate-500">
-                  MÃ©dia dias filtrados
+                  Média dias filtrados
                 </p>
                 <p className="text-2xl font-black text-slate-800">
                   {relatorioResumido.mediaDias.toFixed(1)}
@@ -2613,7 +2613,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
               <div className="rounded-xl bg-green-50 p-4">
                 <p className="text-xs font-bold uppercase text-green-700">
-                  MÃ©dia concluÃ­dos
+                  Média concluídos
                 </p>
                 <p className="text-2xl font-black text-green-700">
                   {relatorioResumido.mediaDiasConcluidos.toFixed(1)}
@@ -2634,7 +2634,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             />
 
             <ListaResumo
-              titulo="Bairros com mais pendÃªncias"
+              titulo="Bairros com mais pendências"
               itens={relatorioResumido.bairrosPendentes}
             />
           </div>
@@ -2660,7 +2660,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   onClick={alternarSelecionarTodosFiltrados}
                   className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
                 >
-                  Selecionar pendentes da pÃ¡gina
+                  Selecionar pendentes da página
                 </button>
 
                 <button
@@ -2668,7 +2668,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   disabled={processosSelecionados.length === 0}
                   className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Limpar seleÃ§Ã£o
+                  Limpar seleção
                 </button>
 
                 <button
@@ -2720,7 +2720,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
                           <span className="text-xs font-bold text-slate-600">
                             {processo.concluido
-                              ? "Processo jÃ¡ concluÃ­do"
+                              ? "Processo já concluído"
                               : "Selecionar para baixa em lote"}
                           </span>
                         </div>
@@ -2739,7 +2739,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         <div className="flex flex-col items-end gap-2">
                           {(!processo.bairro?.trim() || !processo.setor?.trim()) && (
                             <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
-                              LocalizaÃ§Ã£o incompleta
+                              Localização incompleta
                             </span>
                           )}
 
@@ -2750,7 +2750,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                 : "bg-yellow-100 text-yellow-700"
                             }`}
                           >
-                            {processo.concluido ? "ConcluÃ­do" : "Pendente"}
+                            {processo.concluido ? "Concluído" : "Pendente"}
                           </span>
                         </div>
                       </div>
@@ -2765,7 +2765,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         </p>
 
                         <p>
-                          <b>ConclusÃ£o:</b> {formatarData(processo.data_conclusao)}
+                          <b>Conclusão:</b> {formatarData(processo.data_conclusao)}
                         </p>
 
                         <p>
@@ -2773,18 +2773,18 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         </p>
 
                         <p>
-                          <b>EndereÃ§o:</b> {processo.rua || "---"}, nÂº{" "}
+                          <b>Endereço:</b> {processo.rua || "---"}, nº{" "}
                           {processo.numero_rua || "---"}
                         </p>
 
                         <p>
                           <b>Bairro:</b>{" "}
-                          {processo.bairro || "SerÃ¡ gerado automaticamente"}
+                          {processo.bairro || "Será gerado automaticamente"}
                         </p>
 
                         <p>
                           <b>Setor:</b>{" "}
-                          {processo.setor || "SerÃ¡ gerado automaticamente"}
+                          {processo.setor || "Será gerado automaticamente"}
                         </p>
                       </div>
 
@@ -2803,7 +2803,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                           rel="noreferrer"
                           className="text-sm font-bold text-blue-700 hover:underline"
                         >
-                          ðŸ“ Maps
+                          📍 Maps
                         </a>
                       </div>
 
@@ -2816,7 +2816,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       <div className="mt-4 rounded-xl bg-white/80 p-3">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-bold text-slate-700">
-                            ðŸ“Ž Anexos
+                            📎 Anexos
                           </p>
 
                           <span className="text-xs font-semibold text-slate-500">
@@ -2865,7 +2865,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                   className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-blue-700 hover:underline"
                                   title={anexo.nome_arquivo || "Ver anexo"}
                                 >
-                                  ðŸ‘ï¸ {anexo.nome_arquivo || "Ver anexo"}
+                                  👁️ {anexo.nome_arquivo || "Ver anexo"}
                                 </button>
 
                                 {podeGerenciarProcessos && (
@@ -2893,7 +2893,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                         onClick={() => abrirHistoricoProcesso(processo)}
                         className="mt-4 w-full rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200"
                       >
-                        HistÃ³rico
+                        Histórico
                       </button>
 
                       {podeGerenciarProcessos && (
@@ -2965,11 +2965,11 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       <th className="px-4 py-3">Dias</th>
                       <th className="px-4 py-3">Assunto</th>
                       <th className="px-4 py-3">Aberto por</th>
-                      <th className="min-w-[260px] max-w-[360px] px-4 py-3">EndereÃ§o</th>
+                      <th className="px-4 py-3">Endereço</th>
                       <th className="px-4 py-3">Bairro</th>
                      <th className="px-4 py-3">Setor</th>
                       <th className="bg-slate-50 px-4 py-3 text-right">
-                        AÃ§Ãµes
+                        Ações
                       </th>
                     </tr>
                   </thead>
@@ -2990,7 +2990,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                 className="h-4 w-4"
                               />
                             ) : (
-                              <span className="text-xs font-semibold text-slate-400">â€”</span>
+                              <span className="text-xs font-semibold text-slate-400">—</span>
                             )}
                           </td>
 
@@ -3006,7 +3006,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                   : "bg-yellow-100 text-yellow-700"
                               }`}
                             >
-                              {processo.concluido ? "ConcluÃ­do" : "Pendente"}
+                              {processo.concluido ? "Concluído" : "Pendente"}
                             </span>
                           </td>
 
@@ -3032,7 +3032,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
                           <td className="min-w-[260px] max-w-[360px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
-                              {processo.rua || "---"}, nÂº{" "}
+                              {processo.rua || "---"}, nº{" "}
                               {processo.numero_rua || "---"}
                             </span>
                           </td>
@@ -3064,7 +3064,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                                 onClick={() => abrirHistoricoProcesso(processo)}
                                 className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
                               >
-                                HistÃ³rico
+                                Histórico
                               </button>
 
                               {podeGerenciarProcessos && (
@@ -3112,7 +3112,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             {processosFiltrados.length > 0 && (
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-semibold text-slate-600">
-                  PÃ¡gina {paginaAtualSegura} de {totalPaginas}
+                  Página {paginaAtualSegura} de {totalPaginas}
                 </p>
 
                 <div className="flex gap-2">
@@ -3129,7 +3129,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     disabled={paginaAtualSegura >= totalPaginas}
                     className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    PrÃ³xima
+                    Próxima
                   </button>
                 </div>
               </div>
@@ -3178,7 +3178,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               />
 
               <CampoTexto
-                label="NÂº SisGep *"
+                label="Nº SisGep *"
                 value={novoProcesso.sisgep}
                 onChange={(valor) =>
                   atualizarCampoNovoProcesso(
@@ -3210,7 +3210,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               />
 
               <CampoTexto
-                label="NÃºmero"
+                label="Número"
                 value={novoProcesso.numero_rua}
                 onChange={(valor) =>
                   atualizarCampoNovoProcesso("numero_rua", valor)
@@ -3229,7 +3229,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   </button>
 
                   <span className="text-xs font-semibold text-blue-800">
-                    Preencha rua e nÃºmero para buscar automaticamente.
+                    Preencha rua e número para buscar automaticamente.
                   </span>
                 </div>
 
@@ -3317,7 +3317,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               />
 
               <CampoTexto
-                label="NÂº SisGep *"
+                label="Nº SisGep *"
                 value={processoEdicao.sisgep}
                 onChange={(valor) =>
                   atualizarCampoEdicaoProcesso(
@@ -3351,7 +3351,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               />
 
               <CampoTexto
-                label="NÃºmero"
+                label="Número"
                 value={processoEdicao.numero_rua}
                 onChange={(valor) =>
                   atualizarCampoEdicaoProcesso("numero_rua", valor)
@@ -3370,7 +3370,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   </button>
 
                   <span className="text-xs font-semibold text-blue-800">
-                    Preencha rua e nÃºmero para buscar automaticamente.
+                    Preencha rua e número para buscar automaticamente.
                   </span>
                 </div>
 
@@ -3416,7 +3416,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                   disabled={salvandoEdicao}
                   className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {salvandoEdicao ? "Salvando..." : "Salvar alteraÃ§Ãµes"}
+                  {salvandoEdicao ? "Salvando..." : "Salvar alterações"}
                 </button>
               </div>
             </form>
@@ -3435,7 +3435,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     : "Concluir processos selecionados"}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Escolha a data de conclusÃ£o. NÃ£o Ã© permitido selecionar data futura.
+                  Escolha a data de conclusão. Não é permitido selecionar data futura.
                 </p>
               </div>
 
@@ -3450,7 +3450,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             <label className="mt-5 block">
               <span className="text-sm font-semibold text-slate-700">
-                Data de conclusÃ£o
+                Data de conclusão
               </span>
               <input
                 type="date"
@@ -3465,7 +3465,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             {!dataConclusaoValida(dataConclusaoSelecionada) && (
               <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
-                A data de conclusÃ£o nÃ£o pode ser maior que hoje.
+                A data de conclusão não pode ser maior que hoje.
               </div>
             )}
 
@@ -3488,7 +3488,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 }
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {salvandoConclusao ? "Salvando..." : "Confirmar conclusÃ£o"}
+                {salvandoConclusao ? "Salvando..." : "Confirmar conclusão"}
               </button>
             </div>
           </div>
@@ -3501,10 +3501,10 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-800">
-                  Corrigir data de conclusÃ£o
+                  Corrigir data de conclusão
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Informe os nÃºmeros de SisGep e escolha a nova data de conclusÃ£o.
+                  Informe os números de SisGep e escolha a nova data de conclusão.
                 </p>
               </div>
 
@@ -3525,14 +3525,14 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 value={sisgepsCorrecaoData}
                 onChange={(event) => setSisgepsCorrecaoData(event.target.value)}
                 rows={6}
-                placeholder="Digite ou cole os SisGeps, separados por linha, vÃ­rgula ou espaÃ§o."
+                placeholder="Digite ou cole os SisGeps, separados por linha, vírgula ou espaço."
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-700"
               />
             </label>
 
             <label className="mt-4 block">
               <span className="text-sm font-semibold text-slate-700">
-                Nova data de conclusÃ£o
+                Nova data de conclusão
               </span>
               <input
                 type="date"
@@ -3552,7 +3552,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             )}
 
             <div className="mt-6 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              AtenÃ§Ã£o: esta aÃ§Ã£o altera a data de conclusÃ£o dos processos encontrados e recalcula o SLA.
+              Atenção: esta ação altera a data de conclusão dos processos encontrados e recalcula o SLA.
             </div>
 
             <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
@@ -3582,7 +3582,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-5xl rounded-2xl bg-white p-6 shadow-lg">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold">Corrigir localizaÃ§Ã£o</h3>
+              <h3 className="text-lg font-bold">Corrigir localização</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={fecharModalCorrecaoLocalizacao}
@@ -3596,7 +3596,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <div className="mt-4 grid grid-cols-3 gap-4">
               <div className="col-span-1 h-72 overflow-auto rounded border p-2">
                 {processosComLocalizacaoIncompleta.length === 0 ? (
-                  <p className="text-sm text-slate-500">Nenhum processo com localizaÃ§Ã£o incompleta.</p>
+                  <p className="text-sm text-slate-500">Nenhum processo com localização incompleta.</p>
                 ) : (
                   processosComLocalizacaoIncompleta.map((p) => (
                     <button
@@ -3610,7 +3610,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     >
                       <div className="font-semibold text-sm">{p.sisgep}</div>
                       <div className="text-xs text-slate-500 truncate">{`${p.rua || ""} ${p.numero_rua || ""}`}</div>
-                      <div className="text-xs text-slate-500">{p.bairro || "-"} Â· {p.setor || "-"}</div>
+                      <div className="text-xs text-slate-500">{p.bairro || "-"} · {p.setor || "-"}</div>
                     </button>
                   ))
                 )}
@@ -3657,7 +3657,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     readOnly
                     className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-700 outline-none"
                   />
-                  <p className="mt-2 text-sm text-slate-500">O setor Ã© preenchido automaticamente conforme o bairro selecionado.</p>
+                  <p className="mt-2 text-sm text-slate-500">O setor é preenchido automaticamente conforme o bairro selecionado.</p>
                 </div>
 
                 <p className="mt-3 text-sm text-slate-500">{mensagemCorrecaoLocalizacao}</p>
@@ -3675,7 +3675,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                     disabled={salvandoCorrecaoLocalizacao}
                     className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {salvandoCorrecaoLocalizacao ? "Salvando..." : "Salvar correÃ§Ã£o"}
+                    {salvandoCorrecaoLocalizacao ? "Salvando..." : "Salvar correção"}
                   </button>
                 </div>
               </div>
@@ -3690,7 +3690,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
               <div>
                 <h2 className="text-xl font-bold text-slate-800">
-                  HistÃ³rico do processo
+                  Histórico do processo
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
                   SisGep: {processoHistorico?.sisgep || "---"}
@@ -3709,7 +3709,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             <div className="max-h-[70vh] overflow-y-auto p-6">
               {carregandoHistorico && (
                 <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-                  Carregando histÃ³rico...
+                  Carregando histórico...
                 </div>
               )}
 
@@ -3721,7 +3721,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
               {!carregandoHistorico && !erroHistorico && historicoProcesso.length === 0 && (
                 <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-                  Nenhum histÃ³rico registrado para este processo.
+                  Nenhum histórico registrado para este processo.
                 </div>
               )}
 
@@ -3739,7 +3739,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                           </p>
 
                           <p className="mt-1 text-sm text-slate-600">
-                            {item.descricao || "Sem descriÃ§Ã£o."}
+                            {item.descricao || "Sem descrição."}
                           </p>
                         </div>
 
@@ -3749,7 +3749,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       </div>
 
                       <div className="mt-3 text-xs text-slate-500">
-                        UsuÃ¡rio: {item.usuario_nome || item.usuario_email || "---"}
+                        Usuário: {item.usuario_nome || item.usuario_email || "---"}
                       </div>
                     </div>
                   ))}
@@ -3760,15 +3760,15 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
         </div>
       )}
 
-      {/* MODAL DE RELATÃ“RIO DE PENDÃŠNCIAS */}
+      {/* MODAL DE RELATÓRIO DE PENDÊNCIAS */}
       {modalRelatorioAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
             
             <div className="flex flex-shrink-0 items-start justify-between border-b border-slate-200 p-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">Gerar RelatÃ³rio de PendÃªncias</h2>
-                <p className="mt-1 text-sm text-slate-600">Selecione mÃºltiplas opÃ§Ãµes. O relatÃ³rio mostrarÃ¡ apenas os itens que combinam com os filtros abaixo.</p>
+                <h2 className="text-2xl font-bold text-slate-800">Gerar Relatório de Pendências</h2>
+                <p className="mt-1 text-sm text-slate-600">Selecione múltiplas opções. O relatório mostrará apenas os itens que combinam com os filtros abaixo.</p>
               </div>
               <button onClick={() => setModalRelatorioAberto(false)} className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-200">
                 Fechar
@@ -3779,19 +3779,19 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-bold text-red-800 uppercase">Processos Encontrados</p>
-                  <p className="text-xs text-red-600">Prontos para impressÃ£o</p>
+                  <p className="text-xs text-red-600">Prontos para impressão</p>
                 </div>
                 <p className="text-4xl font-black text-red-700">{preRelatorioFiltrados.length}</p>
               </div>
 
               <div className="mb-4">
-                <label className="text-sm font-bold text-slate-800 mb-2 block">NÃ­vel de Atraso (SLA)</label>
+                <label className="text-sm font-bold text-slate-800 mb-2 block">Nível de Atraso (SLA)</label>
                 <div className="flex gap-2">
                   {[
                     { id: "todos", label: "Todos pendentes" },
-                    { id: "critico", label: "CrÃ­ticos (15+ dias)" },
-                    { id: "atencao", label: "AtenÃ§Ã£o (10 a 14 dias)" },
-                    { id: "normal", label: "Normal (AtÃ© 9 dias)" },
+                    { id: "critico", label: "Críticos (15+ dias)" },
+                    { id: "atencao", label: "Atenção (10 a 14 dias)" },
+                    { id: "normal", label: "Normal (Até 9 dias)" },
                   ].map((opcao) => (
                     <label key={opcao.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100">
                       <input type="radio" name="sla" checked={relFiltroSla === opcao.id} onChange={() => setRelFiltroSla(opcao.id)} className="h-4 w-4" />
@@ -3845,7 +3845,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                 </button>
 
                 <button type="button" onClick={gerarRelatorioPendenciasPersonalizado} disabled={preRelatorioFiltrados.length === 0} className="rounded-lg bg-red-700 px-6 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Gerar RelatÃ³rio
+                  Gerar Relatório
                 </button>
               </div>
             </div>
@@ -3942,7 +3942,7 @@ function CampoObservacao({
 }) {
   return (
     <div className="md:col-span-2">
-      <label className="text-sm font-semibold text-slate-700">ObservaÃ§Ã£o</label>
+      <label className="text-sm font-semibold text-slate-700">Observação</label>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
