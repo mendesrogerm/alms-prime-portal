@@ -2941,28 +2941,27 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
             )}
 
             {modoVisualizacao === "tabela" && (
-              <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="w-[2230px] min-w-[2230px] table-fixed border-collapse text-left text-sm">
+              <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table className="w-full table-fixed border-collapse text-left text-[11px] leading-snug [&_td]:align-top [&_td]:break-words [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-normal [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-normal">
                   <colgroup>
-                    <col className="w-[90px]" />
-                    <col className="w-[180px]" />
-                    <col className="w-[130px]" />
-                    <col className="w-[120px]" />
-                    <col className="w-[80px]" />
-                    <col className="w-[260px]" />
-                    <col className="w-[260px]" />
-                    <col className="w-[340px]" />
-                    <col className="w-[260px]" />
-                    <col className="w-[160px]" />
-                    <col className="w-[350px]" />
-                  </colgroup>
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "7%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "13%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "11%" }} />
+                  </colgroup><thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
                     <tr>
-                      <th className="px-4 py-3">Selecionar</th>
-                      <th className="px-4 py-3">SisGep</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Entrada</th>
-                      <th className="px-4 py-3">Dias</th>
+                      <th className="px-2 py-2 text-center">Sel.</th>
+                      <th className="px-2 py-2">SisGep</th>
+                      <th className="px-2 py-2">Status</th>
+                      <th className="px-2 py-2">Entrada</th>
+                      <th className="px-2 py-2">Dias</th>
                       <th className="px-4 py-3">Assunto</th>
                       <th className="px-4 py-3">Aberto por</th>
                       <th className="px-4 py-3">Endereço</th>
@@ -3018,51 +3017,51 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             {dias}
                           </td>
 
-                          <td className="min-w-[220px] max-w-[320px] px-4 py-3 text-slate-600">
+                          <td className="px-2 py-2 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.assunto || "---"}
                             </span>
                           </td>
 
-                          <td className="min-w-[180px] max-w-[260px] px-4 py-3 text-slate-600">
+                          <td className="px-2 py-2 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.aberto_por || "---"}
                             </span>
                           </td>
 
-                          <td className="min-w-[260px] max-w-[360px] px-4 py-3 text-slate-600">
+                          <td className="px-2 py-2 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.rua || "---"}, nº{" "}
                               {processo.numero_rua || "---"}
                             </span>
                           </td>
 
-                          <td className="px-4 py-3 align-top text-slate-600">
+                          <td className="px-2 py-2 align-top text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.bairro || "---"}
                             </span>
                           </td>
 
-                          <td className="px-4 py-3 align-top text-slate-600">
+                          <td className="px-2 py-2 align-top text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.setor || "---"}
                             </span>
                           </td>
 
-                          <td className="px-4 py-3 align-top">
-                            <div className="flex justify-end gap-2">
+                          <td className="px-2 py-2 align-top">
+                            <div className="flex flex-wrap justify-end gap-1">
                               <a
                                 href={getLinkMapa(processo)}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                                className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
                               >
                                 Maps
                               </a>
 
                               <button
                                 onClick={() => abrirHistoricoProcesso(processo)}
-                                className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                                className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
                               >
                                 Histórico
                               </button>
@@ -3070,7 +3069,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                               {podeGerenciarProcessos && (
                                 <button
                                   onClick={() => abrirModalEdicao(processo)}
-                                  className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-600"
+                                  className="rounded-lg bg-blue-700 px-2 py-1 text-[10px] font-bold text-white hover:bg-blue-600"
                                 >
                                   Editar
                                 </button>
@@ -3079,7 +3078,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                               {podeGerenciarProcessos && (
                                 <button
                                   onClick={() => alterarStatusProcesso(processo)}
-                                  className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
+                                  className={`rounded-lg px-2 py-1 text-[10px] font-bold text-white ${
                                     processo.concluido
                                       ? "bg-slate-600 hover:bg-slate-700"
                                       : "bg-green-600 hover:bg-green-700"
