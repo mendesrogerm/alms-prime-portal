@@ -2941,7 +2941,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             {modoVisualizacao === "tabela" && (
               <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="min-w-[1500px] w-full border-collapse text-left text-sm">
+                <table className="min-w-[1650px] w-full border-collapse text-left text-sm">
                   <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="px-4 py-3">Selecionar</th>
@@ -2952,8 +2952,8 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                       <th className="min-w-[220px] max-w-[320px] px-4 py-3">Assunto</th>
                       <th className="min-w-[180px] max-w-[260px] px-4 py-3">Aberto por</th>
                       <th className="min-w-[260px] max-w-[360px] px-4 py-3">Endereço</th>
-                      <th className="min-w-[150px] max-w-[220px] px-4 py-3">Bairro</th>
-                      <th className="px-4 py-3">Setor</th>
+                      <th className="min-w-[200px] px-4 py-3">Bairro</th>
+                     <th className="min-w-[200px] px-4 py-3">Setor</th>
                       <th className="sticky right-0 bg-slate-50 px-4 py-3 text-right min-w-[300px]">
                         Ações
                       </th>
@@ -3023,13 +3023,13 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             </span>
                           </td>
 
-                          <td className="min-w-[150px] max-w-[220px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[200px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.bairro || "---"}
                             </span>
                           </td>
 
-                          <td className="max-w-[180px] px-4 py-3 text-slate-600">
+                          <td className="min-w-[200px] px-4 py-3 text-slate-600">>
                             <span className="block whitespace-normal break-words">
                               {processo.setor || "---"}
                             </span>
