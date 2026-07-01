@@ -2942,19 +2942,19 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
 
             {modoVisualizacao === "tabela" && (
               <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="w-full table-fixed border-collapse text-left text-[11px] leading-snug [&_td]:align-top [&_td]:break-words [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-normal [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-normal">
+                <table className="w-full table-fixed border-collapse text-left text-[10.5px] leading-tight [&_td]:align-top [&_td]:break-words [&_td]:px-1.5 [&_td]:py-2 [&_td]:whitespace-normal [&_th]:px-1.5 [&_th]:py-2 [&_th]:whitespace-normal">
                   <colgroup>
-                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "3.5%" }} />
                     <col style={{ width: "10%" }} />
                     <col style={{ width: "7%" }} />
                     <col style={{ width: "7%" }} />
                     <col style={{ width: "4%" }} />
                     <col style={{ width: "13%" }} />
-                    <col style={{ width: "15%" }} />
-                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "15.5%" }} />
+                    <col style={{ width: "10%" }} />
                     <col style={{ width: "8%" }} />
-                    <col style={{ width: "5%" }} />
-                    <col style={{ width: "11%" }} />
+                    <col style={{ width: "8%" }} />
                   </colgroup><thead className="bg-slate-50 text-[10px] uppercase text-slate-500">
                     <tr>
                       <th className="px-2 py-2 text-center">Sel.</th>
