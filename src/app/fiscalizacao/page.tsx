@@ -3029,7 +3029,7 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
                             </span>
                           </td>
 
-                          <td className="min-w-[200px] px-4 py-3 text-slate-600">>
+                          <td className="min-w-[200px] px-4 py-3 text-slate-600">
                             <span className="block whitespace-normal break-words">
                               {processo.setor || "---"}
                             </span>
