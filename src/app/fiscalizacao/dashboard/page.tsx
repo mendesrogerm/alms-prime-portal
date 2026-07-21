@@ -108,6 +108,39 @@ export default function DashboardPage() {
     carregarDashboard();
   }, []);
 
+  async function carregarTodosProcessos(): Promise<Processo[]> {
+    const tamanhoLote = 1000;
+    const todosOsProcessos: Processo[] = [];
+
+    let inicio = 0;
+
+    while (true) {
+      const fim = inicio + tamanhoLote - 1;
+
+      const { data, error } = await supabase
+        .from("processos")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(inicio, fim);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const lote = (data ?? []) as Processo[];
+
+      todosOsProcessos.push(...lote);
+
+      if (lote.length < tamanhoLote) {
+        break;
+      }
+
+      inicio += tamanhoLote;
+    }
+
+    return todosOsProcessos;
+  }
   async function carregarDashboard() {
     setCarregando(true);
     setErro("");
@@ -119,18 +152,19 @@ export default function DashboardPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("processos")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const processosCarregados = await carregarTodosProcessos();
+      setProcessos(processosCarregados);
+    } catch (error) {
+      const mensagem =
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao carregar o dashboard.";
 
-    if (error) {
-      setErro("Erro ao carregar dashboard: " + error.message);
+      setErro("Erro ao carregar dashboard: " + mensagem);
       setCarregando(false);
       return;
     }
-
-    setProcessos(data || []);
     setCarregando(false);
   }
 
