@@ -109,17 +109,38 @@ export default function UsuariosPage() {
   }
 
   async function carregarUsuarios() {
-    const { data, error } = await supabase
-      .from("perfis_usuarios")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const tamanhoLote = 1000;
+    const todosUsuarios: PerfilUsuario[] = [];
+    let inicio = 0;
 
-    if (error) {
-      setErro("Erro ao carregar usuários: " + error.message);
-      return;
+    while (true) {
+      const fim = inicio + tamanhoLote - 1;
+
+      const { data, error } = await supabase
+        .from("perfis_usuarios")
+        .select(
+          "id,user_id,email,nome,nivel,ativo,created_at,updated_at"
+        )
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(inicio, fim);
+
+      if (error) {
+        setErro("Erro ao carregar usuários: " + error.message);
+        return;
+      }
+
+      const lote = (data || []) as PerfilUsuario[];
+      todosUsuarios.push(...lote);
+
+      if (lote.length < tamanhoLote) {
+        break;
+      }
+
+      inicio += tamanhoLote;
     }
 
-    setUsuarios((data || []) as PerfilUsuario[]);
+    setUsuarios(todosUsuarios);
   }
 
   async function criarUsuario(event: React.FormEvent<HTMLFormElement>) {
@@ -214,14 +235,19 @@ export default function UsuariosPage() {
       return;
     }
 
-    if (usuarioEditando.user_id === perfilAtual.user_id && !editarAtivo) {
-      const confirmar = window.confirm(
-        "Deseja desativar seu próprio acesso? Isso encerrará sua sessão atual."
-      );
+    const editandoProprioUsuario =
+      usuarioEditando.user_id === perfilAtual.user_id;
+    const removendoAcessoAdministrativo =
+      editarNivel !== "admin" || !editarAtivo;
 
-      if (!confirmar) {
-        return;
-      }
+    if (
+      editandoProprioUsuario &&
+      removendoAcessoAdministrativo
+    ) {
+      setErro(
+        "N\u00e3o \u00e9 permitido desativar ou rebaixar o pr\u00f3prio usu\u00e1rio administrador."
+      );
+      return;
     }
 
     setSalvandoEdicao(true);

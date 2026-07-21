@@ -6,22 +6,33 @@ const niveisPermitidos = new Set(["admin", "gestor", "usuario"]);
 export async function POST(request: Request) {
   try {
     const corpo = await request.json();
-    const { nome, email, senha, nivel } = corpo ?? {};
 
-    if (!nome || !email || !senha || !nivel) {
+    const nome =
+      typeof corpo?.nome === "string" ? corpo.nome.trim() : "";
+    const email =
+      typeof corpo?.email === "string" ? corpo.email.trim() : "";
+    const senha =
+      typeof corpo?.senha === "string" ? corpo.senha : "";
+    const nivelNormalizado =
+      typeof corpo?.nivel === "string"
+        ? corpo.nivel.trim().toLowerCase()
+        : "";
+
+    if (!nome || !email || !senha || !nivelNormalizado) {
       return NextResponse.json(
         { erro: "Nome, e-mail, senha e nível são obrigatórios." },
         { status: 400 }
       );
     }
 
-    const nivelNormalizado = String(nivel).toLowerCase();
-
     if (!niveisPermitidos.has(nivelNormalizado)) {
-      return NextResponse.json({ erro: "Nível inválido." }, { status: 400 });
+      return NextResponse.json(
+        { erro: "Nível inválido." },
+        { status: 400 }
+      );
     }
 
-    if (typeof senha !== "string" || senha.length < 6) {
+    if (senha.length < 6) {
       return NextResponse.json(
         { erro: "A senha deve ter no mínimo 6 caracteres." },
         { status: 400 }
@@ -31,17 +42,31 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ erro: "Token de autenticação ausente." }, { status: 401 });
+      return NextResponse.json(
+        { erro: "Token de autenticação ausente." },
+        { status: 401 }
+      );
     }
 
-    const token = authHeader.substring(7);
+    const token = authHeader.substring(7).trim();
+
+    if (!token) {
+      return NextResponse.json(
+        { erro: "Token de autenticação inválido." },
+        { status: 401 }
+      );
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       return NextResponse.json(
-        { erro: "Configuração do Supabase ausente para criação de usuário." },
+        {
+          erro:
+            "Configuração do Supabase ausente para criação de usuário.",
+        },
         { status: 500 }
       );
     }
@@ -53,11 +78,16 @@ export async function POST(request: Request) {
         },
       },
       auth: {
+        autoRefreshToken: false,
         persistSession: false,
+        detectSessionInUrl: false,
       },
     });
 
-    const { data: userAuthData, error: erroAuth } = await supabaseUsuario.auth.getUser();
+    const {
+      data: userAuthData,
+      error: erroAuth,
+    } = await supabaseUsuario.auth.getUser();
 
     if (erroAuth || !userAuthData.user) {
       return NextResponse.json(
@@ -66,15 +96,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        persistSession: false,
-      },
-    });
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false,
+        },
+      }
+    );
 
-    const { data: perfilSolicitante, error: erroPerfilSolicitante } = await supabaseAdmin
+    const {
+      data: perfilSolicitante,
+      error: erroPerfilSolicitante,
+    } = await supabaseAdmin
       .from("perfis_usuarios")
-      .select("*")
+      .select("user_id,nivel,ativo")
       .eq("user_id", userAuthData.user.id)
       .maybeSingle();
 
@@ -85,11 +124,21 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!perfilSolicitante || perfilSolicitante.ativo !== true || perfilSolicitante.nivel !== "admin") {
-      return NextResponse.json({ erro: "Acesso negado." }, { status: 403 });
+    if (
+      !perfilSolicitante ||
+      perfilSolicitante.ativo !== true ||
+      perfilSolicitante.nivel !== "admin"
+    ) {
+      return NextResponse.json(
+        { erro: "Acesso negado." },
+        { status: 403 }
+      );
     }
 
-    const { data: usuarioCriado, error: erroCriacao } = await supabaseAdmin.auth.admin.createUser({
+    const {
+      data: usuarioCriado,
+      error: erroCriacao,
+    } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: senha,
       email_confirm: true,
@@ -98,37 +147,64 @@ export async function POST(request: Request) {
     if (erroCriacao || !usuarioCriado.user) {
       return NextResponse.json(
         {
-          erro: erroCriacao?.message || "Erro ao criar usuário no Supabase.",
+          erro:
+            erroCriacao?.message ||
+            "Erro ao criar usuário no Supabase.",
         },
         { status: 500 }
       );
     }
 
-    const { error: erroInsercaoPerfil } = await supabaseAdmin.from("perfis_usuarios").insert({
-      user_id: usuarioCriado.user.id,
-      email,
-      nome,
-      nivel: nivelNormalizado,
-      ativo: true,
-    });
+    const {
+      data: perfilCriado,
+      error: erroInsercaoPerfil,
+    } = await supabaseAdmin
+      .from("perfis_usuarios")
+      .insert({
+        user_id: usuarioCriado.user.id,
+        email,
+        nome,
+        nivel: nivelNormalizado,
+        ativo: true,
+      })
+      .select(
+        "id,user_id,email,nome,nivel,ativo,created_at,updated_at"
+      )
+      .single();
 
     if (erroInsercaoPerfil) {
-      await supabaseAdmin.auth.admin.deleteUser(usuarioCriado.user.id);
+      const {
+        error: erroExclusaoCompensatoria,
+      } = await supabaseAdmin.auth.admin.deleteUser(
+        usuarioCriado.user.id
+      );
+
+      if (erroExclusaoCompensatoria) {
+        return NextResponse.json(
+          {
+            erro:
+              "O usuário foi criado no Supabase Auth, mas o perfil não pôde ser salvo e a exclusão compensatória também falhou. Será necessária correção manual. " +
+              `Perfil: ${erroInsercaoPerfil.message}. ` +
+              `Auth: ${erroExclusaoCompensatoria.message}.`,
+          },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json(
-        { erro: "Erro ao criar perfil do usuário: " + erroInsercaoPerfil.message },
+        {
+          erro:
+            "Erro ao criar perfil do usuário. A criação no Supabase Auth foi revertida automaticamente. " +
+            erroInsercaoPerfil.message,
+        },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
-      usuario: {
-        id: usuarioCriado.user.id,
-        email,
-        nome,
-        nivel: nivelNormalizado,
-      },
+      usuario: perfilCriado,
     });
-  } catch (erro) {
+  } catch {
     return NextResponse.json(
       {
         erro: "Erro inesperado ao criar usuário.",
