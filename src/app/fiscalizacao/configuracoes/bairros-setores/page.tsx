@@ -266,17 +266,50 @@ export default function ImportarBairrosSetoresPage() {
       }
     });
 
-    const { data: processos, error: erroProcessos } = await supabase
-      .from("processos")
-      .select("id,sisgep,bairro,setor")
-      .not("bairro", "is", null);
+    const processos: Array<{
+      id: string;
+      sisgep: string;
+      bairro: string | null;
+      setor: string | null;
+    }> = [];
+
+    const tamanhoLoteProcessos = 1000;
+    let inicioProcessos = 0;
+
+    while (true) {
+      const fimProcessos =
+        inicioProcessos + tamanhoLoteProcessos - 1;
+
+      const {
+        data: loteProcessos,
+        error: erroProcessos,
+      } = await supabase
+        .from("processos")
+        .select("id,sisgep,bairro,setor")
+        .not("bairro", "is", null)
+        .order("id", { ascending: true })
+        .range(inicioProcessos, fimProcessos);
+
+      if (erroProcessos) {
+        setVerificando(false);
+        setErro(
+          "Erro ao consultar processos: " + erroProcessos.message
+        );
+        return;
+      }
+
+      const lote = loteProcessos || [];
+
+      processos.push(...lote);
+
+      if (lote.length < tamanhoLoteProcessos) {
+        break;
+      }
+
+      inicioProcessos += tamanhoLoteProcessos;
+    }
 
     setVerificando(false);
-
-    if (erroProcessos) {
-      setErro("Erro ao consultar processos: " + erroProcessos.message);
-      return;
-    }
 
     const divergentes = (processos || [])
       .map((processo) => {
