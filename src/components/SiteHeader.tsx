@@ -1,101 +1,112 @@
 "use client";
 
-import Link from "next/link";
-
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 const navItems = [
-  { label: "Início", href: "/" },
+  { label: "Soluções", href: "/#categorias" },
+  { label: "Projetos", href: "/#projetos" },
+  { label: "Academy", href: "/#academy" },
+  { label: "Loja", href: "/#produtos" },
+  { label: "Novidades", href: "/#novidades" },
   { label: "Sobre", href: "/sobre" },
-  { label: "Soluções", href: "/solucoes" },
-  { label: "Sistemas", href: "/sistemas" },
-  { label: "Gestão", href: "/gestao-de-clientes" },
-  { label: "Contato", href: "/contato" },
 ];
 
 export function SiteHeader() {
   const [menuAberto, setMenuAberto] = useState(false);
 
   return (
-    <header className="relative mx-auto flex max-w-7xl items-center justify-between gap-6">
-      <Link href="/" className="flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-[#082033]/80 p-1.5 shadow-lg shadow-cyan-400/40 ring-1 ring-cyan-300/20">
-          <Image
-            src="/logo-alms-prime.png"
-            alt="Logo ALMS Prime"
-            width={96}
-            height={96}
-            priority
-            className="h-full w-full object-contain drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]"
-          />
-        </div>
-
-        <div>
-          <p className="text-sm font-black tracking-[0.28em] text-white">
-            ALMS PRIME
-          </p>
-          <p className="text-xs text-cyan-100/80">
-            Tecnologia • Gestão • Soluções digitais
-          </p>
-        </div>
-      </Link>
-
-      <nav className="hidden items-center gap-5 text-sm text-slate-200 md:flex">
-        {navItems.map((item) => (
-          <a
-            key={item.href}
-            className="transition hover:text-cyan-200"
-            href={item.href}
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="hidden md:block">
-        <a
-          href="/login"
-          className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-cyan-300/60 hover:bg-cyan-300/10"
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+      <div className="relative mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-6 px-6 sm:px-10 lg:px-8">
+        <Link
+          href="/"
+          onClick={() => setMenuAberto(false)}
+          className="flex min-w-0 items-center gap-4"
         >
-          Área interna
-        </a>
-      </div>
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cyan-300/50 bg-[#06182C] shadow-[0_8px_24px_rgba(9,42,86,0.22)] ring-2 ring-white">
+            <Image
+              src="/logo-alms-prime-oficial.png"
+              alt="Logo oficial da ALMS PRIME"
+              width={1200}
+              height={1200}
+              priority
+              className="h-full w-full scale-[1.78] object-cover object-center"
+            />
+          </div>
 
-      <button
-        type="button"
-        onClick={() => setMenuAberto((valor) => !valor)}
-        className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:border-cyan-300/60 hover:bg-cyan-300/10 md:hidden"
-        aria-expanded={menuAberto}
-        aria-label="Abrir menu de navegação"
-      >
-        Menu
-      </button>
+          <div className="min-w-0">
+            <p className="truncate text-base font-black tracking-[0.18em] text-[#092A56]">
+              ALMS PRIME
+            </p>
+            <p className="hidden truncate text-xs font-semibold text-slate-500 sm:block">
+              Tecnologia, gestão e conhecimento
+            </p>
+          </div>
+        </Link>
 
-      {menuAberto ? (
-        <div className="absolute right-0 top-16 z-50 w-72 rounded-3xl border border-white/10 bg-[#071b2d]/95 p-4 shadow-2xl shadow-black/40 backdrop-blur md:hidden">
-          <nav className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuAberto(false)}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-cyan-300/10 hover:text-cyan-200"
-              >
-                {item.label}
-              </a>
-            ))}
-
-            <a
-              href="/login"
-              onClick={() => setMenuAberto(false)}
-              className="mt-2 rounded-2xl bg-cyan-300 px-4 py-3 text-center text-sm font-black uppercase tracking-wide text-slate-950 transition hover:bg-cyan-200"
+        <nav className="hidden items-center gap-5 text-sm font-bold text-slate-600 lg:flex">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="transition hover:text-[#075BC7]"
             >
-              Área interna
-            </a>
-          </nav>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden lg:block">
+          <Link
+            href="/login"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#075BC7] px-5 py-2.5 text-sm font-black text-white shadow-md shadow-blue-900/10 transition hover:-translate-y-0.5 hover:bg-[#064da8]"
+          >
+            Área do cliente
+          </Link>
         </div>
-      ) : null}
+
+        <button
+          type="button"
+          onClick={() => setMenuAberto((valor) => !valor)}
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white text-[#092A56] transition hover:border-blue-300 hover:bg-blue-50 lg:hidden"
+          aria-expanded={menuAberto}
+          aria-controls="menu-mobile"
+          aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+        >
+          <span className="text-xl font-black" aria-hidden="true">
+            {menuAberto ? "×" : "≡"}
+          </span>
+        </button>
+
+        {menuAberto ? (
+          <div
+            id="menu-mobile"
+            className="absolute left-6 right-6 top-[calc(100%+0.75rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl shadow-blue-950/15 sm:left-10 sm:right-10 lg:hidden"
+          >
+            <nav className="flex flex-col gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuAberto(false)}
+                  className="rounded-xl px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-[#075BC7]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              <Link
+                href="/login"
+                onClick={() => setMenuAberto(false)}
+                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#075BC7] px-5 py-3 text-sm font-black text-white"
+              >
+                Área do cliente
+              </Link>
+            </nav>
+          </div>
+        ) : null}
+      </div>
     </header>
   );
 }

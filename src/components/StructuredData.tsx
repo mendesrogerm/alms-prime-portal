@@ -1,10 +1,10 @@
-﻿export function StructuredData() {
+export function StructuredData() {
   const organizationData = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "ALMS Prime",
     url: "https://www.almsprime.com.br",
-    logo: "https://www.almsprime.com.br/logo-alms-prime.png",
+    logo: "https://www.almsprime.com.br/logo-alms-prime-oficial.png",
     description:
       "A ALMS Prime desenvolve soluções digitais, sistemas de gestão, portais institucionais, automações comerciais, dashboards e projetos sob medida.",
     contactPoint: {
