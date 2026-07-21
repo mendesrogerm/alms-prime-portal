@@ -26,38 +26,80 @@ export function useAnexos({
   >(null);
 
   async function carregarAnexos(listaProcessos: Processo[]) {
-    const ids = listaProcessos
-      .map((processo) => processo.id)
-      .filter((id): id is string => Boolean(id));
+    const ids = Array.from(
+      new Set(
+        listaProcessos
+          .map((processo) => processo.id)
+          .filter((id): id is string => Boolean(id))
+      )
+    );
 
     if (ids.length === 0) {
       setAnexosPorProcesso({});
       return;
     }
 
-    const tamanhoLote = 100;
+    const tamanhoLoteIds = 100;
+    const tamanhoPaginaAnexos = 1000;
     const todosAnexos: Anexo[] = [];
+    let houveErro = false;
 
-    for (let indice = 0; indice < ids.length; indice += tamanhoLote) {
-      const loteIds = ids.slice(indice, indice + tamanhoLote);
+    for (
+      let indice = 0;
+      indice < ids.length;
+      indice += tamanhoLoteIds
+    ) {
+      const loteIds = ids.slice(
+        indice,
+        indice + tamanhoLoteIds
+      );
 
-      const { data, error } = await supabase
-        .from("anexos")
-        .select("*")
-        .in("processo_id", loteIds)
-        .order("created_at", { ascending: false });
+      let inicioPagina = 0;
+      let numeroPagina = 1;
 
-      if (error) {
-        console.error("Erro ao carregar anexos do lote:", {
-          lote: indice / tamanhoLote + 1,
-          quantidadeIds: loteIds.length,
-          error,
-        });
+      while (true) {
+        const fimPagina =
+          inicioPagina + tamanhoPaginaAnexos - 1;
 
-        continue;
+        const { data, error } = await supabase
+          .from("anexos")
+          .select("*")
+          .in("processo_id", loteIds)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(inicioPagina, fimPagina);
+
+        if (error) {
+          console.error("Erro ao carregar anexos:", {
+            lote: indice / tamanhoLoteIds + 1,
+            pagina: numeroPagina,
+            quantidadeIds: loteIds.length,
+            error,
+          });
+
+          houveErro = true;
+          break;
+        }
+
+        const pagina = (data || []) as Anexo[];
+
+        todosAnexos.push(...pagina);
+
+        if (pagina.length < tamanhoPaginaAnexos) {
+          break;
+        }
+
+        inicioPagina += tamanhoPaginaAnexos;
+        numeroPagina += 1;
       }
 
-      todosAnexos.push(...((data || []) as Anexo[]));
+      if (houveErro) {
+        break;
+      }
+    }
+
+    if (houveErro) {
+      return;
     }
 
     const agrupados: Record<string, Anexo[]> = {};
