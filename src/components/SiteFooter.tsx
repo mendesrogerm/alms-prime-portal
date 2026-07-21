@@ -1,114 +1,117 @@
-﻿import Image from "next/image";
+import Image from "next/image";
+import Link from "next/link";
 
-const links = [
+const navigationLinks = [
   { label: "Início", href: "/" },
-  { label: "Sobre", href: "/sobre" },
-  { label: "Soluções", href: "/solucoes" },
-  { label: "Sistemas", href: "/sistemas" },
-  { label: "Gestão de Clientes", href: "/gestao-de-clientes" },
-  { label: "Contato", href: "/contato" },
-  { label: "Privacidade", href: "/politica-de-privacidade" },
-  { label: "Termos de Uso", href: "/termos-de-uso" },
+  { label: "Soluções", href: "/#categorias" },
+  { label: "Projetos", href: "/#projetos" },
+  { label: "ALMS Academy", href: "/#academy" },
+  { label: "Produtos digitais", href: "/#produtos" },
+  { label: "Novidades", href: "/#novidades" },
 ];
 
-const solucoes = [
-  "Sistema de gestão de clientes",
-  "Sistemas de gestão",
-  "Portais institucionais",
-  "Automações comerciais",
-  "Dashboards e relatórios",
-  "Projetos sob medida",
+const institutionalLinks = [
+  { label: "Sobre a ALMS", href: "/sobre" },
+  { label: "Sistemas", href: "/sistemas" },
+  { label: "Contato", href: "/contato" },
+  { label: "Política de privacidade", href: "/politica-de-privacidade" },
+  { label: "Termos de uso", href: "/termos-de-uso" },
 ];
 
 export function SiteFooter() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-slate-200 bg-white px-6 py-12 text-slate-950 sm:px-10 lg:px-16">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]">
+    <footer className="bg-[#071F42] px-6 py-14 text-white sm:px-10 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.25fr_0.75fr_0.75fr_1fr]">
         <div>
-          <a href="/" className="inline-flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-200 bg-[#071b2d] p-1.5 shadow-lg shadow-slate-300/40">
+          <Link href="/" className="inline-flex items-center gap-4">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cyan-300/40 bg-[#06182C] shadow-xl shadow-black/20">
               <Image
-                src="/logo-alms-prime.png"
-                alt="Logo ALMS Prime"
-                width={96}
-                height={96}
-                className="h-full w-full object-contain"
+                src="/logo-alms-prime-oficial.png"
+                alt="Logo oficial da ALMS PRIME"
+                width={1200}
+                height={1200}
+                className="h-full w-full scale-[1.74] object-cover object-center"
               />
             </div>
 
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.28em] text-slate-950">
-                ALMS Prime
+              <p className="text-sm font-black tracking-[0.22em]">
+                ALMS PRIME
               </p>
-              <p className="text-xs font-semibold text-slate-500">
-                Tecnologia • Gestão • Soluções digitais
+              <p className="mt-1 text-xs font-semibold text-blue-200">
+                Tecnologia, gestão e conhecimento
               </p>
             </div>
-          </a>
+          </Link>
 
-          <p className="mt-5 max-w-md leading-7 text-slate-600">
-            Soluções digitais para organizar processos, estruturar operações,
-            criar sistemas, portais, automações e projetos sob medida.
+          <p className="mt-6 max-w-md leading-7 text-blue-100/80">
+            Um ecossistema de sistemas, projetos, conteúdos e produtos digitais
+            criado para transformar necessidades em soluções práticas.
           </p>
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-[0.22em] text-slate-950">
+          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-cyan-200">
             Navegação
           </h3>
 
           <nav className="mt-5 flex flex-col gap-3">
-            {links.map((link) => (
-              <a
+            {navigationLinks.map((link) => (
+              <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-semibold text-slate-600 transition hover:text-cyan-700"
+                className="text-sm font-semibold text-blue-100/80 transition hover:text-white"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-[0.22em] text-slate-950">
-            Soluções
+          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-cyan-200">
+            Institucional
           </h3>
 
-          <div className="mt-5 flex flex-col gap-3">
-            {solucoes.map((item) => (
-              <span key={item} className="text-sm font-semibold text-slate-600">
-                {item}
-              </span>
+          <nav className="mt-5 flex flex-col gap-3">
+            {institutionalLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-semibold text-blue-100/80 transition hover:text-white"
+              >
+                {link.label}
+              </Link>
             ))}
-          </div>
+          </nav>
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-[0.22em] text-slate-950">
-            Contato
+          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-cyan-200">
+            Atendimento
           </h3>
 
-          <p className="mt-5 leading-7 text-slate-600">
-            Fale com a ALMS Prime para conhecer sistemas, solicitar uma
-            demonstração ou iniciar um projeto digital.
+          <p className="mt-5 leading-7 text-blue-100/80">
+            Fale com a equipe para conhecer sistemas, produtos digitais ou
+            apresentar um novo projeto.
           </p>
 
           <a
-            href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20vim%20pelo%20rodap%C3%A9%20do%20site%20da%20ALMS%20Prime%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es."
+            href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20vim%20pelo%20Portal%20ALMS%20PRIME%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es."
             target="_blank"
             rel="noreferrer"
-            className="mt-5 inline-flex rounded-full bg-emerald-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-green-400 px-5 py-3 text-sm font-black text-[#092A56] transition hover:-translate-y-0.5 hover:bg-green-300"
           >
-            Chamar no WhatsApp
+            Fale com nossa equipe
           </a>
         </div>
       </div>
 
-      <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-3 border-t border-slate-200 pt-6 text-sm font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>© 2026 ALMS Prime. Todos os direitos reservados.</p>
-
-        <p>Tecnologia, gestão e soluções digitais.</p>
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-3 border-t border-white/10 pt-7 text-sm font-semibold text-blue-100/60 sm:flex-row sm:items-center sm:justify-between">
+        <p>© {currentYear} ALMS PRIME. Todos os direitos reservados.</p>
+        <p>Sistemas, conhecimento e soluções digitais.</p>
       </div>
     </footer>
   );

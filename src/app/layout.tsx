@@ -1,42 +1,45 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { FloatingWhatsApp } from "../components/FloatingWhatsApp";
 import { StructuredData } from "../components/StructuredData";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: "#071b2d",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.almsprime.com.br"),
   title: {
-    default: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
-    template: "%s | ALMS Prime",
+    default: "ALMS PRIME | Sistemas, Tecnologia e Conhecimento",
+    template: "%s | ALMS PRIME",
   },
   description:
-    "Portal institucional da ALMS Prime. Soluções digitais, sistemas de gestão, automação comercial, dashboards, portais e projetos sob medida.",
-  applicationName: "ALMS Prime",
-  authors: [{ name: "ALMS Prime" }],
-  creator: "ALMS Prime",
-  publisher: "ALMS Prime",
+    "Portal da ALMS PRIME para sistemas, projetos, tecnologia, gestão, ALMS Academy, produtos digitais e conteúdos práticos.",
+  applicationName: "ALMS PRIME",
+  authors: [{ name: "ALMS PRIME" }],
+  creator: "ALMS PRIME",
+  publisher: "ALMS PRIME",
   keywords: [
-    "ALMS Prime",
+    "ALMS PRIME",
     "sistemas de gestão",
     "soluções digitais",
-    "automação comercial",
-    "portal institucional",
-    "dashboard",
-    "gestão de clientes",
-    "gestão comercial",
     "tecnologia para negócios",
+    "inteligência artificial",
+    "ALMS Academy",
+    "cursos digitais",
+    "e-books",
+    "gestão de clientes",
+    "automação comercial",
+    "projetos digitais",
   ],
   openGraph: {
-    title: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
+    title: "ALMS PRIME | Sistemas, Tecnologia e Conhecimento",
     description:
-      "Soluções digitais, sistemas de gestão, automação comercial, dashboards, portais e projetos sob medida.",
+      "Sistemas, projetos, produtos digitais e conhecimento reunidos em um único ecossistema.",
     url: "https://www.almsprime.com.br",
-    siteName: "ALMS Prime",
+    siteName: "ALMS PRIME",
     locale: "pt_BR",
     type: "website",
     images: [
@@ -44,15 +47,15 @@ export const metadata: Metadata = {
         url: "/og-alms-prime.png",
         width: 1200,
         height: 630,
-        alt: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
+        alt: "ALMS PRIME | Sistemas, Tecnologia e Conhecimento",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ALMS Prime | Tecnologia, Gestão e Soluções Digitais",
+    title: "ALMS PRIME | Sistemas, Tecnologia e Conhecimento",
     description:
-      "Portal institucional da ALMS Prime para sistemas, soluções digitais e projetos sob medida.",
+      "Sistemas, projetos, produtos digitais e conhecimento em um único portal.",
     images: ["/og-alms-prime.png"],
   },
   robots: {
@@ -60,9 +63,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/logo-alms-prime.png",
-    shortcut: "/logo-alms-prime.png",
-    apple: "/logo-alms-prime.png",
+    icon: "/logo-alms-prime-oficial.png",
+    shortcut: "/logo-alms-prime-oficial.png",
+    apple: "/logo-alms-prime-oficial.png",
   },
 };
 
@@ -73,7 +76,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full bg-white text-slate-950">
         <StructuredData />
         {children}
         <FloatingWhatsApp />

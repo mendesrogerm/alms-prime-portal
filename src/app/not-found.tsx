@@ -1,4 +1,5 @@
-﻿import { SiteFooter } from "../components/SiteFooter";
+import Link from "next/link";
+import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 
 export default function NotFound() {
@@ -25,12 +26,12 @@ export default function NotFound() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <a
+              <Link
                 href="/"
                 className="rounded-full bg-cyan-300 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-cyan-200"
               >
                 Voltar ao início
-              </a>
+              </Link>
 
               <a
                 href="/sistemas"
