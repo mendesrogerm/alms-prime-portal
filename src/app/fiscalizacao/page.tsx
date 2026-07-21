@@ -122,7 +122,11 @@ export default function FiscalizacaoPage() {
   const [historicoProcesso, setHistoricoProcesso] = useState<
     AuditoriaProcesso[]
   >([]);
+  const tamanhoPaginaHistorico = 100;
   const [carregandoHistorico, setCarregandoHistorico] = useState(false);
+  const [carregandoMaisHistorico, setCarregandoMaisHistorico] =
+    useState(false);
+  const [haMaisHistorico, setHaMaisHistorico] = useState(false);
   const [erroHistorico, setErroHistorico] = useState("");
 
   const [processoEdicao, setProcessoEdicao] = useState<NovoProcessoForm>({
@@ -322,27 +326,105 @@ export default function FiscalizacaoPage() {
     router.push("/login");
   }
 
-  async function abrirHistoricoProcesso(processo: Processo) {
-    setProcessoHistorico(processo);
-    setHistoricoProcesso([]);
-    setErroHistorico("");
-    setModalHistoricoAberto(true);
-    setCarregandoHistorico(true);
+  async function consultarPaginaHistorico(
+    processoId: string,
+    inicio: number
+  ) {
+    const fim = inicio + tamanhoPaginaHistorico;
 
     const { data, error } = await supabase
       .from("auditoria_processos")
       .select("*")
-      .eq("processo_id", processo.id)
-      .order("created_at", { ascending: false });
+      .eq("processo_id", processoId)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(inicio, fim);
+
+    const registrosRecebidos = (data || []) as AuditoriaProcesso[];
+
+    return {
+      registros: registrosRecebidos.slice(
+        0,
+        tamanhoPaginaHistorico
+      ),
+      haMais:
+        registrosRecebidos.length > tamanhoPaginaHistorico,
+      error,
+    };
+  }
+
+  async function abrirHistoricoProcesso(processo: Processo) {
+    setProcessoHistorico(processo);
+    setHistoricoProcesso([]);
+    setErroHistorico("");
+    setHaMaisHistorico(false);
+    setCarregandoMaisHistorico(false);
+    setModalHistoricoAberto(true);
+    setCarregandoHistorico(true);
+
+    const {
+      registros,
+      haMais,
+      error,
+    } = await consultarPaginaHistorico(processo.id, 0);
 
     setCarregandoHistorico(false);
 
     if (error) {
-      setErroHistorico("Erro ao carregar histórico: " + error.message);
+      setErroHistorico(
+        "Erro ao carregar histÃ³rico: " + error.message
+      );
       return;
     }
 
-    setHistoricoProcesso((data || []) as AuditoriaProcesso[]);
+    setHistoricoProcesso(registros);
+    setHaMaisHistorico(haMais);
+  }
+
+  async function carregarMaisHistorico() {
+    if (
+      !processoHistorico ||
+      carregandoHistorico ||
+      carregandoMaisHistorico ||
+      !haMaisHistorico
+    ) {
+      return;
+    }
+
+    setCarregandoMaisHistorico(true);
+    setErroHistorico("");
+
+    const {
+      registros,
+      haMais,
+      error,
+    } = await consultarPaginaHistorico(
+      processoHistorico.id,
+      historicoProcesso.length
+    );
+
+    setCarregandoMaisHistorico(false);
+
+    if (error) {
+      setErroHistorico(
+        "Erro ao carregar mais registros: " + error.message
+      );
+      return;
+    }
+
+    setHistoricoProcesso((historicoAtual) => {
+      const idsExistentes = new Set(
+        historicoAtual.map((item) => item.id)
+      );
+
+      const novosRegistros = registros.filter(
+        (item) => !idsExistentes.has(item.id)
+      );
+
+      return [...historicoAtual, ...novosRegistros];
+    });
+
+    setHaMaisHistorico(haMais);
   }
 
   function fecharHistoricoProcesso() {
@@ -351,6 +433,8 @@ export default function FiscalizacaoPage() {
     setHistoricoProcesso([]);
     setErroHistorico("");
     setCarregandoHistorico(false);
+    setCarregandoMaisHistorico(false);
+    setHaMaisHistorico(false);
   }
 
   function alterarTipoFiltroPeriodo(valor: TipoFiltroPeriodo) {
@@ -3760,33 +3844,61 @@ const arquivo = new Blob(["\uFEFF" + conteudoCsv], {
               )}
 
               {!carregandoHistorico && historicoProcesso.length > 0 && (
-                <div className="space-y-4">
-                  {historicoProcesso.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">
-                            {rotuloAcaoAuditoria(item.acao)}
-                          </p>
+                <div>
+                  <div className="space-y-4">
+                    {historicoProcesso.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-slate-800">
+                              {rotuloAcaoAuditoria(item.acao)}
+                            </p>
 
-                          <p className="mt-1 text-sm text-slate-600">
-                            {item.descricao || "Sem descrição."}
-                          </p>
+                            <p className="mt-1 text-sm text-slate-600">
+                              {item.descricao || "Sem descriÃ§Ã£o."}
+                            </p>
+                          </div>
+
+                          <span className="text-xs font-semibold text-slate-500">
+                            {formatarDataHora(item.created_at)}
+                          </span>
                         </div>
 
-                        <span className="text-xs font-semibold text-slate-500">
-                          {formatarDataHora(item.created_at)}
-                        </span>
+                        <div className="mt-3 text-xs text-slate-500">
+                          UsuÃ¡rio:{" "}
+                          {item.usuario_nome ||
+                            item.usuario_email ||
+                            "---"}
+                        </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div className="mt-3 text-xs text-slate-500">
-                        Usuário: {item.usuario_nome || item.usuario_email || "---"}
-                      </div>
-                    </div>
-                  ))}
+                  <div className="mt-5 flex flex-col items-center gap-3 border-t border-slate-200 pt-4">
+                    <p className="text-xs font-semibold text-slate-500">
+                      {historicoProcesso.length} registro(s) carregado(s).
+                    </p>
+
+                    {haMaisHistorico ? (
+                      <button
+                        type="button"
+                        onClick={() => void carregarMaisHistorico()}
+                        disabled={carregandoMaisHistorico}
+                        className="rounded-lg bg-blue-800 px-5 py-2 text-sm font-bold text-white hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {carregandoMaisHistorico
+                          ? "Carregando..."
+                          : "Carregar mais histÃ³rico"}
+                      </button>
+                    ) : (
+                      <p className="text-xs font-semibold text-green-700">
+                        Todo o histÃ³rico foi carregado.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
