@@ -1,4 +1,6 @@
-﻿"use client";
+"use client";
+
+import Link from "next/link";
 
 import Image from "next/image";
 import { useState } from "react";
@@ -17,7 +19,7 @@ export function SiteHeader() {
 
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between gap-6">
-      <a href="/" className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-cyan-300/40 bg-[#082033]/80 p-1.5 shadow-lg shadow-cyan-400/40 ring-1 ring-cyan-300/20">
           <Image
             src="/logo-alms-prime.png"
@@ -37,7 +39,7 @@ export function SiteHeader() {
             Tecnologia • Gestão • Soluções digitais
           </p>
         </div>
-      </a>
+      </Link>
 
       <nav className="hidden items-center gap-5 text-sm text-slate-200 md:flex">
         {navItems.map((item) => (
