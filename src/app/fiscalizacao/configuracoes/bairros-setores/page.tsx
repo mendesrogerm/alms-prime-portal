@@ -170,22 +170,53 @@ export default function ImportarBairrosSetoresPage() {
     }
   }
 
+  async function buscarTodosBairrosSetores(): Promise<BairroSetor[]> {
+    const tamanhoLote = 1000;
+    const todosBairros: BairroSetor[] = [];
+    let inicio = 0;
+
+    while (true) {
+      const fim = inicio + tamanhoLote - 1;
+
+      const { data, error } = await supabase
+        .from("bairros_setores")
+        .select("id,bairro,bairro_normalizado,setor")
+        .order("bairro", { ascending: true })
+        .order("bairro_normalizado", { ascending: true })
+        .order("id", { ascending: true })
+        .range(inicio, fim);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const lote = (data || []) as BairroSetor[];
+      todosBairros.push(...lote);
+
+      if (lote.length < tamanhoLote) {
+        break;
+      }
+
+      inicio += tamanhoLote;
+    }
+
+    return todosBairros;
+  }
+
   async function carregarBairrosSetores() {
     setCarregandoTabela(true);
 
-    const { data, error } = await supabase
-      .from("bairros_setores")
-      .select("*")
-      .order("bairro", { ascending: true });
-
-    setCarregandoTabela(false);
-
-    if (error) {
-      setErro("Erro ao carregar bairros e setores: " + error.message);
-      return;
+    try {
+      const bairros = await buscarTodosBairrosSetores();
+      setBairrosCadastrados(bairros);
+    } catch (error) {
+      setErro(
+        "Erro ao carregar bairros e setores: " +
+          (error instanceof Error ? error.message : "erro desconhecido")
+      );
+    } finally {
+      setCarregandoTabela(false);
     }
-
-    setBairrosCadastrados((data || []) as BairroSetor[]);
   }
 
   async function importarBairrosSetores() {
@@ -219,15 +250,24 @@ export default function ImportarBairrosSetoresPage() {
     for (let i = 0; i < registrosUnicos.length; i += tamanhoLote) {
       const lote = registrosUnicos.slice(i, i + tamanhoLote);
 
-      const { error } = await supabase
+      const { data: registrosSalvos, error } = await supabase
         .from("bairros_setores")
         .upsert(lote, {
           onConflict: "bairro_normalizado",
-        });
+        })
+        .select("id");
 
       if (error) {
         setImportando(false);
         setErro("Erro ao importar bairros e setores: " + error.message);
+        return;
+      }
+
+      if ((registrosSalvos || []).length !== lote.length) {
+        setImportando(false);
+        setErro(
+          "A importação não confirmou todos os registros do lote atual."
+        );
         return;
       }
     }
@@ -245,13 +285,16 @@ export default function ImportarBairrosSetoresPage() {
     setMensagem("");
     setDivergencias([]);
 
-    const { data: bairros, error: erroBairros } = await supabase
-      .from("bairros_setores")
-      .select("bairro,bairro_normalizado,setor");
+    let bairros: BairroSetor[] = [];
 
-    if (erroBairros) {
+    try {
+      bairros = await buscarTodosBairrosSetores();
+    } catch (error) {
       setVerificando(false);
-      setErro("Erro ao consultar bairros e setores: " + erroBairros.message);
+      setErro(
+        "Erro ao consultar bairros e setores: " +
+          (error instanceof Error ? error.message : "erro desconhecido")
+      );
       return;
     }
 
@@ -367,6 +410,8 @@ export default function ImportarBairrosSetoresPage() {
               updated_at: new Date().toISOString(),
             })
             .eq("id", processo.id)
+            .select("id")
+            .single()
         )
       );
 

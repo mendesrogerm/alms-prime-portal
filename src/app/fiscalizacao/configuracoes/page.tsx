@@ -115,17 +115,39 @@ export default function ConfiguracoesPage() {
   }
 
   async function carregarBairrosSetores() {
-    const { data, error } = await supabase
-      .from("bairros_setores")
-      .select("*")
-      .order("bairro", { ascending: true });
+    const tamanhoLote = 1000;
+    const todosBairros: BairroSetor[] = [];
+    let inicio = 0;
 
-    if (error) {
-      setErro("Erro ao carregar bairros e setores: " + error.message);
-      return;
+    while (true) {
+      const fim = inicio + tamanhoLote - 1;
+
+      const { data, error } = await supabase
+        .from("bairros_setores")
+        .select(
+          "id,bairro,bairro_normalizado,setor,created_at"
+        )
+        .order("bairro", { ascending: true })
+        .order("bairro_normalizado", { ascending: true })
+        .order("id", { ascending: true })
+        .range(inicio, fim);
+
+      if (error) {
+        setErro("Erro ao carregar bairros e setores: " + error.message);
+        return;
+      }
+
+      const lote = (data || []) as BairroSetor[];
+      todosBairros.push(...lote);
+
+      if (lote.length < tamanhoLote) {
+        break;
+      }
+
+      inicio += tamanhoLote;
     }
 
-    setBairrosSetores(data || []);
+    setBairrosSetores(todosBairros);
   }
 
   async function salvarBairroSetor(event: React.FormEvent<HTMLFormElement>) {
@@ -152,16 +174,20 @@ export default function ConfiguracoesPage() {
     const setorFormatado = setor.trim();
     const bairroNormalizado = normalizarTexto(bairroFormatado);
 
-    const { error } = await supabase.from("bairros_setores").upsert(
-      {
-        bairro: bairroFormatado,
-        bairro_normalizado: bairroNormalizado,
-        setor: setorFormatado,
-      },
-      {
-        onConflict: "bairro_normalizado",
-      }
-    );
+    const { error } = await supabase
+      .from("bairros_setores")
+      .upsert(
+        {
+          bairro: bairroFormatado,
+          bairro_normalizado: bairroNormalizado,
+          setor: setorFormatado,
+        },
+        {
+          onConflict: "bairro_normalizado",
+        }
+      )
+      .select("id")
+      .single();
 
     setSalvando(false);
 

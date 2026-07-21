@@ -638,19 +638,64 @@ export default function FiscalizacaoPage() {
   async function carregarOpcoesBairrosSetores() {
     setCarregandoBairrosSetores(true);
 
-    const { data, error } = await supabase
-      .from("bairros_setores")
-      .select("bairro,setor")
-      .order("bairro", { ascending: true });
+    const tamanhoLote = 1000;
+    const todasOpcoes: BairroSetorOpcao[] = [];
+    let inicio = 0;
 
-    setCarregandoBairrosSetores(false);
+    try {
+      while (true) {
+        const fim = inicio + tamanhoLote - 1;
 
-    if (error) {
-      setMensagemCorrecaoLocalizacao("Erro ao carregar bairros/setores: " + error.message);
-      return;
+        const { data, error } = await supabase
+          .from("bairros_setores")
+          .select("bairro,bairro_normalizado,setor")
+          .order("bairro", { ascending: true })
+          .order("bairro_normalizado", { ascending: true })
+          .range(inicio, fim);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const lote = (data || []) as Array<{
+          bairro: string | null;
+          bairro_normalizado: string | null;
+          setor: string | null;
+        }>;
+
+        todasOpcoes.push(
+          ...lote
+            .filter(
+              (
+                item
+              ): item is {
+                bairro: string;
+                bairro_normalizado: string | null;
+                setor: string;
+              } => Boolean(item.bairro && item.setor)
+            )
+            .map((item) => ({
+              bairro: item.bairro,
+              setor: item.setor,
+            }))
+        );
+
+        if (lote.length < tamanhoLote) {
+          break;
+        }
+
+        inicio += tamanhoLote;
+      }
+
+      setOpcoesBairrosSetores(todasOpcoes);
+    } catch (error) {
+      setMensagemCorrecaoLocalizacao(
+        "Erro ao carregar bairros/setores: " +
+          (error instanceof Error ? error.message : "erro desconhecido")
+      );
+    } finally {
+      setCarregandoBairrosSetores(false);
     }
-
-    setOpcoesBairrosSetores((data || []) as BairroSetorOpcao[]);
   }
 
   async function salvarCorrecaoLocalizacao() {
