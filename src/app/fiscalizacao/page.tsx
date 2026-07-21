@@ -229,6 +229,39 @@ export default function FiscalizacaoPage() {
     registrarAuditoriaProcesso,
   });
 
+  async function carregarTodosProcessos(): Promise<Processo[]> {
+    const tamanhoLote = 1000;
+    const todosOsProcessos: Processo[] = [];
+
+    let inicio = 0;
+
+    while (true) {
+      const fim = inicio + tamanhoLote - 1;
+
+      const { data, error } = await supabase
+        .from("processos")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(inicio, fim);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const lote = (data ?? []) as Processo[];
+
+      todosOsProcessos.push(...lote);
+
+      if (lote.length < tamanhoLote) {
+        break;
+      }
+
+      inicio += tamanhoLote;
+    }
+
+    return todosOsProcessos;
+  }
   async function verificarLoginECarregarProcessos() {
     setCarregando(true);
     setErro("");
@@ -263,18 +296,20 @@ export default function FiscalizacaoPage() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("processos")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let processosCarregados: Processo[] = [];
 
-    if (error) {
-      setErro("Erro ao carregar processos: " + error.message);
+    try {
+      processosCarregados = await carregarTodosProcessos();
+    } catch (error) {
+      const mensagem =
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao carregar processos.";
+
+      setErro("Erro ao carregar processos: " + mensagem);
       setCarregando(false);
       return;
     }
-
-    const processosCarregados = data || [];
 
     setProcessos(processosCarregados);
     await carregarAnexos(processosCarregados);
