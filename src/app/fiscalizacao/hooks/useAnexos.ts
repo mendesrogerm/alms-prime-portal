@@ -162,12 +162,33 @@ export function useAnexos({
       .select()
       .single();
 
-    setEnviandoAnexoProcessoId(null);
-
     if (erroBanco) {
-      alert("Arquivo enviado, mas erro ao salvar vínculo: " + erroBanco.message);
+      const { error: erroLimpezaStorage } = await supabase.storage
+        .from("anexos-processos")
+        .remove([caminhoArquivo]);
+
+      setEnviandoAnexoProcessoId(null);
+
+      if (erroLimpezaStorage) {
+        alert(
+          "Não foi possível salvar o vínculo do anexo. " +
+            "O arquivo também não pôde ser removido automaticamente do Storage. " +
+            "Será necessária uma limpeza manual. " +
+            `Banco: ${erroBanco.message}. ` +
+            `Storage: ${erroLimpezaStorage.message}.`
+        );
+        return;
+      }
+
+      alert(
+        "Não foi possível salvar o vínculo do anexo. " +
+          "O upload foi revertido automaticamente. " +
+          erroBanco.message
+      );
       return;
     }
+
+    setEnviandoAnexoProcessoId(null);
 
     if (data) {
       setAnexosPorProcesso((atual) => ({
@@ -184,7 +205,10 @@ export function useAnexos({
     }
   }
 
-  async function excluirAnexo(processoOuAnexo: Processo | Anexo, anexoOpcional?: Anexo) {
+  async function excluirAnexo(
+    processoOuAnexo: Processo | Anexo,
+    anexoOpcional?: Anexo
+  ) {
     const anexo = anexoOpcional ?? (processoOuAnexo as Anexo);
     const processo = anexoOpcional
       ? (processoOuAnexo as Processo)
@@ -204,23 +228,79 @@ export function useAnexos({
 
     if (!confirmar) return;
 
+    const { error: erroBanco } = await supabase
+      .from("anexos")
+      .delete()
+      .eq("id", anexo.id)
+      .select("id")
+      .single();
+
+    if (erroBanco) {
+      alert(
+        "Não foi possível remover o vínculo do anexo: " +
+          erroBanco.message
+      );
+      return;
+    }
+
     const { error: erroStorage } = await supabase.storage
       .from("anexos-processos")
       .remove([anexo.url]);
 
     if (erroStorage) {
-      alert("Erro ao excluir arquivo: " + erroStorage.message);
-      return;
-    }
+      const {
+        data: anexoRestaurado,
+        error: erroRestauracao,
+      } = await supabase
+        .from("anexos")
+        .insert({
+          processo_id: anexo.processo_id,
+          processo_sisgep: anexo.processo_sisgep,
+          nome_arquivo: anexo.nome_arquivo,
+          url: anexo.url,
+          mime_type: anexo.mime_type,
+          tamanho_bytes: anexo.tamanho_bytes,
+        })
+        .select()
+        .single();
 
-    const { error: erroBanco } = await supabase
-      .from("anexos")
-      .delete()
-      .eq("id", anexo.id);
+      if (!erroRestauracao && anexoRestaurado) {
+        setAnexosPorProcesso((atual) => {
+          const listaAtual = atual[anexo.processo_id] || [];
 
-    if (erroBanco) {
+          return {
+            ...atual,
+            [anexo.processo_id]: listaAtual.map((item) =>
+              item.id === anexo.id ? anexoRestaurado : item
+            ),
+          };
+        });
+
+        alert(
+          "Não foi possível excluir o arquivo do Storage. " +
+            "O vínculo foi restaurado automaticamente e o anexo continua disponível. " +
+            erroStorage.message
+        );
+        return;
+      }
+
+      setAnexosPorProcesso((atual) => {
+        const listaAtual = atual[anexo.processo_id] || [];
+
+        return {
+          ...atual,
+          [anexo.processo_id]: listaAtual.filter(
+            (item) => item.id !== anexo.id
+          ),
+        };
+      });
+
       alert(
-        "Arquivo excluído, mas erro ao remover registro: " + erroBanco.message
+        "O vínculo foi removido do banco, mas o arquivo não pôde ser excluído do Storage " +
+          "e a restauração automática também falhou. " +
+          "O arquivo poderá precisar de limpeza manual. " +
+          `Storage: ${erroStorage.message}. ` +
+          `Restauração: ${erroRestauracao?.message || "erro desconhecido"}.`
       );
       return;
     }
@@ -230,7 +310,9 @@ export function useAnexos({
 
       return {
         ...atual,
-        [anexo.processo_id]: listaAtual.filter((item) => item.id !== anexo.id),
+        [anexo.processo_id]: listaAtual.filter(
+          (item) => item.id !== anexo.id
+        ),
       };
     });
 
