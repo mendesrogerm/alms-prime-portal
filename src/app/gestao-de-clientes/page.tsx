@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
 
@@ -226,7 +226,7 @@ export default function GestaoDeClientesPage() {
                 <a
                   href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="rounded-full bg-emerald-400 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-slate-950 shadow-2xl shadow-emerald-950/20 transition hover:-translate-y-1 hover:bg-emerald-300"
                 >
                   Solicitar demonstração
@@ -401,7 +401,7 @@ export default function GestaoDeClientesPage() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20sair%20da%20planilha%20e%20conhecer%20o%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-7 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
             >
               Quero organizar minha operação
@@ -470,7 +470,7 @@ export default function GestaoDeClientesPage() {
               <a
                 href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20entender%20como%20o%20sistema%20ALMS%20Prime%20pode%20ajudar%20a%20reduzir%20perdas%20na%20minha%20opera%C3%A7%C3%A3o."
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="mt-8 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
               >
                 Reduzir perdas agora
@@ -621,7 +621,7 @@ export default function GestaoDeClientesPage() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="w-fit rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
             >
               Agendar demonstração
@@ -669,7 +669,7 @@ export default function GestaoDeClientesPage() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20quero%20uma%20demonstra%C3%A7%C3%A3o%20do%20sistema%20ALMS%20Prime%20Gest%C3%A3o%20de%20Clientes."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-8 inline-flex rounded-full bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
             >
               Chamar no WhatsApp

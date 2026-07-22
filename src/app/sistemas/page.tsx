@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -171,7 +171,7 @@ export default function SistemasPage() {
               key={sistema.nome}
               href={sistema.href}
               target={sistema.externo ? "_blank" : undefined}
-              rel={sistema.externo ? "noreferrer" : undefined}
+              rel={sistema.externo ? "noopener noreferrer" : undefined}
               className={`group rounded-[2rem] border bg-white p-7 shadow-xl shadow-slate-300/30 transition hover:-translate-y-1 hover:shadow-2xl ${
                 sistema.destaque
                   ? "border-cyan-300/60"
@@ -244,7 +244,7 @@ export default function SistemasPage() {
               <a
                 href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20criar%20um%20sistema%20sob%20medida%20com%20a%20ALMS%20Prime."
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="mt-8 inline-flex rounded-full bg-emerald-400 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
               >
                 Conversar pelo WhatsApp

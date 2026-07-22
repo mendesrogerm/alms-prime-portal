@@ -18,18 +18,33 @@ const indicadores = [
 
 export function PortalHero() {
   return (
-    <section className="portal-grid relative overflow-hidden border-b border-slate-200 bg-white">
-      <div className="absolute -left-32 top-12 h-72 w-72 rounded-full bg-blue-100/70 blur-3xl" />
-      <div className="absolute -right-28 bottom-0 h-80 w-80 rounded-full bg-cyan-100/70 blur-3xl" />
+    <section
+      aria-labelledby="portal-hero-title"
+      className="portal-grid relative overflow-hidden border-b border-slate-200 bg-white"
+    >
+      <div
+        aria-hidden="true"
+        className="absolute -left-32 top-12 h-72 w-72 rounded-full bg-blue-100/70 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute -right-28 bottom-0 h-80 w-80 rounded-full bg-cyan-100/70 blur-3xl"
+      />
 
       <div className="relative mx-auto grid max-w-7xl gap-14 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[1.04fr_0.96fr] lg:items-center lg:px-8 lg:py-16 xl:py-20">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-800">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-full bg-green-500"
+            />
             Portal ALMS PRIME
           </div>
 
-          <h1 className="mt-7 max-w-3xl text-4xl font-black leading-[1.03] tracking-[-0.04em] text-[#092A56] sm:text-5xl lg:text-[3.35rem] xl:text-6xl">
+          <h1
+            id="portal-hero-title"
+            className="mt-7 max-w-3xl text-4xl font-black leading-[1.03] tracking-[-0.04em] text-[#092A56] sm:text-5xl lg:text-[3.35rem] xl:text-6xl"
+          >
             Tecnologia, gestão e conhecimento em um só ecossistema.
           </h1>
 
@@ -73,7 +88,10 @@ export function PortalHero() {
         </div>
 
         <div className="relative">
-          <div className="absolute -inset-5 rounded-[2.5rem] bg-blue-200/40 blur-3xl" />
+          <div
+            aria-hidden="true"
+            className="absolute -inset-5 rounded-[2.5rem] bg-blue-200/40 blur-3xl"
+          />
 
           <div className="relative overflow-hidden rounded-[2rem] border border-blue-900/10 bg-[#092A56] p-5 shadow-2xl shadow-blue-950/20 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-5">
@@ -84,6 +102,7 @@ export function PortalHero() {
                     alt="Logo oficial da ALMS PRIME"
                     width={1200}
                     height={1200}
+                    sizes="80px"
                     priority
                     className="h-full w-full scale-[1.74] object-cover object-center"
                   />
@@ -141,14 +160,20 @@ export function PortalHero() {
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xl font-black text-[#075BC7]">
+                <div
+                  aria-hidden="true"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xl font-black text-[#075BC7]"
+                >
                   +
                 </div>
               </div>
             </div>
 
             <div className="mt-5 flex items-center gap-3 text-sm text-blue-100">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-400/15 text-green-200">
+              <span
+                aria-hidden="true"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-green-400/15 text-green-200"
+              >
                 ✓
               </span>
               Projetos, produtos e conteúdos centralizados.

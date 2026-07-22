@@ -25,13 +25,18 @@ export function SiteFooter() {
     <footer className="bg-[#071F42] px-6 py-14 text-white sm:px-10 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.25fr_0.75fr_0.75fr_1fr]">
         <div>
-          <Link href="/" className="inline-flex items-center gap-4">
+          <Link
+            href="/"
+            aria-label="Ir para a página inicial da ALMS PRIME"
+            className="inline-flex items-center gap-4"
+          >
             <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cyan-300/40 bg-[#06182C] shadow-xl shadow-black/20">
               <Image
                 src="/logo-alms-prime-oficial.png"
                 alt="Logo oficial da ALMS PRIME"
                 width={1200}
                 height={1200}
+                sizes="80px"
                 className="h-full w-full scale-[1.74] object-cover object-center"
               />
             </div>
@@ -57,7 +62,10 @@ export function SiteFooter() {
             Navegação
           </h3>
 
-          <nav className="mt-5 flex flex-col gap-3">
+          <nav
+            aria-label="Navegação do rodapé"
+            className="mt-5 flex flex-col gap-3"
+          >
             {navigationLinks.map((link) => (
               <Link
                 key={link.href}
@@ -75,7 +83,10 @@ export function SiteFooter() {
             Institucional
           </h3>
 
-          <nav className="mt-5 flex flex-col gap-3">
+          <nav
+            aria-label="Links institucionais"
+            className="mt-5 flex flex-col gap-3"
+          >
             {institutionalLinks.map((link) => (
               <Link
                 key={link.href}
@@ -101,7 +112,7 @@ export function SiteFooter() {
           <a
             href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20vim%20pelo%20Portal%20ALMS%20PRIME%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es."
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-green-400 px-5 py-3 text-sm font-black text-[#092A56] transition hover:-translate-y-0.5 hover:bg-green-300"
           >
             Fale com nossa equipe
