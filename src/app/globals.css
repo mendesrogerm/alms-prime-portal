@@ -79,3 +79,10 @@ button:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+/* WHATSAPP EM TELAS MOVEIS BAIXAS
+   Evita que o botao flutuante cubra CTAs em viewports com pouca altura. */
+@media (max-width: 640px) and (max-height: 700px) {
+  .floating-whatsapp {
+    display: none;
+  }
+}

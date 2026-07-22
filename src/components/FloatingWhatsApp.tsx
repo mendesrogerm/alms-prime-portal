@@ -6,7 +6,7 @@ export function FloatingWhatsApp() {
       rel="noreferrer"
       aria-label="Falar com a ALMS PRIME pelo WhatsApp"
       title="Falar com a ALMS PRIME pelo WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-[#25D366] text-white shadow-2xl shadow-emerald-950/30 transition hover:-translate-y-1 hover:scale-105 hover:bg-[#20bd5a]"
+      className="floating-whatsapp fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-[#25D366] text-white shadow-2xl shadow-emerald-950/30 transition hover:-translate-y-1 hover:scale-105 hover:bg-[#20bd5a]"
     >
       <svg
         aria-hidden="true"
