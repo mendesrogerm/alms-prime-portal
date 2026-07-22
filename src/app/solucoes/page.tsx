@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -187,7 +187,7 @@ export default function SolucoesPage() {
               <a
                 href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20vim%20pela%20p%C3%A1gina%20de%20solu%C3%A7%C3%B5es%20da%20ALMS%20Prime%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="mt-8 inline-flex rounded-full bg-emerald-400 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
               >
                 Conversar sobre projeto
@@ -236,7 +236,7 @@ export default function SolucoesPage() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20criar%20uma%20solu%C3%A7%C3%A3o%20digital%20com%20a%20ALMS%20Prime."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="rounded-full bg-emerald-400 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
             >
               Chamar no WhatsApp

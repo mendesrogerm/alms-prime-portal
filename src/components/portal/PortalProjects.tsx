@@ -49,7 +49,7 @@ function ProjectAction({ project }: { project: PortalProject }) {
       <a
         href={project.href}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer"
         className={`${className} ${accentStyles[project.accent].button}`}
       >
         Conhecer projeto

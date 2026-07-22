@@ -190,7 +190,7 @@ export default function MapaProcessos({ processos }: MapaProcessosProps) {
                   <a
                     href={processo.mapa_link}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     style={{
                       display: "inline-block",
                       marginTop: 10,

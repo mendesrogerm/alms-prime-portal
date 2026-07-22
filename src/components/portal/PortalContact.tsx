@@ -27,7 +27,7 @@ export function PortalContact() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20vim%20pelo%20Portal%20ALMS%20PRIME%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex min-h-12 items-center justify-center rounded-xl bg-green-400 px-6 py-3 text-center text-sm font-black text-[#092A56] transition hover:-translate-y-0.5 hover:bg-green-300"
             >
               Chamar no WhatsApp

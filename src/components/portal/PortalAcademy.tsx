@@ -122,7 +122,7 @@ export function PortalAcademy() {
                 <a
                   href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20o%20curso%20ChatGPT%20do%20Zero%20ao%20Avan%C3%A7ado."
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#075BC7] px-6 py-3 text-center text-sm font-black text-white transition hover:bg-[#064da8]"
                 >
                   Quero conhecer o curso

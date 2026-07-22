@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { PageHero } from "../../components/PageHero";
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
@@ -67,7 +67,7 @@ export default function ContatoPage() {
               key={canal.titulo}
               href={canal.href}
               target={canal.href.startsWith("http") ? "_blank" : undefined}
-              rel={canal.href.startsWith("http") ? "noreferrer" : undefined}
+              rel={canal.href.startsWith("http") ? "noopener noreferrer" : undefined}
               className="group rounded-[2rem] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-300/30 transition hover:-translate-y-1 hover:border-cyan-300/50 hover:shadow-2xl hover:shadow-cyan-900/10"
             >
               <div className="mb-5 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-700">
@@ -108,7 +108,7 @@ export default function ContatoPage() {
             <a
               href="https://wa.me/5511964073364?text=Ol%C3%A1%2C%20gostaria%20de%20conversar%20sobre%20um%20projeto%20sob%20medida%20com%20a%20ALMS%20Prime."
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-8 inline-flex rounded-full bg-emerald-400 px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-1 hover:bg-emerald-300"
             >
               Solicitar projeto
